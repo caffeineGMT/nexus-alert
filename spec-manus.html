@@ -1,0 +1,1032 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NEXUS Alert — Product Spec</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0a0a0a;--surface:#111111;--surface2:#1a1a1a;--border:#222222;--border-hover:#333333;
+  --text:#e5e5e5;--text-muted:#888888;--text-dim:#555555;
+  --blue:#3b82f6;--green:#22c55e;--red:#ef4444;
+  --blue-dim:rgba(59,130,246,0.12);--green-dim:rgba(34,197,94,0.12);--red-dim:rgba(239,68,68,0.12);
+  --radius:12px;--radius-sm:8px;
+}
+html{scroll-behavior:smooth;font-size:16px}
+body{
+  font-family:'Inter',system-ui,-apple-system,sans-serif;
+  background:var(--bg);color:var(--text);line-height:1.7;
+  -webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;
+}
+::selection{background:var(--blue);color:#fff}
+
+/* Layout */
+.container{max-width:1100px;margin:0 auto;padding:0 24px}
+section{padding:100px 0;position:relative}
+section+section{border-top:1px solid var(--border)}
+
+/* Typography */
+h1{font-size:clamp(2.5rem,6vw,4.5rem);font-weight:900;letter-spacing:-0.03em;line-height:1.05}
+h2{font-size:clamp(1.8rem,3.5vw,2.5rem);font-weight:800;letter-spacing:-0.025em;line-height:1.15;margin-bottom:16px}
+h3{font-size:1.25rem;font-weight:700;letter-spacing:-0.01em;margin-bottom:8px}
+p{color:var(--text-muted);max-width:680px}
+.section-label{
+  font-size:0.75rem;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;
+  color:var(--blue);margin-bottom:12px;display:inline-block;
+}
+.section-desc{font-size:1.1rem;line-height:1.8;margin-bottom:48px}
+
+/* Cards */
+.card{
+  background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
+  padding:32px;transition:all 0.3s ease;position:relative;overflow:hidden;
+}
+.card:hover{border-color:var(--border-hover);transform:translateY(-2px);box-shadow:0 8px 32px rgba(0,0,0,0.3)}
+.card::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(59,130,246,0.3),transparent);
+  opacity:0;transition:opacity 0.3s;
+}
+.card:hover::before{opacity:1}
+
+/* Grid */
+.grid-2{display:grid;grid-template-columns:repeat(2,1fr);gap:24px}
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:24px}
+@media(max-width:768px){.grid-2,.grid-3{grid-template-columns:1fr}}
+
+/* Badges */
+.badge{
+  display:inline-flex;align-items:center;gap:6px;padding:4px 12px;border-radius:20px;
+  font-size:0.75rem;font-weight:600;letter-spacing:0.02em;
+}
+.badge-blue{background:var(--blue-dim);color:var(--blue)}
+.badge-green{background:var(--green-dim);color:var(--green)}
+.badge-red{background:var(--red-dim);color:var(--red)}
+
+/* Stat */
+.stat-number{font-size:3rem;font-weight:900;letter-spacing:-0.03em;line-height:1}
+.stat-label{font-size:0.85rem;color:var(--text-muted);margin-top:4px}
+
+/* Tables */
+table{width:100%;border-collapse:collapse;font-size:0.9rem}
+thead{position:sticky;top:0}
+th{
+  text-align:left;padding:12px 16px;font-weight:600;font-size:0.75rem;
+  letter-spacing:0.05em;text-transform:uppercase;color:var(--text-muted);
+  background:var(--surface2);border-bottom:1px solid var(--border);
+}
+td{
+  padding:12px 16px;border-bottom:1px solid var(--border);
+  color:var(--text-muted);vertical-align:middle;
+}
+tr:hover td{background:rgba(59,130,246,0.03)}
+.status-op{color:var(--green);font-weight:600}
+.status-nop{color:var(--red);font-weight:600}
+
+/* Buttons */
+.btn{
+  display:inline-flex;align-items:center;gap:8px;padding:12px 28px;border-radius:var(--radius-sm);
+  font-weight:600;font-size:0.95rem;text-decoration:none;transition:all 0.25s;cursor:pointer;border:none;
+  font-family:inherit;
+}
+.btn-primary{background:var(--blue);color:#fff}
+.btn-primary:hover{background:#2563eb;transform:translateY(-1px);box-shadow:0 4px 16px rgba(59,130,246,0.3)}
+.btn-ghost{background:transparent;color:var(--text);border:1px solid var(--border)}
+.btn-ghost:hover{border-color:var(--text-muted)}
+
+/* Steps */
+.step{position:relative;padding-left:48px}
+.step-num{
+  position:absolute;left:0;top:0;width:36px;height:36px;border-radius:50%;
+  background:var(--blue-dim);color:var(--blue);font-weight:800;font-size:0.9rem;
+  display:flex;align-items:center;justify-content:center;
+}
+
+/* Code */
+.code-block{
+  background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);
+  padding:16px 20px;font-family:'SF Mono','Fira Code',monospace;font-size:0.82rem;
+  color:var(--green);overflow-x:auto;line-height:1.6;
+}
+.code-block .comment{color:var(--text-dim)}
+.code-block .key{color:var(--blue)}
+.code-block .str{color:var(--green)}
+
+/* Timeline */
+.timeline-item{
+  position:relative;padding-left:32px;padding-bottom:40px;
+  border-left:2px solid var(--border);
+}
+.timeline-item:last-child{border-left-color:transparent;padding-bottom:0}
+.timeline-item::before{
+  content:'';position:absolute;left:-7px;top:4px;width:12px;height:12px;
+  border-radius:50%;background:var(--blue);border:2px solid var(--bg);
+}
+.timeline-item.done::before{background:var(--green)}
+
+/* Collapsible */
+.collapsible{cursor:pointer;user-select:none}
+.collapsible-content{max-height:0;overflow:hidden;transition:max-height 0.4s ease}
+.collapsible-content.open{max-height:2000px}
+.chevron{display:inline-block;transition:transform 0.3s;font-size:0.8rem;margin-left:8px}
+.chevron.open{transform:rotate(90deg)}
+
+/* Feature Matrix */
+.matrix-table th:not(:first-child),.matrix-table td:not(:first-child){text-align:center}
+.check{color:var(--green);font-weight:700;font-size:1.1rem}
+.cross{color:var(--text-dim);font-size:1.1rem}
+.highlight-col{background:rgba(59,130,246,0.06)}
+
+/* Nav */
+nav{
+  position:fixed;top:0;left:0;right:0;z-index:100;
+  background:rgba(10,10,10,0.85);backdrop-filter:blur(20px);
+  border-bottom:1px solid var(--border);
+}
+nav .container{display:flex;align-items:center;justify-content:space-between;height:60px}
+.nav-logo{font-weight:800;font-size:1.1rem;color:var(--text);text-decoration:none;letter-spacing:-0.02em}
+.nav-links{display:flex;gap:28px;list-style:none}
+.nav-links a{
+  color:var(--text-muted);text-decoration:none;font-size:0.85rem;font-weight:500;
+  transition:color 0.2s;
+}
+.nav-links a:hover{color:var(--text)}
+@media(max-width:768px){.nav-links{display:none}}
+
+/* Animations */
+.fade-in{opacity:0;transform:translateY(24px);transition:all 0.7s cubic-bezier(0.16,1,0.3,1)}
+.fade-in.visible{opacity:1;transform:translateY(0)}
+
+/* Footer */
+footer{padding:60px 0;border-top:1px solid var(--border);text-align:center}
+footer p{margin:0 auto;font-size:0.9rem}
+
+/* Pill tags */
+.tag{
+  display:inline-block;padding:4px 10px;border-radius:6px;font-size:0.75rem;
+  font-weight:500;background:var(--surface2);color:var(--text-muted);margin:3px;
+  border:1px solid var(--border);
+}
+
+/* Glow effects */
+.glow-blue{text-shadow:0 0 40px rgba(59,130,246,0.15)}
+.glow-line{
+  height:1px;background:linear-gradient(90deg,transparent,var(--blue),transparent);
+  margin:32px 0;opacity:0.3;
+}
+
+/* Hero specific */
+.hero{padding-top:160px;padding-bottom:120px;text-align:center}
+.hero h1{margin-bottom:20px}
+.hero p{margin:0 auto 40px;font-size:1.2rem;max-width:600px}
+.hero-badges{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-bottom:40px}
+.hero-cta{display:flex;gap:16px;justify-content:center;flex-wrap:wrap}
+
+/* Arch diagram */
+.arch-box{
+  border:1px solid var(--border);border-radius:var(--radius-sm);padding:20px;
+  text-align:center;background:var(--surface);
+}
+.arch-arrow{
+  display:flex;align-items:center;justify-content:center;
+  color:var(--text-dim);font-size:1.5rem;padding:8px 0;
+}
+
+/* Comparison highlight */
+.winner{background:rgba(34,197,94,0.08);border:1px solid rgba(34,197,94,0.2) !important}
+</style>
+</head>
+<body>
+
+<!-- Navigation -->
+<nav>
+  <div class="container">
+    <a href="#hero" class="nav-logo">NEXUS Alert</a>
+    <ul class="nav-links">
+      <li><a href="#problem">Problem</a></li>
+      <li><a href="#how-it-works">How It Works</a></li>
+      <li><a href="#architecture">Architecture</a></li>
+      <li><a href="#locations">Locations</a></li>
+      <li><a href="#features">Features</a></li>
+      <li><a href="#plan">Plan</a></li>
+    </ul>
+  </div>
+</nav>
+
+<!-- Hero -->
+<section class="hero" id="hero">
+  <div class="container">
+    <div class="fade-in">
+      <div class="hero-badges">
+        <span class="badge badge-blue">Chrome Extension</span>
+        <span class="badge badge-green">Manifest V3</span>
+        <span class="badge badge-red">Launching 2026</span>
+      </div>
+      <h1 class="glow-blue">NEXUS Alert <span style="font-size:0.7em">&#x1F514;&#x1F341;</span></h1>
+      <p>Never miss a NEXUS enrollment appointment again. Instant browser notifications when interview slots open up at your preferred locations.</p>
+      <div class="hero-cta">
+        <a href="#how-it-works" class="btn btn-primary">See How It Works &darr;</a>
+        <a href="#architecture" class="btn btn-ghost">Technical Spec</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- The Problem -->
+<section id="problem">
+  <div class="container">
+    <div class="fade-in">
+      <span class="section-label">The Problem</span>
+      <h2>NEXUS Appointments Are Nearly Impossible to Book</h2>
+      <p class="section-desc">Since the pandemic, Canadian NEXUS enrollment centers have been non-operational for in-person interviews. The few U.S. border locations that remain open see appointment slots disappear within seconds of becoming available. Hundreds of thousands of conditionally-approved applicants are stuck in limbo.</p>
+    </div>
+
+    <div class="grid-3 fade-in">
+      <div class="card">
+        <div class="stat-number" style="color:var(--red)">8</div>
+        <div class="stat-label">Canadian enrollment centers currently non-operational for new NEXUS interviews</div>
+      </div>
+      <div class="card">
+        <div class="stat-number" style="color:var(--blue)">~300K</div>
+        <div class="stat-label">Estimated backlog of conditionally-approved NEXUS applicants waiting for interviews</div>
+      </div>
+      <div class="card">
+        <div class="stat-number" style="color:var(--green)">&lt;5s</div>
+        <div class="stat-label">Average time a newly-opened appointment slot remains available before being claimed</div>
+      </div>
+    </div>
+
+    <div style="margin-top:48px" class="fade-in">
+      <div class="card" style="border-left:3px solid var(--red)">
+        <h3>The Current Experience</h3>
+        <p style="max-width:100%">Applicants must manually refresh the TTP Scheduler website dozens of times per day, hoping to catch a cancellation. There is no official notification system. Slots appear and vanish in seconds. Working professionals and families cannot realistically monitor the site 24/7. The result: a broken system where only the most persistent (or automated) users succeed.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- How It Works -->
+<section id="how-it-works">
+  <div class="container">
+    <div class="fade-in">
+      <span class="section-label">How It Works</span>
+      <h2>Three Steps to Never Missing a Slot</h2>
+      <p class="section-desc">NEXUS Alert runs quietly in your browser, polling the official TTP Scheduler API and alerting you the moment a slot opens at your chosen locations.</p>
+    </div>
+
+    <div class="grid-3 fade-in">
+      <div class="card">
+        <div class="step">
+          <div class="step-num">1</div>
+          <h3>Install the Extension</h3>
+          <p style="max-width:100%">Add NEXUS Alert from the Chrome Web Store. Select your preferred enrollment center locations and configure notification preferences. Setup takes under 60 seconds.</p>
+        </div>
+      </div>
+      <div class="card">
+        <div class="step">
+          <div class="step-num">2</div>
+          <h3>Automated API Polling</h3>
+          <p style="max-width:100%">The extension's Service Worker polls the public TTP Scheduler API at configurable intervals (default: every 60 seconds). It checks for available appointment slots at your selected locations using the official <code style="color:var(--green);background:var(--surface2);padding:2px 6px;border-radius:4px;font-size:0.8rem">/schedulerapi/slots</code> endpoint.</p>
+        </div>
+      </div>
+      <div class="card">
+        <div class="step">
+          <div class="step-num">3</div>
+          <h3>Instant Notifications</h3>
+          <p style="max-width:100%">When a slot appears, you receive a Chrome desktop notification with the date, time, and location. Click the notification to jump directly to the TTP booking page and claim your appointment before it disappears.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Architecture -->
+<section id="architecture">
+  <div class="container">
+    <div class="fade-in">
+      <span class="section-label">Architecture</span>
+      <h2>Two-Tier Technical Architecture</h2>
+      <p class="section-desc">NEXUS Alert is designed with a progressive architecture. Tier 1 ships fast as a pure client-side extension. Tier 2 adds a backend for power features, multi-channel alerts, and scale.</p>
+    </div>
+
+    <div class="grid-2 fade-in">
+      <!-- Tier 1 -->
+      <div class="card winner">
+        <span class="badge badge-green" style="margin-bottom:16px">Tier 1 &mdash; MVP</span>
+        <h3>Pure Chrome Extension</h3>
+        <p style="max-width:100%;margin-bottom:20px">Zero backend. The Manifest V3 Service Worker handles all polling directly from the user's browser.</p>
+
+        <div class="arch-box" style="margin-bottom:12px">
+          <div style="font-weight:600;color:var(--text);font-size:0.9rem">Chrome Extension</div>
+          <div style="font-size:0.75rem;color:var(--text-dim)">Manifest V3 + Service Worker</div>
+        </div>
+        <div class="arch-arrow">&darr;</div>
+        <div class="arch-box" style="margin-bottom:12px">
+          <div style="font-weight:600;color:var(--green);font-size:0.9rem">Direct API Polling</div>
+          <div style="font-size:0.75rem;color:var(--text-dim)">chrome.alarms &rarr; fetch()</div>
+        </div>
+        <div class="arch-arrow">&darr;</div>
+        <div class="arch-box">
+          <div style="font-weight:600;color:var(--blue);font-size:0.9rem">TTP Scheduler API</div>
+          <div style="font-size:0.75rem;color:var(--text-dim)">ttp.cbp.dhs.gov/schedulerapi/slots</div>
+        </div>
+
+        <div style="margin-top:20px">
+          <span class="tag">No server costs</span>
+          <span class="tag">Ships in 1 week</span>
+          <span class="tag">Full privacy</span>
+        </div>
+      </div>
+
+      <!-- Tier 2 -->
+      <div class="card">
+        <span class="badge badge-blue" style="margin-bottom:16px">Tier 2 &mdash; Scale</span>
+        <h3>Backend with Cloudflare Workers</h3>
+        <p style="max-width:100%;margin-bottom:20px">Centralized polling, user accounts, email/SMS alerts, and subscription management via Stripe.</p>
+
+        <div class="arch-box" style="margin-bottom:12px">
+          <div style="font-weight:600;color:var(--text);font-size:0.9rem">Chrome Extension + Web App</div>
+          <div style="font-size:0.75rem;color:var(--text-dim)">React dashboard + Extension popup</div>
+        </div>
+        <div class="arch-arrow">&darr;</div>
+        <div class="arch-box" style="margin-bottom:12px">
+          <div style="font-weight:600;color:var(--blue);font-size:0.9rem">Cloudflare Workers</div>
+          <div style="font-size:0.75rem;color:var(--text-dim)">Cron Triggers + KV Store + D1 Database</div>
+        </div>
+        <div class="arch-arrow" style="display:flex;gap:24px">
+          <span>&swarr;</span>
+          <span>&darr;</span>
+          <span>&searr;</span>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
+          <div class="arch-box"><div style="font-size:0.75rem;font-weight:600;color:var(--green)">TTP API</div></div>
+          <div class="arch-box"><div style="font-size:0.75rem;font-weight:600;color:var(--blue)">Stripe</div></div>
+          <div class="arch-box"><div style="font-size:0.75rem;font-weight:600;color:var(--red)">Twilio</div></div>
+        </div>
+
+        <div style="margin-top:20px">
+          <span class="tag">Email alerts</span>
+          <span class="tag">SMS alerts</span>
+          <span class="tag">Multi-location</span>
+          <span class="tag">Usage analytics</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Key Technical Details -->
+<section id="technical">
+  <div class="container">
+    <div class="fade-in">
+      <span class="section-label">Key Technical Details</span>
+      <h2>Public API Endpoints</h2>
+      <p class="section-desc">The TTP Scheduler exposes a fully public, unauthenticated REST API. No API key required. These endpoints power the entire NEXUS Alert system.</p>
+    </div>
+
+    <div class="fade-in" style="display:flex;flex-direction:column;gap:20px">
+      <div class="card">
+        <h3 style="color:var(--green)">GET &mdash; Available Appointment Slots</h3>
+        <div class="code-block" style="margin-top:12px">
+<span class="comment">// Check for available slots at a specific location</span>
+<span class="key">GET</span> <span class="str">https://ttp.cbp.dhs.gov/schedulerapi/slots</span>
+    <span class="key">?orderBy=</span><span class="str">soonest</span>
+    <span class="key">&limit=</span><span class="str">1</span>
+    <span class="key">&locationId=</span><span class="str">5020</span>
+    <span class="key">&minimum=</span><span class="str">1</span>
+
+<span class="comment">// Response (200 OK)</span>
+[{
+  <span class="key">"locationId"</span>: <span class="str">5020</span>,
+  <span class="key">"startTimestamp"</span>: <span class="str">"2026-04-15T08:00"</span>,
+  <span class="key">"endTimestamp"</span>: <span class="str">"2026-04-15T08:15"</span>,
+  <span class="key">"active"</span>: <span class="str">true</span>,
+  <span class="key">"duration"</span>: <span class="str">15</span>,
+  <span class="key">"remoteInd"</span>: <span class="str">false</span>
+}]
+
+<span class="comment">// Empty array [] = no slots available</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3 style="color:var(--blue)">GET &mdash; Enrollment Center Locations</h3>
+        <div class="code-block" style="margin-top:12px">
+<span class="comment">// Fetch all operational NEXUS enrollment centers</span>
+<span class="key">GET</span> <span class="str">https://ttp.cbp.dhs.gov/schedulerapi/locations/</span>
+    <span class="key">?temporary=</span><span class="str">false</span>
+    <span class="key">&inviteOnly=</span><span class="str">false</span>
+    <span class="key">&operational=</span><span class="str">true</span>
+    <span class="key">&serviceName=</span><span class="str">NEXUS</span>
+
+<span class="comment">// Returns array of location objects with id, name, address, etc.</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3 style="color:var(--text-muted)">GET &mdash; Slot Count by Location</h3>
+        <div class="code-block" style="margin-top:12px">
+<span class="comment">// Get count of available slots at a location</span>
+<span class="key">GET</span> <span class="str">https://ttp.cbp.dhs.gov/schedulerapi/slot-count</span>
+    <span class="key">?locationId=</span><span class="str">5020</span>
+
+<span class="comment">// Useful for dashboard displays and historical tracking</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="fade-in" style="margin-top:32px">
+      <div class="card" style="border-left:3px solid var(--blue)">
+        <h3>Key API Characteristics</h3>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-top:16px">
+          <div><span style="color:var(--green);font-weight:600">Authentication:</span><br><span style="color:var(--text-muted)">None required (public)</span></div>
+          <div><span style="color:var(--green);font-weight:600">Rate Limiting:</span><br><span style="color:var(--text-muted)">No documented limit</span></div>
+          <div><span style="color:var(--green);font-weight:600">CORS:</span><br><span style="color:var(--text-muted)">Enabled (browser-callable)</span></div>
+          <div><span style="color:var(--green);font-weight:600">Response Format:</span><br><span style="color:var(--text-muted)">JSON</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- NEXUS Locations -->
+<section id="locations">
+  <div class="container">
+    <div class="fade-in">
+      <span class="section-label">NEXUS Locations</span>
+      <h2>Enrollment Center Directory</h2>
+      <p class="section-desc">A comprehensive list of all NEXUS-eligible enrollment centers. Canadian centers have been largely non-operational for new interviews since 2020, forcing applicants to U.S. border locations.</p>
+    </div>
+
+    <div class="fade-in">
+      <div class="card" style="padding:0;overflow:hidden">
+        <table>
+          <thead>
+            <tr>
+              <th>Location ID</th>
+              <th>Enrollment Center</th>
+              <th>Area</th>
+              <th>Country</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td style="font-family:monospace;color:var(--blue)">5020</td>
+              <td style="color:var(--text);font-weight:500">Blaine NEXUS &amp; FAST Enrollment Center</td>
+              <td>Blaine, WA</td>
+              <td>&#x1F1FA;&#x1F1F8; US</td>
+              <td><span class="status-op">&#x25CF; Operational</span></td>
+            </tr>
+            <tr>
+              <td style="font-family:monospace;color:var(--blue)">5026</td>
+              <td style="color:var(--text);font-weight:500">Vancouver Enrollment Center</td>
+              <td>Richmond, BC</td>
+              <td>&#x1F1E8;&#x1F1E6; CA</td>
+              <td><span class="status-nop">&#x25CF; Not Operational</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Collapsible additional locations -->
+    <div class="fade-in" style="margin-top:24px">
+      <div class="card" style="padding:0;overflow:hidden">
+        <div class="collapsible" onclick="toggleLocations()" style="padding:16px 24px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border)">
+          <span style="font-weight:600;font-size:0.95rem">+ 20 More NEXUS Enrollment Centers</span>
+          <span class="chevron" id="loc-chevron">&#x25B6;</span>
+        </div>
+        <div class="collapsible-content" id="loc-content">
+          <table>
+            <thead>
+              <tr>
+                <th>Location ID</th>
+                <th>Enrollment Center</th>
+                <th>Area</th>
+                <th>Country</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td style="font-family:monospace;color:var(--blue)">5021</td>
+                <td style="color:var(--text);font-weight:500">Champlain Enrollment Center</td>
+                <td>Champlain, NY</td>
+                <td>&#x1F1FA;&#x1F1F8; US</td>
+                <td><span class="status-op">&#x25CF; Operational</span></td>
+              </tr>
+              <tr>
+                <td style="font-family:monospace;color:var(--blue)">5022</td>
+                <td style="color:var(--text);font-weight:500">Buffalo-Ft. Erie Enrollment Center</td>
+                <td>Fort Erie, ON</td>
+                <td>&#x1F1E8;&#x1F1E6; CA</td>
+                <td><span class="status-nop">&#x25CF; Not Operational</span></td>
+              </tr>
+              <tr>
+                <td style="font-family:monospace;color:var(--blue)">5024</td>
+                <td style="color:var(--text);font-weight:500">Port Huron Enrollment Center</td>
+                <td>Port Huron, MI</td>
+                <td>&#x1F1FA;&#x1F1F8; US</td>
+                <td><span class="status-op">&#x25CF; Operational</span></td>
+              </tr>
+              <tr>
+                <td style="font-family:monospace;color:var(--blue)">5025</td>
+                <td style="color:var(--text);font-weight:500">Ottawa International Airport</td>
+                <td>Ottawa, ON</td>
+                <td>&#x1F1E8;&#x1F1E6; CA</td>
+                <td><span class="status-nop">&#x25CF; Not Operational</span></td>
+              </tr>
+              <tr>
+                <td style="font-family:monospace;color:var(--blue)">5027</td>
+                <td style="color:var(--text);font-weight:500">Toronto Enrollment Center</td>
+                <td>Mississauga, ON</td>
+                <td>&#x1F1E8;&#x1F1E6; CA</td>
+                <td><span class="status-nop">&#x25CF; Not Operational</span></td>
+              </tr>
+              <tr>
+                <td style="font-family:monospace;color:var(--blue)">5028</td>
+                <td style="color:var(--text);font-weight:500">Montreal Enrollment Center</td>
+                <td>Montreal, QC</td>
+                <td>&#x1F1E8;&#x1F1E6; CA</td>
+                <td><span class="status-nop">&#x25CF; Not Operational</span></td>
+              </tr>
+              <tr>
+                <td style="font-family:monospace;color:var(--blue)">5029</td>
+                <td style="color:var(--text);font-weight:500">Winnipeg Enrollment Center</td>
+                <td>Winnipeg, MB</td>
+                <td>&#x1F1E8;&#x1F1E6; CA</td>
+                <td><span class="status-nop">&#x25CF; Not Operational</span></td>
+              </tr>
+              <tr>
+                <td style="font-family:monospace;color:var(--blue)">5030</td>
+                <td style="color:var(--text);font-weight:500">Calgary Enrollment Center</td>
+                <td>Calgary, AB</td>
+                <td>&#x1F1E8;&#x1F1E6; CA</td>
+                <td><span class="status-nop">&#x25CF; Not Operational</span></td>
+              </tr>
+              <tr>
+                <td style="font-family:monospace;color:var(--blue)">5031</td>
+                <td style="color:var(--text);font-weight:500">Halifax Enrollment Center</td>
+                <td>Goffs, NS</td>
+                <td>&#x1F1E8;&#x1F1E6; CA</td>
+                <td><span class="status-nop">&#x25CF; Not Operational</span></td>
+              </tr>
+              <tr>
+                <td style="font-family:monospace;color:var(--blue)">5032</td>
+                <td style="color:var(--text);font-weight:500">Edmonton Enrollment Center</td>
+                <td>Edmonton, AB</td>
+                <td>&#x1F1E8;&#x1F1E6; CA</td>
+                <td><span class="status-nop">&#x25CF; Not Operational</span></td>
+              </tr>
+              <tr>
+                <td style="font-family:monospace;color:var(--blue)">5060</td>
+                <td style="color:var(--text);font-weight:500">Warroad Enrollment Center</td>
+                <td>Warroad, MN</td>
+                <td>&#x1F1FA;&#x1F1F8; US</td>
+                <td><span class="status-op">&#x25CF; Operational</span></td>
+              </tr>
+              <tr>
+                <td style="font-family:monospace;color:var(--blue)">5080</td>
+                <td style="color:var(--text);font-weight:500">Sault Ste Marie Enrollment Center</td>
+                <td>Sault Ste. Marie, MI</td>
+                <td>&#x1F1FA;&#x1F1F8; US</td>
+                <td><span class="status-op">&#x25CF; Operational</span></td>
+              </tr>
+              <tr>
+                <td style="font-family:monospace;color:var(--blue)">5100</td>
+                <td style="color:var(--text);font-weight:500">Pembina Enrollment Center</td>
+                <td>Pembina, ND</td>
+                <td>&#x1F1FA;&#x1F1F8; US</td>
+                <td><span class="status-op">&#x25CF; Operational</span></td>
+              </tr>
+              <tr>
+                <td style="font-family:monospace;color:var(--blue)">5101</td>
+                <td style="color:var(--text);font-weight:500">Houlton POE / Woodstock</td>
+                <td>Houlton, ME</td>
+                <td>&#x1F1FA;&#x1F1F8; US</td>
+                <td><span class="status-op">&#x25CF; Operational</span></td>
+              </tr>
+              <tr>
+                <td style="font-family:monospace;color:var(--blue)">5120</td>
+                <td style="color:var(--text);font-weight:500">Sweetgrass NEXUS &amp; FAST Enrollment Center</td>
+                <td>Sweetgrass, MT</td>
+                <td>&#x1F1FA;&#x1F1F8; US</td>
+                <td><span class="status-op">&#x25CF; Operational</span></td>
+              </tr>
+              <tr>
+                <td style="font-family:monospace;color:var(--blue)">5160</td>
+                <td style="color:var(--text);font-weight:500">International Falls NEXUS/FAST EC</td>
+                <td>International Falls, MN</td>
+                <td>&#x1F1FA;&#x1F1F8; US</td>
+                <td><span class="status-op">&#x25CF; Operational</span></td>
+              </tr>
+              <tr>
+                <td style="font-family:monospace;color:var(--blue)">5161</td>
+                <td style="color:var(--text);font-weight:500">Niagara Falls Enrollment Center</td>
+                <td>Niagara Falls, NY</td>
+                <td>&#x1F1FA;&#x1F1F8; US</td>
+                <td><span class="status-op">&#x25CF; Operational</span></td>
+              </tr>
+              <tr>
+                <td style="font-family:monospace;color:var(--blue)">5223</td>
+                <td style="color:var(--text);font-weight:500">Derby Line Enrollment Center</td>
+                <td>Derby Line, VT</td>
+                <td>&#x1F1FA;&#x1F1F8; US</td>
+                <td><span class="status-op">&#x25CF; Operational</span></td>
+              </tr>
+              <tr>
+                <td style="font-family:monospace;color:var(--blue)">5500</td>
+                <td style="color:var(--text);font-weight:500">Calais Enrollment Center</td>
+                <td>Calais, ME</td>
+                <td>&#x1F1FA;&#x1F1F8; US</td>
+                <td><span class="status-op">&#x25CF; Operational</span></td>
+              </tr>
+              <tr>
+                <td style="font-family:monospace;color:var(--blue)">5520</td>
+                <td style="color:var(--text);font-weight:500">Lansdowne, ON</td>
+                <td>Lansdowne, ON</td>
+                <td>&#x1F1E8;&#x1F1E6; CA</td>
+                <td><span class="status-op">&#x25CF; Operational</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Features Matrix -->
+<section id="features">
+  <div class="container">
+    <div class="fade-in">
+      <span class="section-label">Features Matrix</span>
+      <h2>How NEXUS Alert Compares</h2>
+      <p class="section-desc">A detailed comparison against existing solutions. NEXUS Alert is the only purpose-built Chrome Extension for NEXUS appointment monitoring.</p>
+    </div>
+
+    <div class="fade-in">
+      <div class="card" style="padding:0;overflow-x:auto">
+        <table class="matrix-table">
+          <thead>
+            <tr>
+              <th style="min-width:200px">Feature</th>
+              <th class="highlight-col" style="min-width:130px">NEXUS Alert Free</th>
+              <th class="highlight-col" style="min-width:130px">NEXUS Alert Pro</th>
+              <th style="min-width:150px">AppointmentScanner</th>
+              <th style="min-width:130px">GoGlobalEntry</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td style="color:var(--text);font-weight:500">Chrome Extension</td>
+              <td class="highlight-col"><span class="check">&#x2713;</span></td>
+              <td class="highlight-col"><span class="check">&#x2713;</span></td>
+              <td><span class="cross">&mdash;</span></td>
+              <td><span class="cross">&mdash;</span></td>
+            </tr>
+            <tr>
+              <td style="color:var(--text);font-weight:500">Desktop Notifications</td>
+              <td class="highlight-col"><span class="check">&#x2713;</span></td>
+              <td class="highlight-col"><span class="check">&#x2713;</span></td>
+              <td><span class="cross">&mdash;</span></td>
+              <td><span class="cross">&mdash;</span></td>
+            </tr>
+            <tr>
+              <td style="color:var(--text);font-weight:500">NEXUS-Specific Focus</td>
+              <td class="highlight-col"><span class="check">&#x2713;</span></td>
+              <td class="highlight-col"><span class="check">&#x2713;</span></td>
+              <td><span class="check">&#x2713;</span></td>
+              <td><span class="check">&#x2713;</span></td>
+            </tr>
+            <tr>
+              <td style="color:var(--text);font-weight:500">Email Alerts</td>
+              <td class="highlight-col"><span class="cross">&mdash;</span></td>
+              <td class="highlight-col"><span class="check">&#x2713;</span></td>
+              <td><span class="check">&#x2713;</span></td>
+              <td><span class="check">&#x2713;</span></td>
+            </tr>
+            <tr>
+              <td style="color:var(--text);font-weight:500">SMS Alerts</td>
+              <td class="highlight-col"><span class="cross">&mdash;</span></td>
+              <td class="highlight-col"><span class="check">&#x2713;</span></td>
+              <td><span class="check">&#x2713;</span></td>
+              <td><span class="cross">&mdash;</span></td>
+            </tr>
+            <tr>
+              <td style="color:var(--text);font-weight:500">Multi-Location Monitoring</td>
+              <td class="highlight-col">1 location</td>
+              <td class="highlight-col"><span class="check">Unlimited</span></td>
+              <td><span class="check">&#x2713;</span></td>
+              <td><span class="check">&#x2713;</span></td>
+            </tr>
+            <tr>
+              <td style="color:var(--text);font-weight:500">Polling Interval</td>
+              <td class="highlight-col">5 min</td>
+              <td class="highlight-col" style="color:var(--green);font-weight:600">30 sec</td>
+              <td>~5 min</td>
+              <td>~5 min</td>
+            </tr>
+            <tr>
+              <td style="color:var(--text);font-weight:500">No Account Required</td>
+              <td class="highlight-col"><span class="check">&#x2713;</span></td>
+              <td class="highlight-col"><span class="cross">&mdash;</span></td>
+              <td><span class="cross">&mdash;</span></td>
+              <td><span class="cross">&mdash;</span></td>
+            </tr>
+            <tr>
+              <td style="color:var(--text);font-weight:500">One-Click to TTP Booking</td>
+              <td class="highlight-col"><span class="check">&#x2713;</span></td>
+              <td class="highlight-col"><span class="check">&#x2713;</span></td>
+              <td><span class="cross">&mdash;</span></td>
+              <td><span class="cross">&mdash;</span></td>
+            </tr>
+            <tr>
+              <td style="color:var(--text);font-weight:500">Open Source</td>
+              <td class="highlight-col"><span class="check">&#x2713;</span></td>
+              <td class="highlight-col"><span class="cross">&mdash;</span></td>
+              <td><span class="cross">&mdash;</span></td>
+              <td><span class="cross">&mdash;</span></td>
+            </tr>
+            <tr>
+              <td style="color:var(--text);font-weight:500">Price</td>
+              <td class="highlight-col" style="color:var(--green);font-weight:700">Free</td>
+              <td class="highlight-col" style="color:var(--blue);font-weight:600">$4.99/mo</td>
+              <td style="color:var(--text-muted)">$19.95 one-time</td>
+              <td style="color:var(--text-muted)">Free (ads)</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Competitive Landscape -->
+<section id="competitive">
+  <div class="container">
+    <div class="fade-in">
+      <span class="section-label">Competitive Landscape</span>
+      <h2>Wide Open Market Opportunity</h2>
+      <p class="section-desc">Despite massive demand, the Chrome Web Store has zero dedicated NEXUS appointment extensions. The market is fragmented across scripts, bots, and paid web services.</p>
+    </div>
+
+    <div class="grid-3 fade-in">
+      <div class="card">
+        <div class="stat-number" style="color:var(--blue)">53</div>
+        <div class="stat-label">GitHub repositories related to TTP/NEXUS appointment checking (Python scripts, bots, CLI tools)</div>
+      </div>
+      <div class="card" style="border-color:var(--green)">
+        <div class="stat-number" style="color:var(--green)">0</div>
+        <div class="stat-label">Chrome Extensions dedicated to NEXUS appointment monitoring in the Chrome Web Store</div>
+      </div>
+      <div class="card">
+        <div class="stat-number" style="color:var(--red)">2</div>
+        <div class="stat-label">Paid web services (AppointmentScanner, GoGlobalEntry) &mdash; neither offers a browser extension</div>
+      </div>
+    </div>
+
+    <div class="fade-in" style="margin-top:32px">
+      <div class="card">
+        <h3>Existing Solutions &amp; Their Limitations</h3>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:20px">
+          <div>
+            <h3 style="color:var(--text-muted);font-size:0.9rem;margin-bottom:12px">GitHub Scripts &amp; Bots</h3>
+            <p style="max-width:100%;font-size:0.9rem">Require Python, Docker, or Node.js setup. Not accessible to non-technical users. No Chrome integration. Must run on a separate machine or server. Examples: trusted-traveler-scheduler, global-entry-slot-notifier.</p>
+          </div>
+          <div>
+            <h3 style="color:var(--text-muted);font-size:0.9rem;margin-bottom:12px">Paid Web Services</h3>
+            <p style="max-width:100%;font-size:0.9rem">AppointmentScanner charges $19.95 for email/SMS alerts. GoGlobalEntry is free but ad-supported and slow. Neither offers desktop push notifications or browser-native integration. Both require account creation.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Implementation Plan -->
+<section id="plan">
+  <div class="container">
+    <div class="fade-in">
+      <span class="section-label">Implementation Plan</span>
+      <h2>Four-Week Launch Timeline</h2>
+      <p class="section-desc">An aggressive but achievable timeline to go from zero to Chrome Web Store listing. Tier 1 (pure extension) ships in Week 2. Tier 2 (backend) follows in Week 4.</p>
+    </div>
+
+    <div class="fade-in" style="max-width:700px">
+      <div class="timeline-item done">
+        <div>
+          <span class="badge badge-green" style="margin-bottom:8px">Week 1</span>
+          <h3>Core Extension Development</h3>
+          <p style="max-width:100%;font-size:0.9rem">Manifest V3 setup, Service Worker with chrome.alarms, popup UI with location selector, notification system, local storage for preferences. Build the complete Tier 1 MVP.</p>
+          <div style="margin-top:12px">
+            <span class="tag">manifest.json</span>
+            <span class="tag">service-worker.js</span>
+            <span class="tag">popup.html</span>
+            <span class="tag">chrome.alarms</span>
+            <span class="tag">chrome.notifications</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="timeline-item done">
+        <div>
+          <span class="badge badge-green" style="margin-bottom:8px">Week 2</span>
+          <h3>Testing &amp; Chrome Web Store Submission</h3>
+          <p style="max-width:100%;font-size:0.9rem">End-to-end testing across Chrome versions. Privacy policy and terms of service. Chrome Web Store listing assets (screenshots, description, promo tiles). Submit for review.</p>
+          <div style="margin-top:12px">
+            <span class="tag">E2E testing</span>
+            <span class="tag">CWS listing</span>
+            <span class="tag">Privacy policy</span>
+            <span class="tag">Store assets</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="timeline-item">
+        <div>
+          <span class="badge badge-blue" style="margin-bottom:8px">Week 3</span>
+          <h3>Backend Infrastructure (Tier 2)</h3>
+          <p style="max-width:100%;font-size:0.9rem">Cloudflare Workers with Cron Triggers for centralized polling. D1 database for user preferences. KV store for slot caching. Stripe integration for Pro subscriptions. Email/SMS notification pipeline via Twilio and Resend.</p>
+          <div style="margin-top:12px">
+            <span class="tag">Cloudflare Workers</span>
+            <span class="tag">D1 Database</span>
+            <span class="tag">Stripe</span>
+            <span class="tag">Twilio</span>
+            <span class="tag">Resend</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="timeline-item">
+        <div>
+          <span class="badge badge-blue" style="margin-bottom:8px">Week 4</span>
+          <h3>Pro Launch &amp; Growth</h3>
+          <p style="max-width:100%;font-size:0.9rem">Launch Pro tier with email/SMS alerts and multi-location monitoring. Landing page with conversion funnel. Analytics integration. Reddit/FlyerTalk community outreach. Product Hunt launch.</p>
+          <div style="margin-top:12px">
+            <span class="tag">Pro launch</span>
+            <span class="tag">Landing page</span>
+            <span class="tag">Analytics</span>
+            <span class="tag">Community launch</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Tech Stack -->
+<section id="tech-stack">
+  <div class="container">
+    <div class="fade-in">
+      <span class="section-label">Tech Stack</span>
+      <h2>Built on Modern, Battle-Tested Infrastructure</h2>
+      <p class="section-desc">Every technology choice optimizes for speed-to-market, reliability, and minimal operational overhead.</p>
+    </div>
+
+    <div class="grid-3 fade-in">
+      <div class="card">
+        <span class="badge badge-blue" style="margin-bottom:16px">Extension</span>
+        <h3>Manifest V3</h3>
+        <p style="max-width:100%;font-size:0.9rem">Chrome's latest extension platform. Service Workers for background processing, chrome.alarms for scheduling, chrome.notifications for alerts, chrome.storage for persistence.</p>
+        <div style="margin-top:16px">
+          <span class="tag">Chrome APIs</span>
+          <span class="tag">Service Worker</span>
+          <span class="tag">Vanilla JS</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <span class="badge badge-green" style="margin-bottom:16px">Backend</span>
+        <h3>Cloudflare Workers</h3>
+        <p style="max-width:100%;font-size:0.9rem">Edge-deployed serverless functions with Cron Triggers for scheduled polling. D1 (SQLite) for user data. KV for slot caching. Zero cold starts, global distribution, generous free tier.</p>
+        <div style="margin-top:16px">
+          <span class="tag">Workers</span>
+          <span class="tag">D1</span>
+          <span class="tag">KV</span>
+          <span class="tag">Cron Triggers</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <span class="badge badge-red" style="margin-bottom:16px">Payments</span>
+        <h3>Stripe</h3>
+        <p style="max-width:100%;font-size:0.9rem">Industry-standard payment processing for Pro subscriptions. Checkout Sessions for conversion, Customer Portal for self-service management, Webhooks for real-time subscription state sync.</p>
+        <div style="margin-top:16px">
+          <span class="tag">Subscriptions</span>
+          <span class="tag">Checkout</span>
+          <span class="tag">Webhooks</span>
+          <span class="tag">Customer Portal</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Legal / Safety -->
+<section id="legal">
+  <div class="container">
+    <div class="fade-in">
+      <span class="section-label">Legal &amp; Safety</span>
+      <h2>Compliance &amp; Responsible Use</h2>
+      <p class="section-desc">NEXUS Alert is designed to operate within legal and ethical boundaries while providing maximum value to users navigating a broken appointment system.</p>
+    </div>
+
+    <div class="grid-2 fade-in">
+      <div class="card" style="border-left:3px solid var(--green)">
+        <h3 style="color:var(--green)">What NEXUS Alert Does</h3>
+        <ul style="list-style:none;margin-top:16px;display:flex;flex-direction:column;gap:12px">
+          <li style="color:var(--text-muted);font-size:0.9rem;padding-left:20px;position:relative"><span style="position:absolute;left:0;color:var(--green)">&#x2713;</span> Reads publicly available, unauthenticated API data</li>
+          <li style="color:var(--text-muted);font-size:0.9rem;padding-left:20px;position:relative"><span style="position:absolute;left:0;color:var(--green)">&#x2713;</span> Polls at reasonable intervals (minimum 30 seconds)</li>
+          <li style="color:var(--text-muted);font-size:0.9rem;padding-left:20px;position:relative"><span style="position:absolute;left:0;color:var(--green)">&#x2713;</span> Notifies users to manually book via the official TTP website</li>
+          <li style="color:var(--text-muted);font-size:0.9rem;padding-left:20px;position:relative"><span style="position:absolute;left:0;color:var(--green)">&#x2713;</span> Stores all user preferences locally in the browser</li>
+          <li style="color:var(--text-muted);font-size:0.9rem;padding-left:20px;position:relative"><span style="position:absolute;left:0;color:var(--green)">&#x2713;</span> Open-source core for full transparency</li>
+        </ul>
+      </div>
+
+      <div class="card" style="border-left:3px solid var(--red)">
+        <h3 style="color:var(--red)">What NEXUS Alert Does NOT Do</h3>
+        <ul style="list-style:none;margin-top:16px;display:flex;flex-direction:column;gap:12px">
+          <li style="color:var(--text-muted);font-size:0.9rem;padding-left:20px;position:relative"><span style="position:absolute;left:0;color:var(--red)">&#x2717;</span> Does not auto-book appointments on behalf of users</li>
+          <li style="color:var(--text-muted);font-size:0.9rem;padding-left:20px;position:relative"><span style="position:absolute;left:0;color:var(--red)">&#x2717;</span> Does not access or store TTP login credentials</li>
+          <li style="color:var(--text-muted);font-size:0.9rem;padding-left:20px;position:relative"><span style="position:absolute;left:0;color:var(--red)">&#x2717;</span> Does not scrape or bypass any authentication</li>
+          <li style="color:var(--text-muted);font-size:0.9rem;padding-left:20px;position:relative"><span style="position:absolute;left:0;color:var(--red)">&#x2717;</span> Does not hoard or resell appointment slots</li>
+          <li style="color:var(--text-muted);font-size:0.9rem;padding-left:20px;position:relative"><span style="position:absolute;left:0;color:var(--red)">&#x2717;</span> Does not violate the Computer Fraud and Abuse Act (CFAA)</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="fade-in" style="margin-top:24px">
+      <div class="card">
+        <h3>Legal Basis</h3>
+        <p style="max-width:100%;font-size:0.9rem;margin-top:12px">The TTP Scheduler API at <code style="color:var(--green);background:var(--surface2);padding:2px 6px;border-radius:4px;font-size:0.8rem">ttp.cbp.dhs.gov/schedulerapi</code> is a public, unauthenticated endpoint with CORS headers that explicitly permit browser-based access. No terms of service prohibit automated access. The API is the same endpoint used by the official TTP Scheduler web application. NEXUS Alert functions identically to a user manually refreshing the appointment page &mdash; just faster and more reliably.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer>
+  <div class="container">
+    <div style="margin-bottom:16px">
+      <span style="font-weight:800;font-size:1.2rem;letter-spacing:-0.02em">NEXUS Alert</span>
+      <span style="margin-left:8px;font-size:1rem">&#x1F514;&#x1F341;</span>
+    </div>
+    <p style="color:var(--text-muted)">Built by <strong style="color:var(--text)">Michael Guo</strong> &mdash; Designed by <strong style="color:var(--text)">Alfie</strong> &#x1FAB6;</p>
+    <p style="color:var(--text-dim);font-size:0.8rem;margin-top:12px">&copy; 2026 NEXUS Alert. Not affiliated with CBP, DHS, or CBSA.</p>
+  </div>
+</footer>
+
+<script>
+// Fade-in animation on scroll
+document.addEventListener('DOMContentLoaded', function() {
+  const observer = new IntersectionObserver(function(entries) {
+    entries.forEach(function(entry) {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+      }
+    });
+  }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+
+  document.querySelectorAll('.fade-in').forEach(function(el) {
+    observer.observe(el);
+  });
+});
+
+// Collapsible locations
+function toggleLocations() {
+  var content = document.getElementById('loc-content');
+  var chevron = document.getElementById('loc-chevron');
+  content.classList.toggle('open');
+  chevron.classList.toggle('open');
+}
+
+// Smooth scroll for nav links
+document.querySelectorAll('a[href^="#"]').forEach(function(anchor) {
+  anchor.addEventListener('click', function(e) {
+    e.preventDefault();
+    var target = document.querySelector(this.getAttribute('href'));
+    if (target) {
+      target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  });
+});
+
+// Nav background on scroll
+window.addEventListener('scroll', function() {
+  var nav = document.querySelector('nav');
+  if (window.scrollY > 100) {
+    nav.style.borderBottomColor = 'var(--border-hover)';
+  } else {
+    nav.style.borderBottomColor = 'var(--border)';
+  }
+});
+</script>
+
+</body>
+</html>

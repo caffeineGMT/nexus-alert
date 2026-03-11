@@ -1,0 +1,16 @@
+name = "nexus-alert-backend"
+main = "src/worker.js"
+compatibility_date = "2024-01-01"
+
+# KV namespace for storing subscriber configs and notification state
+[[kv_namespaces]]
+binding = "NEXUS_KV"
+id = "YOUR_KV_NAMESPACE_ID"
+
+# Cron trigger — check every 3 minutes
+[triggers]
+crons = ["*/3 * * * *"]
+
+# Environment variables (set via wrangler secret)
+# RESEND_API_KEY — for email delivery via Resend.com
+# WEBHOOK_SECRET — for authenticating API requests
