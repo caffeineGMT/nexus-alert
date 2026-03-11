@@ -1,0 +1,70 @@
+SCREENSHOT DESCRIPTIONS
+=======================
+
+The Chrome Web Store requires 1-5 screenshots at 1280x800 or 640x400 pixels.
+
+Below are descriptions for 5 screenshots you should capture after loading the extension.
+Take these with the popup open in Chrome (right-click extension icon > Inspect Popup gives a resizable window).
+
+SCREENSHOT 1 — "Monitor Tab" (Main view)
+-----------------------------------------
+Show the Monitor tab with:
+- Status bar showing "Monitoring" with green dot
+- NEXUS program tab selected
+- A few locations checked (Blaine, Pacific Highway)
+- Date filters set
+- "Check Now" button visible
+
+Caption: "Monitor multiple enrollment centers in real time"
+
+
+SCREENSHOT 2 — "Live Slots Found"
+-----------------------------------------
+Show the Monitor tab after a successful check with slots visible:
+- Green-bordered slot cards showing dates and times
+- "Book" buttons on each slot
+- Location names visible
+
+Caption: "See available slots instantly and book with one click"
+
+
+SCREENSHOT 3 — "Slots Tab — History & Stats"
+-----------------------------------------
+Switch to the Slots tab showing:
+- Stats cards (Slots Seen, Today, Locations)
+- Slot history list with dates and times
+
+Caption: "Track slot history and spot patterns"
+
+
+SCREENSHOT 4 — "Settings Tab"
+-----------------------------------------
+Show the Settings tab with:
+- Check interval options (1, 3, 5, 10 min)
+- Sound Alert toggle ON
+- Auto-open Booking toggle
+- Refresh Locations and Export Data buttons
+
+Caption: "Customize alerts, sounds, and check frequency"
+
+
+SCREENSHOT 5 — "Desktop Notification"
+-----------------------------------------
+Show a Chrome desktop notification:
+- "NEXUS Slot Available!" title
+- Location name and date/time
+- "Book Now" button
+
+Caption: "Get notified the instant a slot opens up"
+
+
+PROMOTIONAL IMAGES
+==================
+
+Small tile (440x280):
+- Dark background with "NEXUS Alert" logo
+- Tagline: "Never miss an appointment slot"
+
+Marquee (1400x560):
+- Extension popup mockup on dark background
+- "Stop refreshing. Start booking." headline

@@ -1,0 +1,14 @@
+SHORT DESCRIPTION (132 chars max — shown in search results):
+Monitor NEXUS, Global Entry & SENTRI appointment slots. Get instant notifications when openings appear.
+
+TITLE (30 chars max):
+NEXUS Alert
+
+CATEGORY:
+Productivity
+
+LANGUAGE:
+English
+
+TAGS / KEYWORDS:
+nexus, global entry, sentri, trusted traveler, appointment, ttp, goes, cbp, slot monitor, notification

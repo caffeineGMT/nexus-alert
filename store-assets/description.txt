@@ -1,0 +1,32 @@
+NEXUS Alert — Appointment Slot Monitor
+
+Never miss a NEXUS, Global Entry, or SENTRI appointment slot again.
+
+NEXUS Alert monitors the CBP Trusted Traveler Programs appointment system in real time and notifies you instantly when a slot opens up — so you can book it before anyone else.
+
+HOW IT WORKS
+1. Pick the enrollment centers you want to watch
+2. Set your preferred dates, times, and check frequency
+3. Get a desktop notification with sound the moment a slot appears
+4. Click to book — one tap takes you straight to the GOES booking page
+
+KEY FEATURES
+- Real-time slot monitoring — checks as often as every minute
+- Sound alerts — hear a chime when slots appear, even if you're in another tab
+- Smart filters — only get notified for dates and times that work for you
+- Multi-location tracking — watch several enrollment centers at once
+- Slot history — see every opening that's appeared and track patterns
+- Auto-open booking — optionally open the booking page automatically
+- Data export — download your monitoring data anytime
+- Works with NEXUS, Global Entry, and SENTRI programs
+
+WHY YOU NEED THIS
+Appointment slots for Trusted Traveler Programs are extremely scarce. When someone cancels, that slot appears briefly and gets booked within minutes. Without a monitoring tool, you'd have to manually refresh the GOES website over and over — and still miss most openings.
+
+NEXUS Alert does the watching for you, 24/7, and alerts you the instant something opens up.
+
+FREE & PRIVACY-FRIENDLY
+- Completely free, no account required
+- No data collection — everything stays in your browser
+- Open source: https://github.com/caffeineGMT/nexus-alert
+- Not affiliated with CBP or DHS
