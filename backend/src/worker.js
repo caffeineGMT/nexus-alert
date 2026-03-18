@@ -221,7 +221,7 @@ export default {
 async function handleCheckout(request, env, corsHeaders) {
   try {
     const body = await request.json();
-    const { email, ref, plan, promoCode } = body;
+    const { email, ref, plan, promoCode, utm_source, utm_medium, utm_campaign, utm_content } = body;
 
     if (!email) {
       return json({ error: 'email is required' }, 400, corsHeaders);
@@ -275,6 +275,14 @@ async function handleCheckout(request, env, corsHeaders) {
         metadata.promoCode = promoCode.trim().toUpperCase();
         metadata.source = 'producthunt';
       }
+      // Track conversion source from drip emails
+      if (utm_campaign) {
+        metadata.utm_campaign = utm_campaign;
+        metadata.converted_from_email = utm_campaign; // e.g., 'day_7_case_study'
+      }
+      if (utm_source) metadata.utm_source = utm_source;
+      if (utm_medium) metadata.utm_medium = utm_medium;
+      if (utm_content) metadata.utm_content = utm_content;
 
       const sessionConfig = {
         mode: 'subscription',
@@ -327,6 +335,14 @@ async function handleCheckout(request, env, corsHeaders) {
       metadata.source = 'producthunt';
       metadata.campaign = 'ph_launch';
     }
+    // Track conversion source from drip emails
+    if (utm_campaign) {
+      metadata.utm_campaign = utm_campaign;
+      metadata.converted_from_email = utm_campaign; // e.g., 'day_7_case_study'
+    }
+    if (utm_source) metadata.utm_source = utm_source;
+    if (utm_medium) metadata.utm_medium = utm_medium;
+    if (utm_content) metadata.utm_content = utm_content;
 
     // Create checkout session with promo code support
     const sessionConfig = {
@@ -693,14 +709,24 @@ async function handleSignedUnsubscribe(request, env) {
     });
   }
 
-  // Delete subscriber
-  await env.NEXUS_ALERTS_KV.delete(`sub:${email}`);
+  // Track unsubscribe event for conversion metrics
+  await trackActivity('unsubscribed', { email, source: 'email_link' }, env);
 
+  // Mark user as unsubscribed but preserve data for analytics
+  const subData = await env.NEXUS_ALERTS_KV.get(`sub:${email}`);
+  if (subData) {
+    const subscriber = JSON.parse(subData);
+    subscriber.unsubscribed = true;
+    subscriber.unsubscribedAt = new Date().toISOString();
+    await env.NEXUS_ALERTS_KV.put(`sub:${email}`, JSON.stringify(subscriber));
+  }
+
+  // Remove from active subscriber list
   const list = JSON.parse(await env.NEXUS_ALERTS_KV.get('subscriber_list') || '[]');
   const filtered = list.filter(e => e !== email);
   await env.NEXUS_ALERTS_KV.put('subscriber_list', JSON.stringify(filtered));
 
-  return new Response('<html><body><p>You have been unsubscribed.</p></body></html>', {
+  return new Response('<html><body><p>You have been unsubscribed from promotional emails. You will still receive important account notifications.</p></body></html>', {
     status: 200,
     headers: { 'Content-Type': 'text/html' },
   });
@@ -2227,6 +2253,10 @@ async function sendEmailSequences(env) {
         if (!subData) continue;
 
         const subscriber = JSON.parse(subData);
+
+        // Skip unsubscribed users
+        if (subscriber.unsubscribed) continue;
+
         const registeredAt = new Date(subscriber.createdAt).getTime();
         const daysSinceReg = (now - registeredAt) / (24 * 60 * 60 * 1000);
 
@@ -2251,34 +2281,52 @@ async function sendEmailSequences(env) {
         if (!isPremium) {
           // ─── FREE USER SEQUENCE ───────────────────────────────────
           if (daysSinceReg >= 0 && daysSinceReg < 0.5 && sequence.stage === 0) {
-            // Day 0: Welcome email
-            emailSent = await sendEmail('welcome', email, env);
-            if (emailSent) sequence = { stage: 1, lastSent: now };
-          } else if (daysSinceReg >= 3 && sequence.stage === 1) {
-            // Day 3: Premium case study
-            emailSent = await sendEmail('premium_case_study', email, env);
-            if (emailSent) sequence = { stage: 2, lastSent: now };
-          } else if (daysSinceReg >= 7 && sequence.stage === 2) {
-            // Day 7: Referral invite (viral growth priority)
-            const code = generateReferralCode(email);
-            const shareUrl = `https://nexus-alert.com?ref=${code}`;
-            const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(`I found my NEXUS appointment in 3 days with @NexusAlert 🎉 ${shareUrl}`)}`;
-            const emailShareUrl = `mailto:?subject=${encodeURIComponent('Check out NEXUS Alert!')}&body=${encodeURIComponent(`Hey! Are you still waiting for a NEXUS appointment?\n\nI've been using this Chrome extension that alerts me instantly when slots open up - it's way better than refreshing manually.\n\nCheck it out: ${shareUrl}`)}`;
-            const unsubscribeToken = await generateHmacToken(email, env.WEBHOOK_SECRET);
-            const unsubscribeUrl = `https://api.nexus-alert.com/api/unsubscribe?email=${encodeURIComponent(email)}&token=${encodeURIComponent(unsubscribeToken)}`;
-
-            emailSent = await sendEmail('referral_invite', email, env, {
+            // Day 0: Welcome email with setup guide
+            emailSent = await sendEmail('welcome', email, env, {
               email,
-              shareUrl,
-              twitterUrl,
-              emailUrl: emailShareUrl,
-              unsubscribeUrl,
             });
-            if (emailSent) sequence = { stage: 3, lastSent: now };
-          } else if (daysSinceReg >= 10 && sequence.stage === 3) {
-            // Day 10: Upgrade offer
-            emailSent = await sendEmail('upgrade_offer', email, env);
-            if (emailSent) sequence = { stage: 4, lastSent: now };
+            if (emailSent) {
+              sequence = { stage: 1, lastSent: now };
+              await trackActivity('drip_email_sent', { email, type: 'welcome', day: 0 }, env);
+            }
+          } else if (daysSinceReg >= 3 && sequence.stage === 1) {
+            // Day 3: Educational - Best times to find appointments
+            emailSent = await sendEmail('educational', email, env, {
+              email,
+            });
+            if (emailSent) {
+              sequence = { stage: 2, lastSent: now };
+              await trackActivity('drip_email_sent', { email, type: 'educational', day: 3 }, env);
+            }
+          } else if (daysSinceReg >= 7 && sequence.stage === 2) {
+            // Day 7: Case study with 20% discount code (CASE20)
+            emailSent = await sendEmail('upgrade_offer', email, env, {
+              email,
+            });
+            if (emailSent) {
+              sequence = { stage: 3, lastSent: now };
+              await trackActivity('drip_email_sent', { email, type: 'case_study', day: 7, promo: 'CASE20' }, env);
+            }
+          } else if (daysSinceReg >= 14 && sequence.stage === 3) {
+            // Day 14: Flash sale urgency offer (FLASH48)
+            const countdownDate = new Date(now + 48 * 60 * 60 * 1000);
+            const formattedCountdown = countdownDate.toLocaleString('en-US', {
+              weekday: 'short',
+              month: 'short',
+              day: 'numeric',
+              hour: 'numeric',
+              minute: '2-digit',
+              timeZone: 'America/Los_Angeles'
+            }) + ' PT';
+
+            emailSent = await sendEmail('flash_sale', email, env, {
+              email,
+              countdown_date: formattedCountdown,
+            });
+            if (emailSent) {
+              sequence = { stage: 4, lastSent: now };
+              await trackActivity('drip_email_sent', { email, type: 'flash_sale', day: 14, promo: 'FLASH48' }, env);
+            }
           }
         } else {
           // ─── PREMIUM USER SEQUENCE ────────────────────────────────
