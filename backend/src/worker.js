@@ -15,16 +15,25 @@ export default {
     const corsHeaders = {
       'Access-Control-Allow-Origin': '*',
       'Access-Control-Allow-Methods': 'GET, POST, DELETE, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization, Stripe-Signature',
     };
 
     if (request.method === 'OPTIONS') {
       return new Response(null, { headers: corsHeaders });
     }
 
-    // Public unsubscribe endpoint (no auth required)
+    // Public endpoints (no auth required)
     if (url.pathname === '/api/unsubscribe' && request.method === 'GET') {
       return await handleSignedUnsubscribe(request, env);
+    }
+    if (url.pathname === '/api/checkout' && request.method === 'POST') {
+      return await handleCheckout(request, env, corsHeaders);
+    }
+    if (url.pathname === '/api/webhook' && request.method === 'POST') {
+      return await handleStripeWebhook(request, env, corsHeaders);
+    }
+    if (url.pathname === '/api/license' && request.method === 'GET') {
+      return await handleGetLicense(request, env, corsHeaders);
     }
 
     // Auth check for all other endpoints
@@ -62,6 +71,151 @@ export default {
     ctx.waitUntil(checkAllSubscribers(env));
   },
 };
+
+// ─── Stripe Payment Integration ──────────────────────────────────────
+
+async function handleCheckout(request, env, corsHeaders) {
+  try {
+    const body = await request.json();
+    const { email } = body;
+
+    if (!email) {
+      return json({ error: 'email is required' }, 400, corsHeaders);
+    }
+
+    // Initialize Stripe with fetch-based HTTP client (required for Cloudflare Workers)
+    const stripe = new Stripe(env.STRIPE_SECRET_KEY, {
+      httpClient: Stripe.createFetchHttpClient(),
+    });
+
+    // Create checkout session
+    const session = await stripe.checkout.sessions.create({
+      mode: 'subscription',
+      line_items: [
+        {
+          price: env.STRIPE_PRICE_ID,
+          quantity: 1,
+        },
+      ],
+      customer_email: email,
+      success_url: 'https://nexus-alert.com/success?session_id={CHECKOUT_SESSION_ID}',
+      cancel_url: 'https://nexus-alert.com/pricing',
+      metadata: {
+        email: email,
+      },
+    });
+
+    return json({ url: session.url }, 200, corsHeaders);
+  } catch (err) {
+    console.error('Checkout error:', err);
+    return json({ error: err.message }, 500, corsHeaders);
+  }
+}
+
+async function handleStripeWebhook(request, env, corsHeaders) {
+  try {
+    // Read raw body as text BEFORE any JSON parsing (required for signature verification)
+    const rawBody = await request.text();
+    const signature = request.headers.get('stripe-signature');
+
+    if (!signature) {
+      return json({ error: 'Missing stripe-signature header' }, 400, corsHeaders);
+    }
+
+    // Initialize Stripe
+    const stripe = new Stripe(env.STRIPE_SECRET_KEY, {
+      httpClient: Stripe.createFetchHttpClient(),
+    });
+
+    // Verify webhook signature
+    let event;
+    try {
+      event = await stripe.webhooks.constructEventAsync(
+        rawBody,
+        signature,
+        env.STRIPE_WEBHOOK_SECRET
+      );
+    } catch (err) {
+      console.error('Webhook signature verification failed:', err);
+      return json({ error: 'Invalid signature' }, 400, corsHeaders);
+    }
+
+    // Handle the event
+    switch (event.type) {
+      case 'checkout.session.completed': {
+        const session = event.data.object;
+        const email = session.metadata.email;
+
+        if (email) {
+          // Store license record in KV
+          const licenseData = {
+            status: 'premium',
+            stripeCustomerId: session.customer,
+            stripeSubscriptionId: session.subscription,
+            activatedAt: new Date().toISOString(),
+            tier: 'premium',
+          };
+
+          await env.NEXUS_ALERTS_KV.put(`license:${email}`, JSON.stringify(licenseData));
+          console.log(`Premium license activated for ${email}`);
+        }
+        break;
+      }
+
+      case 'customer.subscription.deleted': {
+        const subscription = event.data.object;
+
+        // Look up email via customer ID
+        const customer = await stripe.customers.retrieve(subscription.customer);
+        const email = customer.email;
+
+        if (email) {
+          // Downgrade to free tier
+          const licenseData = {
+            status: 'free',
+            stripeCustomerId: subscription.customer,
+            canceledAt: new Date().toISOString(),
+            tier: 'free',
+          };
+
+          await env.NEXUS_ALERTS_KV.put(`license:${email}`, JSON.stringify(licenseData));
+          console.log(`Subscription canceled for ${email}, downgraded to free`);
+        }
+        break;
+      }
+
+      default:
+        console.log(`Unhandled event type: ${event.type}`);
+    }
+
+    return json({ received: true }, 200, corsHeaders);
+  } catch (err) {
+    console.error('Webhook error:', err);
+    return json({ error: err.message }, 500, corsHeaders);
+  }
+}
+
+async function handleGetLicense(request, env, corsHeaders) {
+  try {
+    const url = new URL(request.url);
+    const email = decodeURIComponent(url.searchParams.get('email') || '');
+
+    if (!email) {
+      return json({ error: 'email parameter is required' }, 400, corsHeaders);
+    }
+
+    // Look up license in KV
+    const licenseDataStr = await env.NEXUS_ALERTS_KV.get(`license:${email}`);
+    const licenseData = licenseDataStr ? JSON.parse(licenseDataStr) : null;
+
+    return json({
+      tier: licenseData?.tier ?? 'free',
+    }, 200, corsHeaders);
+  } catch (err) {
+    console.error('License lookup error:', err);
+    return json({ error: err.message }, 500, corsHeaders);
+  }
+}
 
 // ─── Subscriber Management ────────────────────────────────────────
 
