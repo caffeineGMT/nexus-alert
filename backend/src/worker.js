@@ -18,6 +18,10 @@ import {
   addToSequence,
   handleWebhookEvent as handleConvertKitWebhook,
 } from './convertkit.js';
+import {
+  handleWebinarRegistration,
+  handlePartnerApplication,
+} from './handlers/b2b.js';
 
 const API_BASE = 'https://ttp.cbp.dhs.gov/schedulerapi';
 const SLOTS_URL = `${API_BASE}/slots`;
