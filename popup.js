@@ -117,6 +117,96 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
   });
 
+  // ─── Settings: Premium Tier ─────────────────────────────────────
+
+  // Show the appropriate plan card
+  if (config.tier === 'premium') {
+    document.getElementById('freePlanCard').style.display = 'none';
+    document.getElementById('premiumPlanCard').style.display = 'block';
+    document.getElementById('freeIntervalNotice').style.display = 'none';
+  } else {
+    document.getElementById('freePlanCard').style.display = 'block';
+    document.getElementById('premiumPlanCard').style.display = 'none';
+    document.getElementById('freeIntervalNotice').style.display = 'block';
+  }
+
+  // Pre-fill email if available
+  if (config.email) {
+    document.getElementById('upgradeEmail').value = config.email;
+  }
+
+  // Upgrade button
+  document.getElementById('upgradeBtn').addEventListener('click', async () => {
+    const email = document.getElementById('upgradeEmail').value.trim();
+    if (!email || !email.includes('@')) {
+      alert('Please enter a valid email address');
+      return;
+    }
+    await updateConfig({ email });
+    const btn = document.getElementById('upgradeBtn');
+    const originalText = btn.textContent;
+    btn.textContent = 'Redirecting...';
+    btn.disabled = true;
+    try {
+      const resp = await fetch('https://api.nexus-alert.com/api/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email })
+      });
+      const data = await resp.json();
+      if (data.checkoutUrl) {
+        chrome.tabs.create({ url: data.checkoutUrl });
+      } else {
+        throw new Error('No checkout URL returned');
+      }
+    } catch (e) {
+      console.error('[NEXUS Alert] Upgrade error:', e);
+      btn.textContent = 'Error — try again';
+      btn.disabled = false;
+      setTimeout(() => {
+        btn.textContent = originalText;
+      }, 3000);
+    }
+  });
+
+  // Restore button
+  document.getElementById('restoreBtn').addEventListener('click', async () => {
+    const email = document.getElementById('upgradeEmail').value.trim();
+    if (!email) {
+      alert('Please enter your email address to restore your license');
+      return;
+    }
+    const btn = document.getElementById('restoreBtn');
+    const originalText = btn.textContent;
+    btn.textContent = 'Checking...';
+    btn.disabled = true;
+    try {
+      const resp = await fetch(`https://api.nexus-alert.com/api/license?email=${encodeURIComponent(email)}`);
+      if (resp.ok) {
+        const data = await resp.json();
+        await updateConfig({ tier: data.tier, licenseKey: data.licenseKey, email });
+        // Re-render UI
+        document.getElementById('freePlanCard').style.display = 'none';
+        document.getElementById('premiumPlanCard').style.display = 'block';
+        document.getElementById('freeIntervalNotice').style.display = 'none';
+        btn.textContent = 'Restored!';
+        setTimeout(() => {
+          btn.textContent = originalText;
+          btn.disabled = false;
+        }, 2000);
+      } else {
+        throw new Error('License not found');
+      }
+    } catch (e) {
+      console.error('[NEXUS Alert] Restore error:', e);
+      btn.textContent = 'License not found';
+      btn.disabled = false;
+      setTimeout(() => {
+        btn.textContent = originalText;
+      }, 3000);
+    }
+  });
+
   // ─── Settings: Sound & Auto-open ────────────────────────────────
 
   const soundToggle = document.getElementById('soundToggle');

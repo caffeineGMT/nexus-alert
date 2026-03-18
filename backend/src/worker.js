@@ -14,7 +14,7 @@ export default {
     // CORS headers
     const corsHeaders = {
       'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'GET, POST, DELETE, OPTIONS',
+      'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
       'Access-Control-Allow-Headers': 'Content-Type, Authorization, Stripe-Signature',
     };
 
@@ -48,6 +48,9 @@ export default {
       }
       if (url.pathname === '/api/unsubscribe' && request.method === 'POST') {
         return await handleUnsubscribe(request, env, corsHeaders);
+      }
+      if (url.pathname === '/api/subscriber' && request.method === 'PUT') {
+        return await handleUpdateSubscriber(request, env, corsHeaders);
       }
       if (url.pathname === '/api/subscribers' && request.method === 'GET') {
         return await handleListSubscribers(env, corsHeaders);
@@ -227,6 +230,7 @@ async function handleSubscribe(request, env, corsHeaders) {
     return json({ error: 'email and locations are required' }, 400, corsHeaders);
   }
 
+  // MIGRATION NOTE: No backfill needed — handle missing fields with nullish coalescing at read time
   const subscriber = {
     email,
     locations,
@@ -235,6 +239,7 @@ async function handleSubscribe(request, env, corsHeaders) {
     timeRange: timeRange || { start: null, end: null },
     phone: phone || null, // E.164 format (e.g., +16045551234)
     tier: tier || 'free', // 'free' or 'premium'
+    last_checked_at: null, // ISO timestamp of last slot check
     createdAt: new Date().toISOString(),
     notifiedSlots: {},
   };
@@ -262,6 +267,34 @@ async function handleUnsubscribe(request, env, corsHeaders) {
   const list = JSON.parse(await env.NEXUS_ALERTS_KV.get('subscriber_list') || '[]');
   const filtered = list.filter(e => e !== email);
   await env.NEXUS_ALERTS_KV.put('subscriber_list', JSON.stringify(filtered));
+
+  return json({ success: true }, 200, corsHeaders);
+}
+
+async function handleUpdateSubscriber(request, env, corsHeaders) {
+  const body = await request.json();
+  const { email, locations, program, dateRange, timeRange, phone } = body;
+
+  if (!email) {
+    return json({ error: 'email is required' }, 400, corsHeaders);
+  }
+
+  // Fetch existing subscriber
+  const data = await env.NEXUS_ALERTS_KV.get(`sub:${email}`);
+  if (!data) {
+    return json({ error: 'Subscriber not found' }, 404, corsHeaders);
+  }
+
+  const subscriber = JSON.parse(data);
+
+  // Merge updates (tier changes only via Stripe webhook, not user-modifiable)
+  if (locations !== undefined) subscriber.locations = locations;
+  if (program !== undefined) subscriber.program = program;
+  if (dateRange !== undefined) subscriber.dateRange = dateRange;
+  if (timeRange !== undefined) subscriber.timeRange = timeRange;
+  if (phone !== undefined) subscriber.phone = phone;
+
+  await env.NEXUS_ALERTS_KV.put(`sub:${email}`, JSON.stringify(subscriber));
 
   return json({ success: true }, 200, corsHeaders);
 }
@@ -335,7 +368,7 @@ async function handleStatus(env, corsHeaders) {
 async function checkAllSubscribers(env) {
   const list = JSON.parse(await env.NEXUS_ALERTS_KV.get('subscriber_list') || '[]');
 
-  // Collect all unique locations across subscribers
+  // Collect all unique locations across subscribers (with tier-based rate limiting)
   const locationSet = new Set();
   const subscribers = [];
 
@@ -343,6 +376,27 @@ async function checkAllSubscribers(env) {
     const data = await env.NEXUS_ALERTS_KV.get(`sub:${email}`);
     if (!data) continue;
     const sub = JSON.parse(data);
+
+    // Fetch license record to determine effective tier
+    const licenseData = await env.NEXUS_ALERTS_KV.get(`license:${email}`);
+    const license = licenseData ? JSON.parse(licenseData) : {};
+    const tier = license.tier ?? sub.tier ?? 'free';
+
+    // TIER-BASED RATE LIMITING: Skip free users if checked within last 30 minutes
+    if (tier === 'free') {
+      const lastCheckedAt = sub.last_checked_at;
+      if (lastCheckedAt) {
+        const lastChecked = new Date(lastCheckedAt).getTime();
+        const now = Date.now();
+        const thirtyMinutes = 30 * 60 * 1000;
+
+        if (now - lastChecked < thirtyMinutes) {
+          console.log(`[NEXUS Alert] Skipping free user ${email} (last checked ${Math.round((now - lastChecked) / 60000)} min ago)`);
+          continue;
+        }
+      }
+    }
+
     subscribers.push(sub);
     sub.locations.forEach(l => locationSet.add(l));
   }

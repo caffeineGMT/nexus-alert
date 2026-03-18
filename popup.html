@@ -584,6 +584,25 @@
       </div>
       <div id="freeIntervalNotice" style="display:none;font-size:10px;color:var(--yellow);margin-top:6px">Free plan: actual check interval is 30 min regardless of selection. Upgrade to unlock.</div>
     </div>
+    <div class="section" id="premiumSection">
+      <div class="section-title">Plan</div>
+      <div id="freePlanCard" style="display:none">
+        <div class="tier-badge free">Free Plan</div>
+        <div class="tier-notice">Free plan checks every 30 min. <br>Upgrade for 2-min checks + email alerts.</div>
+        <ul class="benefit-list">
+          <li>✓ Check every 2 minutes</li>
+          <li>✓ Email notifications</li>
+          <li>✓ SMS alerts (coming soon)</li>
+        </ul>
+        <input type="email" id="upgradeEmail" placeholder="your@email.com" class="filter-input" style="margin-bottom:8px">
+        <button class="btn btn-primary" id="upgradeBtn" style="width:100%">Upgrade — $4.99/mo</button>
+        <button class="btn btn-secondary" id="restoreBtn" style="width:100%;margin-top:6px">Restore License</button>
+      </div>
+      <div id="premiumPlanCard" style="display:none">
+        <div class="tier-badge premium">✓ Premium</div>
+        <div style="font-size:11px;color:var(--text-muted);margin-top:6px">2-minute checks active. Email alerts enabled.</div>
+      </div>
+    </div>
     <div class="section">
       <div class="section-title">Notifications</div>
       <div class="toggle-row">

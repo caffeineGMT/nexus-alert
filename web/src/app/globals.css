@@ -21,3 +21,12 @@ body {
   background: var(--color-accent);
   color: #fff;
 }
+
+/* FAQ accordion chevron animation */
+details[open] summary .faq-chevron {
+  transform: rotate(180deg);
+}
+
+.faq-chevron {
+  transition: transform 0.2s ease;
+}

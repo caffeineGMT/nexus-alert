@@ -1,3 +1,6 @@
+import PricingSection from './components/PricingSection';
+import EmailCaptureForm from "./components/EmailCaptureForm";
+
 export default function Home() {
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-[#ededed]">
@@ -157,6 +160,10 @@ export default function Home() {
         </div>
       </section>
 
+      <PricingSection />
+
+      <FAQSection />
+
       {/* Programs */}
       <section className="py-20 px-6 border-t border-[#222]">
         <div className="max-w-4xl mx-auto text-center">
@@ -212,6 +219,68 @@ export default function Home() {
         </p>
       </footer>
     </div>
+  );
+}
+
+function FAQSection() {
+  const faqs = [
+    {
+      q: 'How does it work?',
+      a: 'NEXUS Alert runs as a Chrome Extension that periodically queries the GOES appointment system for available slots. When it detects an opening at your selected enrollment centers, it fires a desktop notification and an audible alert so you can act immediately.',
+    },
+    {
+      q: 'Is it free?',
+      a: 'Yes — the core extension is completely free. It checks for slots every 30 minutes and sends desktop and sound notifications. The Premium plan ($4.99/mo) upgrades you to 2-minute checks plus email and SMS alerts even when your browser is closed.',
+    },
+    {
+      q: 'What programs does it support?',
+      a: 'NEXUS Alert monitors all Trusted Traveler Programs managed through the GOES system: NEXUS (US-Canada border), Global Entry (US customs fast-track), and SENTRI (US-Mexico border). You can monitor multiple programs and locations simultaneously.',
+    },
+    {
+      q: 'How fast are the notifications?',
+      a: 'Free tier checks every 30 minutes. Premium tier checks every 2 minutes. Slots can disappear within seconds of appearing, so upgrading to Premium gives you a significant advantage in catching newly opened appointments.',
+    },
+    {
+      q: 'Is my data private?',
+      a: 'Your data stays on your device. The free extension never sends your information to any server — all monitoring happens locally in your browser. Premium users share only their email address for account management and notifications.',
+    },
+    {
+      q: 'How do I cancel Premium?',
+      a: 'You can cancel anytime directly from your account settings — no phone calls, no forms. Your Premium features remain active until the end of your current billing period. We also offer a full 30-day money-back guarantee, no questions asked.',
+    },
+  ];
+
+  return (
+    <section id="faq" className="py-20 px-6 border-t border-[#222]">
+      <div className="max-w-2xl mx-auto">
+        <h2 className="text-3xl font-bold text-center mb-12">
+          Frequently Asked Questions
+        </h2>
+        <div className="space-y-0">
+          {faqs.map(({ q, a }) => (
+            <details key={q} className="border-b border-[#222] group">
+              <summary className="py-4 flex justify-between items-center cursor-pointer list-none font-medium select-none">
+                {q}
+                <svg
+                  className="faq-chevron w-4 h-4 flex-shrink-0 ml-4 text-[#888]"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M19 9l-7 7-7-7"
+                  />
+                </svg>
+              </summary>
+              <p className="pb-4 text-[#888] text-sm leading-relaxed">{a}</p>
+            </details>
+          ))}
+        </div>
+      </div>
+    </section>
   );
 }
 
