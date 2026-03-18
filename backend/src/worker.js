@@ -567,6 +567,13 @@ async function handleStripeWebhook(request, env, corsHeaders) {
           // Track upgrade activity for social proof
           await trackActivity('premium_upgrade', { email }, env);
 
+          // Track checkout completion for funnel analysis
+          await trackActivity('checkout_completed', {
+            email,
+            tier: isPro ? 'pro' : 'premium',
+            plan: isPro ? 'pro' : billingCycle,
+          }, env);
+
           // Handle referral tracking and credit
           if (referralCode) {
             await handleReferralConversion(referralCode, email, session.subscription, env);
@@ -625,8 +632,8 @@ async function handleStripeWebhook(request, env, corsHeaders) {
             email,
           }));
 
-          // Send immediate pause offer email
-          await sendEmail('pause_offer', email, env);
+          // Send immediate pause offer email with 50% off for 3 months
+          await sendEmail('pause_offer', email, env, { email });
         }
         break;
       }
@@ -1133,6 +1140,27 @@ async function checkAllSubscribers(env, sentry) {
       const locationId = newSlots[0].locationId;
       await trackActivity('slot_found', { email: sub.email, locationId }, env);
 
+      // Track first slot found for success milestone email
+      const isFirstSlot = !sub.first_slot_found_at;
+      if (isFirstSlot) {
+        sub.first_slot_found_at = new Date().toISOString();
+
+        // Send success milestone email with referral incentive
+        const code = generateReferralCode(sub.email);
+        const shareUrl = `https://nexus-alert.com?ref=${code}`;
+        const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(`Just found my NEXUS appointment with @NexusAlert! 🎉 ${shareUrl}`)}`;
+        const emailShareUrl = `mailto:?subject=${encodeURIComponent('I found my NEXUS appointment!')}&body=${encodeURIComponent(`Hey!\n\nI just found my NEXUS appointment using this Chrome extension - it was way easier than refreshing manually.\n\nCheck it out: ${shareUrl}`)}`;
+
+        await sendEmail('slot_success', sub.email, env, {
+          shareUrl,
+          twitterUrl,
+          emailUrl: emailShareUrl,
+        });
+      }
+
+      // Update last_slot_found for retention monitoring
+      sub.last_slot_found = new Date().toISOString();
+
       // Send SMS for premium subscribers
       if (sub.phone && sub.tier === 'premium') {
         await sendSmsNotification(sub.email, sub.phone, newSlots, env);
@@ -1269,6 +1297,27 @@ async function checkSubscriberBatch(emailList, env, sentry) {
       // Track slot found activity for social proof
       const locationId = newSlots[0].locationId;
       await trackActivity('slot_found', { email: sub.email, locationId }, env);
+
+      // Track first slot found for success milestone email
+      const isFirstSlot = !sub.first_slot_found_at;
+      if (isFirstSlot) {
+        sub.first_slot_found_at = new Date().toISOString();
+
+        // Send success milestone email with referral incentive
+        const code = generateReferralCode(sub.email);
+        const shareUrl = `https://nexus-alert.com?ref=${code}`;
+        const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(`Just found my NEXUS appointment with @NexusAlert! 🎉 ${shareUrl}`)}`;
+        const emailShareUrl = `mailto:?subject=${encodeURIComponent('I found my NEXUS appointment!')}&body=${encodeURIComponent(`Hey!\n\nI just found my NEXUS appointment using this Chrome extension - it was way easier than refreshing manually.\n\nCheck it out: ${shareUrl}`)}`;
+
+        await sendEmail('slot_success', sub.email, env, {
+          shareUrl,
+          twitterUrl,
+          emailUrl: emailShareUrl,
+        });
+      }
+
+      // Update last_slot_found for retention monitoring
+      sub.last_slot_found = new Date().toISOString();
 
       // Queue SMS for premium subscribers
       if (sub.phone && sub.tier === 'premium') {
