@@ -109,6 +109,58 @@ export default function ProductHuntLanding() {
         </div>
       </section>
 
+      {/* Video Demo */}
+      <section className="py-20 px-6 border-t border-[#222]">
+        <div className="max-w-4xl mx-auto">
+          <h2 className="text-3xl font-bold text-center mb-4">
+            See it in action
+          </h2>
+          <p className="text-[#888] text-center max-w-2xl mx-auto mb-12">
+            Watch how NEXUS Alert monitors appointments and sends instant notifications
+          </p>
+
+          {/* Video Embed - TODO: Replace with actual YouTube/Loom URL after recording */}
+          <div className="max-w-3xl mx-auto aspect-video rounded-xl overflow-hidden shadow-2xl">
+            <iframe
+              src="https://www.youtube.com/embed/YOUR_VIDEO_ID"
+              title="NEXUS Alert Demo"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+              className="w-full h-full"
+            />
+          </div>
+        </div>
+      </section>
+
+      {/* Benefits Callouts */}
+      <section className="py-20 px-6 border-t border-[#222] bg-[#050505]">
+        <div className="max-w-5xl mx-auto">
+          <h2 className="text-3xl font-bold text-center mb-4">
+            Why Product Hunt users love it
+          </h2>
+          <p className="text-[#888] text-center max-w-2xl mx-auto mb-16">
+            Built for travelers who are tired of waiting
+          </p>
+          <div className="grid md:grid-cols-3 gap-12">
+            <BenefitCallout
+              icon="zap"
+              headline="Catch slots first"
+              subtext="Premium checks every 2 minutes — 15x faster than free tier. When a slot opens, you'll know within 120 seconds while others are still waiting."
+            />
+            <BenefitCallout
+              icon="shield"
+              headline="Privacy first"
+              subtext="Your data stays on your device. Free tier runs 100% locally in your browser. Premium users share only email for notifications. Open source on GitHub."
+            />
+            <BenefitCallout
+              icon="rocket"
+              headline="Works while you sleep"
+              subtext="Premium tier sends email and SMS alerts even when your browser is closed. Wake up to appointment notifications. Never miss a slot."
+            />
+          </div>
+        </div>
+      </section>
+
       {/* Social Proof */}
       <section className="py-12 px-6 border-t border-[#222] bg-[#111]">
         <div className="max-w-4xl mx-auto text-center">
@@ -485,6 +537,40 @@ function ProgramBadge({
     <div className="px-6 py-4 rounded-xl border border-[#222] bg-[#111] min-w-[180px]">
       <div className="font-bold text-lg">{name}</div>
       <div className="text-[#888] text-sm">{description}</div>
+    </div>
+  );
+}
+
+function BenefitCallout({
+  icon,
+  headline,
+  subtext,
+}: {
+  icon: string;
+  headline: string;
+  subtext: string;
+}) {
+  const icons: Record<string, string> = {
+    zap: "M13 10V3L4 14h7v7l9-11h-7z",
+    shield: "M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z",
+    rocket: "M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122",
+  };
+
+  return (
+    <div className="text-center">
+      <div className="flex justify-center mb-6">
+        <svg
+          className="w-16 h-16 text-[#3b82f6]"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth={1.5}
+          viewBox="0 0 24 24"
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" d={icons[icon]} />
+        </svg>
+      </div>
+      <h3 className="text-xl font-semibold mb-3">{headline}</h3>
+      <p className="text-sm text-[#888] leading-relaxed">{subtext}</p>
     </div>
   );
 }

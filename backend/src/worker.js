@@ -672,6 +672,154 @@ async function checkAllSubscribers(env, sentry) {
   console.log(`[NEXUS Alert] Checked ${locationSet.size} locations, sent ${totalNotifs} notification(s)`);
 }
 
+// ─── Batched Slot Checking (for cursor-based cron processing) ────────
+async function checkSubscriberBatch(emailList, env, sentry) {
+  const batchStartTime = Date.now();
+  let subscribersChecked = 0;
+  let notificationsSent = 0;
+
+  // Collect all unique locations across this batch
+  const locationSet = new Set();
+  const subscribers = [];
+
+  for (const email of emailList) {
+    const data = await env.NEXUS_ALERTS_KV.get(`sub:${email}`);
+    if (!data) continue;
+    const sub = JSON.parse(data);
+
+    // Fetch license record to determine effective tier
+    const licenseData = await env.NEXUS_ALERTS_KV.get(`license:${email}`);
+    const license = licenseData ? JSON.parse(licenseData) : {};
+    const tier = license.tier ?? sub.tier ?? 'free';
+
+    // TIER-BASED RATE LIMITING: Skip free users if checked within last 30 minutes
+    if (tier === 'free') {
+      const lastCheckedAt = sub.last_checked_at;
+      if (lastCheckedAt) {
+        const lastChecked = new Date(lastCheckedAt).getTime();
+        const now = Date.now();
+        const thirtyMinutes = 30 * 60 * 1000;
+
+        if (now - lastChecked < thirtyMinutes) {
+          console.log(`[NEXUS Alert] Skipping free user ${email} (last checked ${Math.round((now - lastChecked) / 60000)} min ago)`);
+          continue;
+        }
+      }
+    }
+
+    subscribers.push(sub);
+    sub.locations.forEach(l => locationSet.add(l));
+  }
+
+  // Fetch slots for all unique locations in this batch
+  const slotsByLocation = {};
+  for (const locationId of locationSet) {
+    try {
+      const slots = await fetchSlots(locationId, env);
+      if (slots.length > 0) {
+        slotsByLocation[locationId] = slots;
+      }
+    } catch (err) {
+      console.error(`Error checking location ${locationId}:`, err);
+      if (sentry) sentry.captureException(err);
+    }
+    // Rate limit
+    await sleep(500);
+  }
+
+  // Match slots to subscribers and queue notifications
+  let totalNotifs = 0;
+  for (const sub of subscribers) {
+    const newSlots = [];
+
+    for (const locId of sub.locations) {
+      const slots = slotsByLocation[locId] || [];
+      const filtered = filterSlots(slots, sub);
+
+      for (const slot of filtered) {
+        const key = `${locId}-${slot.startTimestamp}`;
+        if (!sub.notifiedSlots[key]) {
+          newSlots.push({ ...slot, locationId: locId });
+          sub.notifiedSlots[key] = Date.now();
+        }
+      }
+    }
+
+    if (newSlots.length > 0) {
+      // Queue email notification instead of sending directly
+      if (env.EMAIL_QUEUE) {
+        await env.EMAIL_QUEUE.send({
+          type: 'email',
+          email: sub.email,
+          slots: newSlots,
+          lawFirmEmail: sub.tier === 'pro_client' ? sub.lawFirmEmail : null,
+        });
+      } else {
+        // Fallback to direct send if queue not configured
+        if (sub.tier === 'pro_client' && sub.lawFirmEmail) {
+          await sendWhiteLabelEmail(sub.email, newSlots, sub.lawFirmEmail, env);
+        } else {
+          await sendEmailNotification(sub.email, newSlots, env);
+        }
+      }
+
+      totalNotifs++;
+      notificationsSent++;
+
+      // Track slot found activity for social proof
+      const locationId = newSlots[0].locationId;
+      await trackActivity('slot_found', { email: sub.email, locationId }, env);
+
+      // Queue SMS for premium subscribers
+      if (sub.phone && sub.tier === 'premium') {
+        if (env.EMAIL_QUEUE) {
+          await env.EMAIL_QUEUE.send({
+            type: 'sms',
+            email: sub.email,
+            phone: sub.phone,
+            slots: newSlots,
+          });
+        } else {
+          // Fallback to direct send
+          await sendSmsNotification(sub.email, sub.phone, newSlots, env);
+        }
+      }
+
+      // Clean old entries
+      const cutoff = Date.now() - 24 * 60 * 60 * 1000;
+      for (const [key, ts] of Object.entries(sub.notifiedSlots)) {
+        if (ts < cutoff) delete sub.notifiedSlots[key];
+      }
+    }
+
+    subscribersChecked++;
+
+    // Update last_checked_at for ALL subscribers regardless of tier or whether they got notifications
+    sub.last_checked_at = new Date().toISOString();
+    await env.NEXUS_ALERTS_KV.put(`sub:${sub.email}`, JSON.stringify(sub));
+  }
+
+  // Update stats
+  const totalChecks = parseInt(await env.NEXUS_ALERTS_KV.get('total_checks') || '0') + 1;
+  const totalNotifications = parseInt(await env.NEXUS_ALERTS_KV.get('total_notifications') || '0') + totalNotifs;
+  await env.NEXUS_ALERTS_KV.put('last_run', new Date().toISOString());
+  await env.NEXUS_ALERTS_KV.put('total_checks', String(totalChecks));
+  await env.NEXUS_ALERTS_KV.put('total_notifications', String(totalNotifications));
+
+  // Log batch completion metrics
+  const batchDuration = Date.now() - batchStartTime;
+  console.log(JSON.stringify({
+    metric: 'batch_duration_ms',
+    value: batchDuration,
+    batch_size: emailList.length,
+    subscribers_checked: subscribersChecked,
+    notifications_sent: notificationsSent,
+    locations_checked: locationSet.size
+  }));
+
+  console.log(`[NEXUS Alert BATCH] Checked ${subscribersChecked}/${emailList.length} subscribers, ${locationSet.size} locations, sent ${totalNotifs} notification(s)`);
+}
+
 async function fetchSlots(locationId, env) {
   const startTime = Date.now();
 

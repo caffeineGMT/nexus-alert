@@ -40,24 +40,54 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const crispWebsiteId = process.env.NEXT_PUBLIC_CRISP_WEBSITE_ID;
+
   return (
     <html lang="en" className="dark">
       <body className={`${geistSans.variable} antialiased`}>
         {children}
-        {/* Crisp Live Chat Widget */}
-        <Script id="crisp-chat" strategy="lazyOnload">
-          {`
-            window.$crisp=[];
-            window.CRISP_WEBSITE_ID="REPLACE_WITH_YOUR_CRISP_WEBSITE_ID";
-            (function(){
-              var d=document;
-              var s=d.createElement("script");
-              s.src="https://client.crisp.chat/l.js";
-              s.async=1;
-              d.getElementsByTagName("head")[0].appendChild(s);
-            })();
-          `}
-        </Script>
+        {/* Crisp Live Chat Widget - Hidden on /help routes via CSS to reduce clutter */}
+        {crispWebsiteId && crispWebsiteId !== 'your-crisp-website-id-here' && (
+          <>
+            <Script id="crisp-chat" strategy="lazyOnload">
+              {`
+                window.$crisp=[];
+                window.CRISP_WEBSITE_ID="${crispWebsiteId}";
+                (function(){
+                  var d=document;
+                  var s=d.createElement("script");
+                  s.src="https://client.crisp.chat/l.js";
+                  s.async=1;
+                  d.getElementsByTagName("head")[0].appendChild(s);
+                })();
+              `}
+            </Script>
+            <Script id="crisp-hide-on-help" strategy="lazyOnload">
+              {`
+                // Hide Crisp chat widget on /help routes to reduce clutter
+                if (typeof window !== 'undefined') {
+                  function toggleCrispOnHelp() {
+                    const isHelpPage = window.location.pathname.includes('/help');
+                    if (window.$crisp) {
+                      if (isHelpPage) {
+                        window.$crisp.push(['do', 'chat:hide']);
+                      } else {
+                        window.$crisp.push(['do', 'chat:show']);
+                      }
+                    }
+                  }
+
+                  // Run on initial load
+                  toggleCrispOnHelp();
+
+                  // Listen for route changes (Next.js)
+                  const observer = new MutationObserver(toggleCrispOnHelp);
+                  observer.observe(document.body, { childList: true, subtree: true });
+                }
+              `}
+            </Script>
+          </>
+        )}
       </body>
     </html>
   );

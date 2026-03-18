@@ -10,6 +10,18 @@ crons = ["*/2 * * * *"]
 binding = "NEXUS_ALERTS_KV"
 id = "00000000000000000000000000000000" # Replace with real ID from Cloudflare dashboard before deploying
 
+# Cloudflare Queue for email/SMS notifications
+[[queues.producers]]
+queue = "email-notifications"
+binding = "EMAIL_QUEUE"
+
+[[queues.consumers]]
+queue = "email-notifications"
+max_batch_size = 10
+max_batch_timeout = 30
+max_retries = 3
+dead_letter_queue = "email-notifications-dlq"
+
 [vars]
 # Non-secret config — set secrets via `wrangler secret put <NAME>`
 TWILIO_FROM_NUMBER = "" # Your Twilio number in E.164 format
@@ -45,6 +57,18 @@ crons = ["*/2 * * * *"]
 [[env.production.kv_namespaces]]
 binding = "NEXUS_ALERTS_KV"
 id = "REPLACE_WITH_PRODUCTION_NAMESPACE_ID"  # Run: wrangler kv:namespace create NEXUS_ALERTS_KV --env production
+
+# Production Cloudflare Queue for email/SMS notifications
+[[env.production.queues.producers]]
+queue = "email-notifications-prod"
+binding = "EMAIL_QUEUE"
+
+[[env.production.queues.consumers]]
+queue = "email-notifications-prod"
+max_batch_size = 10
+max_batch_timeout = 30
+max_retries = 3
+dead_letter_queue = "email-notifications-prod-dlq"
 
 # Production vars (non-secret)
 [env.production.vars]

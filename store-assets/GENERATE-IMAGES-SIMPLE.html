@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NEXUS Alert — Promotional Image Generator</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', sans-serif;
+      background: #f5f5f5;
+      padding: 20px;
+    }
+
+    .controls {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .controls h2 {
+      margin-bottom: 16px;
+      color: #333;
+    }
+
+    .controls p {
+      margin-bottom: 12px;
+      color: #666;
+      line-height: 1.6;
+    }
+
+    .controls ol {
+      margin-left: 20px;
+      color: #666;
+      line-height: 1.8;
+    }
+
+    .controls code {
+      background: #f0f0f0;
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-family: monospace;
+      color: #d63384;
+    }
+
+    .btn {
+      display: inline-block;
+      padding: 10px 20px;
+      background: #3b82f6;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-weight: 600;
+      cursor: pointer;
+      margin: 10px 10px 10px 0;
+      text-decoration: none;
+    }
+
+    .btn:hover {
+      background: #2563eb;
+    }
+
+    .canvas-container {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      display: inline-block;
+    }
+
+    .canvas {
+      display: none;
+      border: 2px solid #ddd;
+      margin-bottom: 10px;
+    }
+
+    .canvas.active {
+      display: block;
+    }
+
+    .info {
+      background: #fff3cd;
+      border: 1px solid #ffc107;
+      padding: 12px;
+      border-radius: 6px;
+      margin-bottom: 16px;
+      color: #856404;
+    }
+  </style>
+</head>
+<body>
+  <div class="controls">
+    <h2>🎨 NEXUS Alert Promotional Image Generator</h2>
+
+    <div class="info">
+      <strong>📸 How to capture screenshots:</strong><br>
+      1. Click a button below to display the image at the correct size<br>
+      2. Press <code>Cmd+Shift+M</code> (Mac) or <code>F12</code> (Windows) to open DevTools<br>
+      3. Click the device toolbar icon or press <code>Cmd+Shift+M</code> again<br>
+      4. Click the <code>⋮</code> menu (three dots) → <strong>"Capture screenshot"</strong><br>
+      5. The image will be saved to your Downloads folder
+    </div>
+
+    <button class="btn" onclick="showMarquee()">📐 Show Marquee (1400×560)</button>
+    <button class="btn" onclick="showTile()">📐 Show Small Tile (440×280)</button>
+    <button class="btn" onclick="hideAll()">✖️ Hide All</button>
+  </div>
+
+  <div class="canvas-container">
+    <div id="marquee" class="canvas"></div>
+    <div id="tile" class="canvas"></div>
+    <p id="dimensions" style="color: #666; margin-top: 10px;"></p>
+  </div>
+
+  <script>
+    function hideAll() {
+      document.getElementById('marquee').classList.remove('active');
+      document.getElementById('tile').classList.remove('active');
+      document.getElementById('dimensions').textContent = '';
+    }
+
+    function showMarquee() {
+      hideAll();
+      const marquee = document.getElementById('marquee');
+      marquee.classList.add('active');
+      marquee.innerHTML = `
+        <div style="width: 1400px; height: 560px; overflow: hidden; background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 100%); position: relative; display: flex; align-items: center; justify-content: center;">
+          <!-- Grid background -->
+          <div style="position: absolute; inset: 0; background-image: linear-gradient(rgba(59,130,246,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(59,130,246,0.1) 1px, transparent 1px); background-size: 50px 50px; opacity: 0.3;"></div>
+
+          <!-- Glow effect -->
+          <div style="position: absolute; width: 600px; height: 600px; background: radial-gradient(circle, rgba(59,130,246,0.15) 0%, transparent 70%); top: -200px; right: -100px; pointer-events: none;"></div>
+
+          <div style="position: relative; z-index: 10; display: flex; align-items: center; gap: 80px; max-width: 1300px; padding: 60px;">
+            <!-- Left content -->
+            <div style="flex: 1;">
+              <div style="display: inline-block; padding: 8px 16px; background: rgba(34,197,94,0.15); border: 1px solid rgba(34,197,94,0.3); border-radius: 20px; color: #22c55e; font-size: 14px; font-weight: 600; margin-bottom: 24px; text-transform: uppercase; letter-spacing: 0.5px;">
+                🔔 Never Miss Your Appointment
+              </div>
+
+              <h1 style="font-size: 72px; font-weight: 800; color: #fff; line-height: 1.1; margin-bottom: 20px;">
+                <span style="background: linear-gradient(135deg, #3b82f6 0%, #22c55e 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">Never Miss</span><br>
+                Your NEXUS<br>
+                Appointment
+              </h1>
+
+              <p style="font-size: 24px; color: #888; margin-bottom: 32px; line-height: 1.4;">
+                Real-time monitoring for NEXUS, Global Entry & SENTRI slots.<br>
+                Get instant notifications when appointments open up.
+              </p>
+
+              <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-bottom: 32px;">
+                <div style="display: flex; align-items: center; gap: 10px; font-size: 16px; color: #e8e8e8;">
+                  <svg width="20" height="20" fill="none" stroke="#22c55e" stroke-width="2" viewBox="0 0 24 24">
+                    <polyline points="20 6 9 17 4 12"/>
+                  </svg>
+                  <span>Real-time slot monitoring</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 10px; font-size: 16px; color: #e8e8e8;">
+                  <svg width="20" height="20" fill="none" stroke="#22c55e" stroke-width="2" viewBox="0 0 24 24">
+                    <polyline points="20 6 9 17 4 12"/>
+                  </svg>
+                  <span>Instant desktop notifications</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 10px; font-size: 16px; color: #e8e8e8;">
+                  <svg width="20" height="20" fill="none" stroke="#22c55e" stroke-width="2" viewBox="0 0 24 24">
+                    <polyline points="20 6 9 17 4 12"/>
+                  </svg>
+                  <span>Sound alerts & auto-open</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 10px; font-size: 16px; color: #e8e8e8;">
+                  <svg width="20" height="20" fill="none" stroke="#22c55e" stroke-width="2" viewBox="0 0 24 24">
+                    <polyline points="20 6 9 17 4 12"/>
+                  </svg>
+                  <span>Multi-location tracking</span>
+                </div>
+              </div>
+
+              <a href="#" style="display: inline-flex; align-items: center; gap: 12px; padding: 16px 32px; background: #3b82f6; color: white; font-size: 18px; font-weight: 600; border-radius: 12px; text-decoration: none; box-shadow: 0 10px 30px rgba(59,130,246,0.4);">
+                <svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+                </svg>
+                Add to Chrome — Free
+              </a>
+            </div>
+
+            <!-- Right mockup -->
+            <div style="position: relative;">
+              <div style="width: 380px; height: 500px; background: #141414; border: 1px solid #2a2a2a; border-radius: 16px; box-shadow: 0 20px 60px rgba(0,0,0,0.8); overflow: hidden; position: relative;">
+                <!-- Header -->
+                <div style="padding: 16px; border-bottom: 1px solid #2a2a2a; display: flex; align-items: center; justify-content: space-between;">
+                  <h2 style="font-size: 16px; color: #e8e8e8; font-weight: 700;">NEXUS Alert</h2>
+                  <div style="width: 40px; height: 22px; background: #3b82f6; border-radius: 22px; position: relative;">
+                    <div style="position: absolute; width: 16px; height: 16px; background: white; border-radius: 50%; right: 3px; top: 3px;"></div>
+                  </div>
+                </div>
+
+                <!-- Status bar -->
+                <div style="padding: 10px 16px; background: #1a1a1a; border-bottom: 1px solid #2a2a2a; display: flex; align-items: center; gap: 8px; font-size: 12px; color: #e8e8e8;">
+                  <div style="width: 8px; height: 8px; background: #22c55e; border-radius: 50%; box-shadow: 0 0 8px #22c55e;"></div>
+                  <span>Monitoring</span>
+                </div>
+
+                <!-- Slot cards -->
+                <div style="margin: 16px; padding: 12px; background: #1a1a1a; border: 1px solid #2a2a2a; border-left: 3px solid #22c55e; border-radius: 8px; display: flex; align-items: center; justify-content: space-between;">
+                  <div style="flex: 1;">
+                    <div style="font-size: 14px; font-weight: 600; color: #e8e8e8; margin-bottom: 4px;">Wed, Mar 20</div>
+                    <div style="font-size: 11px; color: #888;">10:30 AM</div>
+                    <div style="font-size: 10px; color: #666; margin-top: 4px;">Blaine, WA</div>
+                  </div>
+                  <button style="padding: 6px 16px; background: #22c55e; color: #000; font-size: 12px; font-weight: 600; border-radius: 6px; border: none;">Book</button>
+                </div>
+
+                <div style="margin: 16px; padding: 12px; background: #1a1a1a; border: 1px solid #2a2a2a; border-left: 3px solid #22c55e; border-radius: 8px; display: flex; align-items: center; justify-content: space-between;">
+                  <div style="flex: 1;">
+                    <div style="font-size: 14px; font-weight: 600; color: #e8e8e8; margin-bottom: 4px;">Thu, Mar 21</div>
+                    <div style="font-size: 11px; color: #888;">2:15 PM</div>
+                    <div style="font-size: 10px; color: #666; margin-top: 4px;">Pacific Highway, BC</div>
+                  </div>
+                  <button style="padding: 6px 16px; background: #22c55e; color: #000; font-size: 12px; font-weight: 600; border-radius: 6px; border: none;">Book</button>
+                </div>
+
+                <!-- Locations -->
+                <div style="margin: 16px;">
+                  <div style="display: flex; align-items: center; gap: 10px; padding: 10px; margin-bottom: 6px; background: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 6px; font-size: 12px; color: #e8e8e8;">
+                    <div style="width: 16px; height: 16px; background: #3b82f6; border-radius: 3px; display: flex; align-items: center; justify-content: center;">
+                      <svg width="10" height="10" fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24">
+                        <polyline points="20 6 9 17 4 12"/>
+                      </svg>
+                    </div>
+                    <span>Blaine, WA</span>
+                  </div>
+                  <div style="display: flex; align-items: center; gap: 10px; padding: 10px; background: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 6px; font-size: 12px; color: #e8e8e8;">
+                    <div style="width: 16px; height: 16px; background: #3b82f6; border-radius: 3px; display: flex; align-items: center; justify-content: center;">
+                      <svg width="10" height="10" fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24">
+                        <polyline points="20 6 9 17 4 12"/>
+                      </svg>
+                    </div>
+                    <span>Pacific Highway, BC</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+      document.getElementById('dimensions').textContent = '📐 Dimensions: 1400 × 560 pixels | Save as: marquee-1400x560.png';
+    }
+
+    function showTile() {
+      hideAll();
+      const tile = document.getElementById('tile');
+      tile.classList.add('active');
+      tile.innerHTML = `
+        <div style="width: 440px; height: 280px; overflow: hidden; background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 100%); position: relative; display: flex; align-items: center; justify-content: center;">
+          <!-- Grid background -->
+          <div style="position: absolute; inset: 0; background-image: linear-gradient(rgba(59,130,246,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(59,130,246,0.1) 1px, transparent 1px); background-size: 30px 30px; opacity: 0.3;"></div>
+
+          <!-- Glow effect -->
+          <div style="position: absolute; width: 400px; height: 400px; background: radial-gradient(circle, rgba(59,130,246,0.2) 0%, transparent 70%); top: -100px; left: 50%; transform: translateX(-50%); pointer-events: none;"></div>
+
+          <div style="position: relative; z-index: 10; text-align: center; padding: 40px;">
+            <div style="width: 80px; height: 80px; margin: 0 auto 16px; background: linear-gradient(135deg, #3b82f6 0%, #22c55e 100%); border-radius: 20px; display: flex; align-items: center; justify-content: center; box-shadow: 0 10px 30px rgba(59,130,246,0.5);">
+              <svg width="50" height="50" fill="white" viewBox="0 0 24 24">
+                <path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.63-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.64 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2zm-2 1H8v-6c0-2.48 1.51-4.5 4-4.5s4 2.02 4 4.5v6z"/>
+              </svg>
+            </div>
+
+            <h1 style="font-size: 36px; font-weight: 800; color: #fff; margin-bottom: 8px; line-height: 1.2;">NEXUS Alert</h1>
+            <p style="font-size: 16px; color: #888; font-weight: 500;">Never miss an appointment slot</p>
+
+            <div style="display: inline-block; margin-top: 16px; padding: 6px 14px; background: rgba(34,197,94,0.15); border: 1px solid rgba(34,197,94,0.3); border-radius: 16px; color: #22c55e; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">
+              Free • Instant Notifications
+            </div>
+          </div>
+        </div>
+      `;
+      document.getElementById('dimensions').textContent = '📐 Dimensions: 440 × 280 pixels | Save as: small-tile-440x280.png';
+    }
+  </script>
+</body>
+</html>

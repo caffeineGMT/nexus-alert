@@ -8,10 +8,8 @@
     "package": "node scripts/package.js"
   },
   "devDependencies": {
+    "puppeteer": "^24.39.1",
     "vitest": "^1.6.0"
-  },
-  "dependencies": {
-    "@sentry/browser": "^8.47.0"
   },
   "dependencies": {
     "@sentry/browser": "^10.44.0"
