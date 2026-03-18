@@ -208,14 +208,26 @@ export default function Home() {
         <p>
           NEXUS Alert is free and open source. Not affiliated with CBP or DHS.
         </p>
-        <p className="mt-2">
+        <div className="mt-3 space-x-4">
+          <a
+            href="/privacy"
+            className="text-[#888] hover:text-[#3b82f6] transition"
+          >
+            Privacy Policy
+          </a>
+          <a
+            href="/terms"
+            className="text-[#888] hover:text-[#3b82f6] transition"
+          >
+            Terms of Service
+          </a>
           <a
             href="https://github.com/caffeineGMT/nexus-alert"
             className="text-[#888] hover:text-[#3b82f6] transition"
           >
             GitHub
           </a>
-        </p>
+        </div>
       </footer>
     </div>
   );
