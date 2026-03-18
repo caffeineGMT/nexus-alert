@@ -490,6 +490,169 @@ export const templates = {
     `,
   },
 
+  exit_survey: {
+    subject: 'Quick question about your NEXUS Alert experience',
+    html: `
+      <div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;max-width:600px;margin:0 auto">
+        <div style="background:#1e3a5f;color:white;padding:24px;border-radius:8px 8px 0 0">
+          <h1 style="margin:0;font-size:24px">We Value Your Feedback</h1>
+        </div>
+        <div style="background:#ffffff;padding:32px;border:1px solid #e0e0e0;border-top:none;border-radius:0 0 8px 8px">
+          <p style="font-size:16px;line-height:1.6;color:#333;margin-top:0">
+            Hi there,
+          </p>
+
+          <p style="font-size:16px;line-height:1.6;color:#333">
+            We noticed you recently canceled your NEXUS Alert Premium subscription. We're always looking to improve, and your feedback would be incredibly valuable.
+          </p>
+
+          <p style="font-size:16px;line-height:1.6;color:#333">
+            Would you mind taking 30 seconds to tell us why you canceled?
+          </p>
+
+          <a href="{{survey_link}}" style="display:inline-block;background:#3b82f6;color:white;padding:16px 32px;border-radius:6px;text-decoration:none;font-weight:600;margin:24px 0;font-size:16px;text-align:center;width:100%;box-sizing:border-box">
+            Share Your Feedback
+          </a>
+
+          <p style="font-size:14px;line-height:1.6;color:#666;text-align:center;margin-top:24px">
+            Your response helps us serve our customers better. Thank you! 🙏
+          </p>
+
+          <div style="margin-top:32px;padding-top:24px;border-top:1px solid #e0e0e0">
+            <p style="font-size:13px;color:#999;margin:0;text-align:center">
+              — The NEXUS Alert Team
+            </p>
+          </div>
+        </div>
+      </div>
+    `,
+  },
+
+  win_back_day7: {
+    subject: 'Come back for 50% off — Limited time offer',
+    html: `
+      <div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;max-width:600px;margin:0 auto">
+        <div style="background:linear-gradient(135deg,#8b5cf6 0%,#6366f1 100%);color:white;padding:24px;border-radius:8px 8px 0 0">
+          <h1 style="margin:0;font-size:24px">We Miss You! 🎁</h1>
+        </div>
+        <div style="background:#ffffff;padding:32px;border:1px solid #e0e0e0;border-top:none;border-radius:0 0 8px 8px">
+          <p style="font-size:16px;line-height:1.6;color:#333;margin-top:0">
+            We noticed you canceled your NEXUS Alert Premium subscription last week. We'd love to have you back!
+          </p>
+
+          <div style="background:linear-gradient(135deg,#fef3c7 0%,#fde047 100%);border:2px solid #f59e0b;border-radius:8px;padding:32px;margin:32px 0;text-align:center">
+            <div style="font-size:14px;color:#92400e;text-transform:uppercase;letter-spacing:1px;margin-bottom:12px">Exclusive Comeback Offer</div>
+            <div style="font-size:56px;font-weight:700;color:#92400e;margin:16px 0;line-height:1">50% OFF</div>
+            <div style="font-size:18px;color:#92400e;margin-bottom:12px;font-weight:600">For the Next 3 Months</div>
+            <div style="font-size:16px;color:#92400e;margin-bottom:20px;line-height:1.5">
+              Just <strong>$2.49/month</strong> instead of $4.99/month
+            </div>
+            <div style="background:#fff;padding:12px;border-radius:6px;display:inline-block;margin:16px 0">
+              <div style="font-size:13px;color:#92400e;margin-bottom:4px">Use code at checkout:</div>
+              <div style="font-size:24px;font-weight:700;color:#92400e;font-family:monospace;letter-spacing:2px">COMEBACK50</div>
+            </div>
+          </div>
+
+          <a href="https://nexus-alert.com/pricing?promo=COMEBACK50" style="display:inline-block;background:#3b82f6;color:white;padding:16px 32px;border-radius:6px;text-decoration:none;font-weight:600;font-size:16px;text-align:center;width:100%;box-sizing:border-box;margin:8px 0">
+            Reactivate Now
+          </a>
+
+          <div style="background:#f0f9ff;border:1px solid #bfdbfe;border-radius:6px;padding:20px;margin:24px 0">
+            <h3 style="margin:0 0 12px 0;color:#1e40af;font-size:16px">✨ Why Come Back?</h3>
+            <ul style="margin:0;padding-left:20px;color:#1e40af;line-height:1.8;font-size:14px">
+              <li>Check every 2 minutes (15x faster than free)</li>
+              <li>Instant SMS alerts when slots appear</li>
+              <li>Priority support (24-hour response)</li>
+              <li>73% success rate within 14 days</li>
+            </ul>
+          </div>
+
+          <p style="font-size:14px;line-height:1.6;color:#666;text-align:center;margin-top:24px">
+            This offer expires in <strong>7 days</strong>. Cancel anytime.
+          </p>
+
+          <div style="margin-top:32px;padding-top:24px;border-top:1px solid #e0e0e0">
+            <p style="font-size:13px;color:#999;margin:0;text-align:center">
+              Not interested? <a href="https://nexus-alert.com/unsubscribe?email={{email}}" style="color:#999">Unsubscribe from win-back emails</a>
+            </p>
+          </div>
+        </div>
+      </div>
+    `,
+  },
+
+  win_back_day30: {
+    subject: 'New features since you left + special offer',
+    html: `
+      <div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;max-width:600px;margin:0 auto">
+        <div style="background:#1e3a5f;color:white;padding:24px;border-radius:8px 8px 0 0">
+          <h1 style="margin:0;font-size:24px">See What's New at NEXUS Alert</h1>
+        </div>
+        <div style="background:#ffffff;padding:32px;border:1px solid #e0e0e0;border-top:none;border-radius:0 0 8px 8px">
+          <p style="font-size:16px;line-height:1.6;color:#333;margin-top:0">
+            It's been a month since you left NEXUS Alert Premium. We've shipped some exciting updates you might be interested in:
+          </p>
+
+          <div style="margin:32px 0">
+            <div style="display:flex;align-items:start;margin-bottom:24px;padding:20px;background:#eff6ff;border-left:4px solid #3b82f6;border-radius:4px">
+              <div style="font-size:32px;margin-right:16px">⚡</div>
+              <div>
+                <h3 style="margin:0 0 8px 0;color:#1e40af;font-size:16px">5-Second Notifications</h3>
+                <p style="margin:0;font-size:14px;color:#1e40af;line-height:1.6">
+                  We cut notification latency from 30 seconds to just 5 seconds. You're now among the first to know when slots appear.
+                </p>
+              </div>
+            </div>
+
+            <div style="display:flex;align-items:start;margin-bottom:24px;padding:20px;background:#f0fdf4;border-left:4px solid #22c55e;border-radius:4px">
+              <div style="font-size:32px;margin-right:16px">📍</div>
+              <div>
+                <h3 style="margin:0 0 8px 0;color:#166534;font-size:16px">15 New Locations</h3>
+                <p style="margin:0;font-size:14px;color:#166534;line-height:1.6">
+                  Added coverage for enrollment centers across the US and Canada. More locations = more opportunities to find slots.
+                </p>
+              </div>
+            </div>
+
+            <div style="display:flex;align-items:start;margin-bottom:0;padding:20px;background:#fef3c7;border-left:4px solid #f59e0b;border-radius:4px">
+              <div style="font-size:32px;margin-right:16px">🎯</div>
+              <div>
+                <h3 style="margin:0 0 8px 0;color:#92400e;font-size:16px">Smart Time Filters</h3>
+                <p style="margin:0;font-size:14px;color:#92400e;line-height:1.6">
+                  Set preferred time ranges (mornings, afternoons, weekends) and only get alerted for slots that work for your schedule.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div style="background:#f9fafb;border:2px dashed #d1d5db;border-radius:8px;padding:24px;margin:32px 0;text-align:center">
+            <p style="margin:0 0 16px 0;font-size:16px;color:#374151;font-weight:600">
+              Want to give us another try?
+            </p>
+            <a href="https://nexus-alert.com/pricing" style="display:inline-block;background:#3b82f6;color:white;padding:16px 32px;border-radius:6px;text-decoration:none;font-weight:600;font-size:16px">
+              Reactivate Your Account
+            </a>
+            <p style="margin:16px 0 0 0;font-size:13px;color:#6b7280">
+              Start at the regular price ($4.99/mo) • Cancel anytime
+            </p>
+          </div>
+
+          <div style="background:#eff6ff;border-radius:6px;padding:20px;margin:24px 0">
+            <p style="margin:0;font-size:14px;color:#1e40af;line-height:1.6;text-align:center">
+              <strong>📊 Recent Success Story:</strong> "Reactivated after 3 weeks. Found a Blaine slot within 2 days using the new time filters. Totally worth it!" — Sarah M., Vancouver
+            </p>
+          </div>
+
+          <div style="margin-top:32px;padding-top:24px;border-top:1px solid #e0e0e0">
+            <p style="font-size:13px;color:#999;margin:0;text-align:center">
+              Not interested? <a href="https://nexus-alert.com/unsubscribe?email={{email}}" style="color:#999">Unsubscribe from these emails</a>
+            </p>
+          </div>
+        </div>
+      </div>
+    `,
+  },
+
   win_back: {
     subject: '🎁 We Miss You — Come Back for 50% Off',
     html: `

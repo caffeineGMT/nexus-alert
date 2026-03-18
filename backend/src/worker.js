@@ -120,6 +120,12 @@ export default {
     if (url.pathname === '/api/partner-application' && request.method === 'POST') {
       return await handlePartnerApplication(request, env, corsHeaders);
     }
+    if (url.pathname === '/api/exit-survey' && request.method === 'POST') {
+      return await handleExitSurvey(request, env, corsHeaders);
+    }
+    if (url.pathname === '/api/reactivate' && request.method === 'POST') {
+      return await handleReactivate(request, env, corsHeaders);
+    }
     if (url.pathname === '/health' && request.method === 'GET') {
       return await handleHealthCheck(env, corsHeaders);
     }
@@ -613,9 +619,8 @@ async function handleStripeWebhook(request, env, corsHeaders) {
       case 'customer.subscription.deleted': {
         const subscription = event.data.object;
 
-        // Look up email via customer ID
-        const customer = await stripe.customers.retrieve(subscription.customer);
-        const email = customer.email;
+        // Look up email via customer ID or metadata
+        const email = subscription.metadata?.email || (await stripe.customers.retrieve(subscription.customer)).email;
 
         if (email) {
           // Downgrade to free tier
@@ -629,14 +634,9 @@ async function handleStripeWebhook(request, env, corsHeaders) {
           await env.NEXUS_ALERTS_KV.put(`license:${email}`, JSON.stringify(licenseData));
           console.log(`Subscription canceled for ${email}, downgraded to free`);
 
-          // Track churn for win-back email (send after 30 days)
-          await env.NEXUS_ALERTS_KV.put(`churn:${email}`, JSON.stringify({
-            canceledAt: Date.now(),
-            email,
-          }));
-
-          // Send immediate pause offer email with 50% off for 3 months
-          await sendEmail('pause_offer', email, env, { email });
+          // Handle churn with exit survey + win-back campaign
+          const { handleChurn } = await import('./handlers/churn.js');
+          await handleChurn(email, env);
         }
         break;
       }
@@ -3186,6 +3186,119 @@ async function handleConvertKitWebhookEndpoint(request, env, corsHeaders) {
     return json({ success: true }, 200, corsHeaders);
   } catch (err) {
     console.error('ConvertKit webhook error:', err);
+    return json({ error: err.message }, 500, corsHeaders);
+  }
+}
+
+async function handleExitSurvey(request, env, corsHeaders) {
+  try {
+    const body = await request.json();
+    const { email, reason, feedback } = body;
+
+    if (!email || !reason) {
+      return json({ error: 'email and reason are required' }, 400, corsHeaders);
+    }
+
+    // Store exit survey response
+    const { storeExitSurveyResponse } = await import('./handlers/churn.js');
+    const success = await storeExitSurveyResponse(email, reason, feedback, env);
+
+    if (!success) {
+      return json({ error: 'Failed to store survey response' }, 500, corsHeaders);
+    }
+
+    return json({ success: true }, 200, corsHeaders);
+  } catch (err) {
+    console.error('Exit survey error:', err);
+    return json({ error: err.message }, 500, corsHeaders);
+  }
+}
+
+async function handleReactivate(request, env, corsHeaders) {
+  try {
+    const body = await request.json();
+    const { email, promo_code } = body;
+
+    if (!email) {
+      return json({ error: 'email is required' }, 400, corsHeaders);
+    }
+
+    // Verify promo code is valid (COMEBACK50)
+    if (promo_code && promo_code !== 'COMEBACK50') {
+      return json({ error: 'Invalid promo code' }, 400, corsHeaders);
+    }
+
+    // Initialize Stripe
+    const stripe = new Stripe(env.STRIPE_SECRET_KEY, {
+      httpClient: Stripe.createFetchHttpClient(),
+    });
+
+    // Get or create customer
+    let customer;
+    const existingCustomers = await stripe.customers.list({ email, limit: 1 });
+
+    if (existingCustomers.data.length > 0) {
+      customer = existingCustomers.data[0];
+    } else {
+      customer = await stripe.customers.create({ email });
+    }
+
+    // Build checkout session
+    const sessionParams = {
+      customer: customer.id,
+      mode: 'subscription',
+      payment_method_types: ['card'],
+      line_items: [
+        {
+          price: env.STRIPE_PRICE_ID, // Monthly Premium price
+          quantity: 1,
+        },
+      ],
+      success_url: `https://nexus-alert.com/success?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `https://nexus-alert.com/pricing`,
+      metadata: {
+        email,
+        reactivation: 'true',
+        billingCycle: 'monthly',
+      },
+    };
+
+    // Apply coupon if valid promo code provided
+    if (promo_code === 'COMEBACK50' && env.STRIPE_WINBACK_COUPON_ID) {
+      sessionParams.discounts = [
+        {
+          coupon: env.STRIPE_WINBACK_COUPON_ID,
+        },
+      ];
+    }
+
+    const session = await stripe.checkout.sessions.create(sessionParams);
+
+    // Tag user as reactivated in ConvertKit
+    if (env.CONVERTKIT_TAG_REACTIVATED && env.CONVERTKIT_API_KEY) {
+      const { tagSubscriber } = await import('./convertkit.js');
+      await tagSubscriber(email, env.CONVERTKIT_TAG_REACTIVATED, env.CONVERTKIT_API_KEY);
+    }
+
+    // Remove churned tag
+    // Note: ConvertKit doesn't have a direct "remove tag" API, but adding a new tag is enough for segmentation
+
+    // Update churn data
+    const churnDataStr = await env.NEXUS_ALERTS_KV.get(`churn:${email}`);
+    if (churnDataStr) {
+      const churnData = JSON.parse(churnDataStr);
+      churnData.reactivation_attempted = true;
+      churnData.reactivation_at = Date.now();
+      churnData.promo_code_used = promo_code || null;
+      await env.NEXUS_ALERTS_KV.put(`churn:${email}`, JSON.stringify(churnData));
+    }
+
+    return json({
+      sessionId: session.id,
+      url: session.url,
+    }, 200, corsHeaders);
+  } catch (err) {
+    console.error('Reactivation error:', err);
     return json({ error: err.message }, 500, corsHeaders);
   }
 }

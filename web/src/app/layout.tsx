@@ -10,24 +10,34 @@ const geistSans = Geist({
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://nexus-alert.com'),
-  title: 'NEXUS Alert - Get Notified of Appointment Slots Instantly | Chrome Extension',
+  title: 'NEXUS Appointment Tracker - Find Global Entry Slots Fast | Free Chrome Extension',
   description:
-    'Automated appointment monitoring for NEXUS, Global Entry, and SENTRI. Get instant alerts when slots open.',
+    'Free NEXUS appointment tracker & Global Entry slot finder. Automated 24/7 monitoring finds interview cancellations and sends instant alerts. Book appointments in days, not months.',
+  keywords: [
+    'NEXUS appointment tracker',
+    'Global Entry slot finder',
+    'NEXUS interview cancellation alert',
+    'how to find NEXUS appointments',
+    'SENTRI appointment monitoring',
+    'automated appointment tracker',
+    'trusted traveler program appointments',
+    'GOES appointment slots',
+  ],
   openGraph: {
-    title: 'NEXUS Alert - Get Notified of Appointment Slots Instantly',
+    title: 'NEXUS Appointment Tracker - Find Global Entry Slots Fast',
     description:
-      'Free Chrome extension that monitors NEXUS, Global Entry, and SENTRI appointment slots and notifies you instantly.',
+      'Free Chrome extension that monitors NEXUS, Global Entry, and SENTRI appointment cancellations 24/7. Get instant alerts when slots open up.',
     url: 'https://nexus-alert.com',
     siteName: 'NEXUS Alert',
     // TODO: replace with a properly designed OG image (see web/public/og-image.png)
-    images: [{ url: '/og-image.png', width: 1200, height: 630, alt: 'NEXUS Alert' }],
+    images: [{ url: '/og-image.png', width: 1200, height: 630, alt: 'NEXUS Alert Appointment Tracker' }],
     type: 'website',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'NEXUS Alert - Get Notified of Appointment Slots Instantly',
+    title: 'NEXUS Appointment Tracker - Find Slots Fast',
     description:
-      'Free Chrome extension that monitors NEXUS, Global Entry, and SENTRI appointment slots. Book weeks sooner.',
+      'Free Chrome extension that monitors NEXUS, Global Entry, and SENTRI appointment slots 24/7. Book weeks sooner with instant cancellation alerts.',
     images: ['/og-image.png'],
   },
   alternates: {

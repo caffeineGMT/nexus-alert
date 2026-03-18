@@ -26,6 +26,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 0.9,
     },
     {
+      url: `${baseUrl}/how-it-works`,
+      lastModified: '2026-03-18',
+      changeFrequency: 'monthly',
+      priority: 0.9,
+    },
+    {
       url: `${baseUrl}/blog`,
       lastModified: currentDate,
       changeFrequency: 'weekly',
@@ -33,6 +39,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
     },
     {
       url: `${baseUrl}/blog/how-to-get-nexus-appointment-fast`,
+      lastModified: '2026-03-18',
+      changeFrequency: 'monthly',
+      priority: 0.8,
+    },
+    {
+      url: `${baseUrl}/blog/nexus-conditional-approval`,
       lastModified: '2026-03-18',
       changeFrequency: 'monthly',
       priority: 0.8,

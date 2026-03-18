@@ -20,6 +20,60 @@ export const metadata: Metadata = {
 
 const blogPosts = [
   {
+    slug: 'how-to-get-nexus-appointment-fast',
+    title: 'How to Get a NEXUS Interview Appointment in 2026 (7 Proven Strategies)',
+    excerpt:
+      'Waiting months for a NEXUS appointment? Learn 7 data-backed strategies to book your interview slot weeks or even days sooner, including the #1 method that works 24/7.',
+    date: '2026-03-18',
+    readTime: '8 min read',
+    category: 'Guides',
+  },
+  {
+    slug: 'nexus-conditional-approval',
+    title: 'NEXUS Conditional Approval: What Happens Next? (2026 Complete Guide)',
+    excerpt:
+      'Got NEXUS conditional approval? Learn exactly what happens next, how to book your interview, what documents to bring, and how to move from conditional to full approval fast.',
+    date: '2026-03-18',
+    readTime: '10 min read',
+    category: 'Guides',
+  },
+  {
+    slug: 'global-entry-vs-nexus-vs-sentri',
+    title: 'Global Entry vs NEXUS vs SENTRI: Which Trusted Traveler Program is Right for You?',
+    excerpt:
+      'Confused about which Trusted Traveler Program to choose? This complete comparison breaks down costs, benefits, enrollment centers, and ideal use cases for each program.',
+    date: '2026-03-18',
+    readTime: '7 min read',
+    category: 'Comparisons',
+  },
+  {
+    slug: 'nexus-interview-locations',
+    title: '7 NEXUS Interview Locations with Shortest Wait Times (2026 Data)',
+    excerpt:
+      'Which NEXUS enrollment centers have the best availability? Data analysis of appointment slot releases across all 13 locations to help you book faster.',
+    date: '2026-03-18',
+    readTime: '8 min read',
+    category: 'Guides',
+  },
+  {
+    slug: 'nexus-interview-tips',
+    title: 'NEXUS Interview Tips: Everything You Need to Know to Pass',
+    excerpt:
+      'Ace your NEXUS interview on the first try. Complete guide covering required documents, interview questions, what to expect, common mistakes to avoid, and insider tips from successful applicants.',
+    date: '2026-03-18',
+    readTime: '9 min read',
+    category: 'Guides',
+  },
+  {
+    slug: 'best-times-to-check-nexus-appointments',
+    title: 'Best Times to Check for NEXUS Appointments (Data-Driven Analysis)',
+    excerpt:
+      'When do NEXUS appointment slots appear most frequently? We analyzed thousands of slot releases to identify the optimal times to check for cancellations.',
+    date: '2026-03-18',
+    readTime: '6 min read',
+    category: 'Data & Insights',
+  },
+  {
     slug: 'success-story-sarah-nexus-3-days',
     title: 'Success Story: How Sarah Got Her NEXUS Appointment in 3 Days',
     excerpt:
@@ -36,42 +90,6 @@ const blogPosts = [
     date: '2026-03-12',
     readTime: '4 min read',
     category: 'Success Stories',
-  },
-  {
-    slug: 'how-to-get-nexus-appointment-fast',
-    title: 'How to Get a NEXUS Interview Appointment in 2026 (7 Proven Strategies)',
-    excerpt:
-      'Waiting months for a NEXUS appointment? Learn 7 data-backed strategies to book your interview slot weeks or even days sooner, including the #1 method that works 24/7.',
-    date: '2026-03-18',
-    readTime: '8 min read',
-    category: 'Guides',
-  },
-  {
-    slug: 'nexus-interview-tips',
-    title: 'NEXUS Interview Tips: Everything You Need to Know to Pass',
-    excerpt:
-      'Ace your NEXUS interview on the first try. Complete guide covering required documents, interview questions, what to expect, common mistakes to avoid, and insider tips from successful applicants.',
-    date: '2026-03-18',
-    readTime: '9 min read',
-    category: 'Guides',
-  },
-  {
-    slug: 'global-entry-vs-nexus-vs-sentri',
-    title: 'Global Entry vs NEXUS vs SENTRI: Which Trusted Traveler Program is Right for You?',
-    excerpt:
-      'Confused about which Trusted Traveler Program to choose? This complete comparison breaks down costs, benefits, enrollment centers, and ideal use cases for each program.',
-    date: '2026-03-18',
-    readTime: '7 min read',
-    category: 'Comparisons',
-  },
-  {
-    slug: 'best-times-to-check-nexus-appointments',
-    title: 'Best Times to Check for NEXUS Appointments (Data-Driven Analysis)',
-    excerpt:
-      'When do NEXUS appointment slots appear most frequently? We analyzed thousands of slot releases to identify the optimal times to check for cancellations.',
-    date: '2026-03-18',
-    readTime: '6 min read',
-    category: 'Data & Insights',
   },
 ];
 
