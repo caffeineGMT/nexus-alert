@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "NEXUS Alert",
+  "name": "NEXUS Alert - Appointment Slot Finder for NEXUS, Global Entry & SENTRI",
   "version": "2.0.0",
-  "description": "Monitor NEXUS, Global Entry, SENTRI appointment slots. Get instant notifications with sound alerts when slots open up.",
+  "description": "NEXUS appointment finder & Global Entry appointment alert. Get instant notifications when NEXUS, Global Entry & SENTRI slots open.",
   "permissions": [
     "alarms",
     "notifications",

@@ -4,6 +4,14 @@
 import Stripe from 'stripe';
 import { Toucan } from '@sentry/cloudflare';
 import { sendEmail } from './email-templates/index.js';
+import {
+  generateReferralCode,
+  initReferral,
+  trackReferralClick,
+  handleReferralConversion,
+  getReferralStats,
+  calculateViralCoefficient,
+} from './referrals.js';
 
 const API_BASE = 'https://ttp.cbp.dhs.gov/schedulerapi';
 const SLOTS_URL = `${API_BASE}/slots`;
@@ -50,6 +58,15 @@ export default {
     }
     if (url.pathname.startsWith('/api/referrals/') && request.method === 'GET') {
       return await handleGetReferralStats(request, env, corsHeaders);
+    }
+    if (url.pathname === '/api/referral/init' && request.method === 'POST') {
+      return await handleInitReferral(request, env, corsHeaders);
+    }
+    if (url.pathname === '/api/referral/click' && request.method === 'POST') {
+      return await handleReferralClick(request, env, corsHeaders);
+    }
+    if (url.pathname === '/api/referral/coefficient' && request.method === 'GET') {
+      return await handleViralCoefficient(env, corsHeaders);
     }
     if (url.pathname === '/api/activity' && request.method === 'GET') {
       return await handleGetActivity(request, env, corsHeaders);
@@ -1252,6 +1269,60 @@ async function sendReferralCreditEmail(referrerEmail, newUserEmail, env) {
     }
   } catch (err) {
     console.error('Referral email error:', err);
+  }
+}
+
+// Initialize referral record for new user
+async function handleInitReferral(request, env, corsHeaders) {
+  try {
+    const body = await request.json();
+    const { email } = body;
+
+    if (!email) {
+      return json({ error: 'email is required' }, 400, corsHeaders);
+    }
+
+    const referralData = await initReferral(email, env);
+
+    return json({
+      success: true,
+      code: referralData.code,
+      shareUrl: `https://nexus-alert.com?ref=${referralData.code}`,
+    }, 200, corsHeaders);
+  } catch (err) {
+    console.error('Init referral error:', err);
+    return json({ error: err.message }, 500, corsHeaders);
+  }
+}
+
+// Track referral click
+async function handleReferralClick(request, env, corsHeaders) {
+  try {
+    const body = await request.json();
+    const { code, email } = body;
+
+    if (!code) {
+      return json({ error: 'code is required' }, 400, corsHeaders);
+    }
+
+    await trackReferralClick(code, email, env);
+
+    return json({ success: true }, 200, corsHeaders);
+  } catch (err) {
+    console.error('Referral click error:', err);
+    return json({ error: err.message }, 500, corsHeaders);
+  }
+}
+
+// Get viral coefficient stats
+async function handleViralCoefficient(env, corsHeaders) {
+  try {
+    const stats = await calculateViralCoefficient(env);
+
+    return json(stats, 200, corsHeaders);
+  } catch (err) {
+    console.error('Viral coefficient error:', err);
+    return json({ error: err.message }, 500, corsHeaders);
   }
 }
 

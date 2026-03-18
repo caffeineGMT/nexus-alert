@@ -1,0 +1,16 @@
+[
+  {
+    "name": "Example User",
+    "location": "Vancouver, BC",
+    "rating": 5,
+    "date": "2026-03-18",
+    "program": "NEXUS",
+    "text": "Replace this with actual testimonial. Include specific details like: how long it took to find a slot, what they tried before, emotional impact, location details. Aim for 2-3 sentences that tell a compelling before/after story.",
+    "avatar": "EU",
+    "verified": true,
+    "source": "beta_tester",
+    "permission_granted": false,
+    "incentive": "3 months Premium free",
+    "original_response": "Paste the raw email response here for reference"
+  }
+]

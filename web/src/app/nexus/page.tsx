@@ -1,18 +1,13 @@
-import PricingSection from './components/PricingSection';
-import EmailCaptureForm from "./components/EmailCaptureForm";
-import ActivityFeed from './components/ActivityFeed';
-import UserStats from './components/UserStats';
-import Testimonials from './components/Testimonials';
-import ExitIntentPopup from './components/ExitIntentPopup';
-import TrustBadges from './components/TrustBadges';
-import SuccessMetrics from './components/SuccessMetrics';
-import { PageWrapper } from './page-wrapper';
+import PricingSection from '../components/PricingSection';
+import EmailCaptureForm from "../components/EmailCaptureForm";
+import ActivityFeed from '../components/ActivityFeed';
+import UserStats from '../components/UserStats';
+import Testimonials from '../components/Testimonials';
+import { PageWrapper } from '../page-wrapper';
 
-export default function Home() {
+export default function NexusPage() {
   return (
     <PageWrapper>
-    <>
-    <ExitIntentPopup />
     <div className="min-h-screen bg-[#0a0a0a] text-[#ededed]">
       {/* Nav */}
       <nav className="fixed top-0 w-full z-50 border-b border-[#222] bg-[#0a0a0a]/80 backdrop-blur-md">
@@ -40,21 +35,33 @@ export default function Home() {
           <h1 className="text-5xl md:text-6xl font-extrabold leading-tight tracking-tight mb-6">
             Never miss a{" "}
             <span className="bg-gradient-to-r from-[#3b82f6] to-[#22c55e] bg-clip-text text-transparent">
-              NEXUS, Global Entry, or SENTRI appointment
+              NEXUS appointment
             </span>{" "}
             again
           </h1>
           <p className="text-lg md:text-xl text-[#888] max-w-2xl mx-auto mb-10">
-            NEXUS Alert watches for appointment openings 24/7 and notifies you
-            the instant a slot appears — so you can book it before anyone else.
+            Monitor NEXUS appointments at US-Canada border locations. Get instant notifications
+            when interview slots open up — so you can book it before anyone else.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             {/* TODO: replace EXTENSION_ID after Chrome Web Store publishing */}
             <a
-              href="https://chrome.google.com/webstore/detail/nexus-alert/EXTENSION_ID"
+              href="https://chrome.google.com/webstore/detail/nexus-alert/EXTENSION_ID?utm_source=nexus-page"
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center justify-center px-8 py-3.5 rounded-xl bg-[#3b82f6] text-white font-semibold text-base hover:bg-[#2563eb] transition"
+              onClick={() => {
+                if (typeof window !== 'undefined' && (window as any).gtag) {
+                  (window as any).gtag('event', 'conversion', {
+                    'send_to': 'AW-CONVERSION_ID/CONVERSION_LABEL',
+                    'event_category': 'engagement',
+                    'event_label': 'install_click_nexus'
+                  });
+                }
+                if (typeof window !== 'undefined' && (window as any).fbq) {
+                  (window as any).fbq('track', 'Lead', { source: 'nexus-page', action: 'install_click' });
+                }
+              }}
             >
               <ChromeLogoSVG />
               Add to Chrome — Free
@@ -64,12 +71,6 @@ export default function Home() {
           <EmailCaptureForm />
         </div>
       </section>
-
-      {/* Trust Badges */}
-      <TrustBadges />
-
-      {/* Success Metrics */}
-      <SuccessMetrics />
 
       {/* Social Proof - Activity Feed */}
       <section className="py-16 px-6 border-t border-[#222] bg-gradient-to-b from-[#0a0a0a] to-[#111]">
@@ -84,7 +85,7 @@ export default function Home() {
             Appointment slots disappear in minutes
           </h2>
           <p className="text-[#888] text-center max-w-2xl mx-auto mb-14">
-            NEXUS and Global Entry slots are released when someone cancels.
+            NEXUS slots are released when someone cancels.
             They show up randomly and get booked almost instantly. Refreshing
             the website over and over is exhausting — and you still miss most
             of them.
@@ -113,13 +114,13 @@ export default function Home() {
       <section id="how-it-works" className="py-20 px-6 border-t border-[#222]">
         <div className="max-w-4xl mx-auto">
           <h2 className="text-3xl font-bold text-center mb-14">
-            How NEXUS Alert works
+            How NEXUS Alert works for NEXUS
           </h2>
           <div className="grid md:grid-cols-3 gap-8">
             <StepCard
               step={1}
               title="Pick your locations"
-              description="Select which enrollment centers you want to monitor. Choose NEXUS, Global Entry, or SENTRI."
+              description="Select which NEXUS enrollment centers you want to monitor at US-Canada border locations."
             />
             <StepCard
               step={2}
@@ -210,15 +211,27 @@ export default function Home() {
             Stop refreshing. Start booking.
           </h2>
           <p className="text-[#888] text-lg mb-10">
-            Install NEXUS Alert and let it watch for openings while you live
+            Install NEXUS Alert and let it watch for NEXUS openings while you live
             your life. Completely free, no account needed.
           </p>
           {/* TODO: replace EXTENSION_ID after Chrome Web Store publishing */}
           <a
-            href="https://chrome.google.com/webstore/detail/nexus-alert/EXTENSION_ID"
+            href="https://chrome.google.com/webstore/detail/nexus-alert/EXTENSION_ID?utm_source=nexus-page"
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center justify-center px-8 py-4 rounded-xl bg-[#3b82f6] text-white font-semibold text-lg hover:bg-[#2563eb] transition"
+            onClick={() => {
+              if (typeof window !== 'undefined' && (window as any).gtag) {
+                (window as any).gtag('event', 'conversion', {
+                  'send_to': 'AW-CONVERSION_ID/CONVERSION_LABEL',
+                  'event_category': 'engagement',
+                  'event_label': 'install_click_nexus_cta'
+                });
+              }
+              if (typeof window !== 'undefined' && (window as any).fbq) {
+                (window as any).fbq('track', 'Lead', { source: 'nexus-page', action: 'install_click_cta' });
+              }
+            }}
           >
             <ChromeLogoSVG />
             Install NEXUS Alert — Free
@@ -254,7 +267,6 @@ export default function Home() {
         </div>
       </footer>
     </div>
-    </>
     </PageWrapper>
   );
 }
@@ -263,7 +275,7 @@ function FAQSection() {
   const faqs = [
     {
       q: 'How does it work?',
-      a: 'NEXUS Alert runs as a Chrome Extension that periodically queries the GOES appointment system for available slots. When it detects an opening at your selected enrollment centers, it fires a desktop notification and an audible alert so you can act immediately.',
+      a: 'NEXUS Alert runs as a Chrome Extension that periodically queries the GOES appointment system for available NEXUS slots. When it detects an opening at your selected enrollment centers, it fires a desktop notification and an audible alert so you can act immediately.',
     },
     {
       q: 'Is it free?',
