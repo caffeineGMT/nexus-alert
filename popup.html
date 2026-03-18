@@ -382,6 +382,66 @@
       border-top: 1px solid var(--border);
     }
     .footer a { color: var(--accent); text-decoration: none; }
+
+    /* ─── Error Banner ────────────────────────── */
+    .error-banner {
+      background: rgba(234, 179, 8, 0.12);
+      border-bottom: 1px solid rgba(234, 179, 8, 0.3);
+      padding: 8px 16px;
+      font-size: 11px;
+      color: var(--yellow);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* ─── Spinner ──────────────────────────────── */
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    .spinner {
+      width: 20px;
+      height: 20px;
+      border: 2px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.6s linear infinite;
+      margin: 20px auto;
+    }
+
+    /* ─── Premium / Tier Badges ───────────────── */
+    .tier-badge {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+    .tier-badge.free {
+      background: rgba(136,136,136,0.2);
+      color: var(--text-muted);
+    }
+    .tier-badge.premium {
+      background: rgba(59,130,246,0.2);
+      color: var(--accent);
+    }
+    .tier-notice {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-bottom: 10px;
+      line-height: 1.4;
+    }
+    .benefit-list {
+      font-size: 11px;
+      color: var(--text-muted);
+      padding-left: 4px;
+      list-style: none;
+      margin-bottom: 10px;
+    }
+    .benefit-list li {
+      padding: 2px 0;
+    }
   </style>
 </head>
 <body>
@@ -402,6 +462,16 @@
       <span id="statusText">Monitoring</span>
     </div>
     <span class="last-check" id="lastCheck">Checking...</span>
+  </div>
+
+  <!-- Error Banner -->
+  <div id="errorBanner" class="error-banner" style="display:none">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+      <line x1="12" y1="9" x2="12" y2="13"/>
+      <line x1="12" y1="17" x2="12.01" y2="17"/>
+    </svg>
+    <span id="errorMessage"></span>
   </div>
 
   <!-- Main Tabs -->
@@ -436,6 +506,7 @@
     <div class="section">
       <div class="section-title">Enrollment Centers</div>
       <div class="location-list" id="locationList">
+        <div class="spinner" id="locationSpinner"></div>
         <div class="empty-state">Loading locations...</div>
       </div>
     </div>
@@ -511,6 +582,7 @@
         <button class="interval-btn" data-interval="5">5 min</button>
         <button class="interval-btn" data-interval="10">10 min</button>
       </div>
+      <div id="freeIntervalNotice" style="display:none;font-size:10px;color:var(--yellow);margin-top:6px">Free plan: actual check interval is 30 min regardless of selection. Upgrade to unlock.</div>
     </div>
     <div class="section">
       <div class="section-title">Notifications</div>

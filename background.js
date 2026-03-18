@@ -16,6 +16,9 @@ const DEFAULT_CONFIG = {
   soundEnabled: true,
   autoOpenBooking: false,
   notifiedSlots: {},
+  tier: 'free',
+  email: '',
+  lastCheckedAt: null,
 };
 
 // ─── Initialization ────────────────────────────────────────────────
@@ -41,15 +44,21 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
 // ─── Alarm Setup ───────────────────────────────────────────────────
 
 async function setupAlarm() {
-  const { config } = await chrome.storage.local.get('config');
-  const interval = config?.pollIntervalMinutes || DEFAULT_CONFIG.pollIntervalMinutes;
+  const { config, failureCount } = await chrome.storage.local.get(['config', 'failureCount']);
+  const baseInterval = config?.pollIntervalMinutes || DEFAULT_CONFIG.pollIntervalMinutes;
+  let effectiveInterval = Math.min(baseInterval * Math.pow(2, failureCount || 0), 30);
+
+  // Free tier: clamp to 30 min minimum
+  if (config?.tier !== 'premium') {
+    effectiveInterval = Math.max(effectiveInterval, 30);
+  }
 
   await chrome.alarms.clear('check-slots');
   chrome.alarms.create('check-slots', {
     delayInMinutes: 0.1,
-    periodInMinutes: interval,
+    periodInMinutes: effectiveInterval,
   });
-  console.log(`[NEXUS Alert] Alarm set: polling every ${interval} minutes`);
+  console.log(`[NEXUS Alert] Backoff: failureCount=${failureCount || 0}, interval=${effectiveInterval}min`);
 }
 
 // ─── Location Fetching ─────────────────────────────────────────────
@@ -85,6 +94,10 @@ async function fetchAndCacheLocations() {
     return allLocations;
   } catch (err) {
     console.error('[NEXUS Alert] Failed to fetch locations:', err);
+    await chrome.storage.local.set({
+      lastError: 'Could not reach CBP API. Check your connection.',
+      lastErrorTime: Date.now()
+    });
     return {};
   }
 }
@@ -95,47 +108,83 @@ async function checkAllLocations() {
   const { config } = await chrome.storage.local.get('config');
   if (!config?.enabled) return;
 
+  // Free tier: enforce 30-min rate limit
+  if (config.tier !== 'premium') {
+    const { lastCheckedAt } = await chrome.storage.local.get('lastCheckedAt');
+    if (lastCheckedAt && Date.now() - lastCheckedAt < 30 * 60 * 1000) {
+      console.log('[NEXUS Alert] Free tier: skipping check, < 30min since last');
+      return;
+    }
+  }
+
   console.log(`[NEXUS Alert] Checking ${config.locations.length} location(s)...`);
 
   const results = [];
+  let hasError = false;
+  let errorMessage = '';
 
-  for (const locationId of config.locations) {
-    try {
-      const slots = await checkLocation(locationId, config);
-      if (slots.length > 0) {
-        results.push({ locationId, slots });
+  try {
+    for (const locationId of config.locations) {
+      try {
+        const slots = await checkLocation(locationId, config);
+        if (slots.length > 0) {
+          results.push({ locationId, slots });
+        }
+        await sleep(1000);
+      } catch (err) {
+        console.error(`[NEXUS Alert] Error checking location ${locationId}:`, err);
+        hasError = true;
+        errorMessage = err.message || 'Could not reach CBP API. Check your connection.';
+        throw err; // Re-throw to trigger outer catch
       }
-      await sleep(1000);
-    } catch (err) {
-      console.error(`[NEXUS Alert] Error checking location ${locationId}:`, err);
     }
-  }
 
-  // Update last check timestamp & store found slots for the popup
-  const foundSlots = [];
-  for (const { locationId, slots } of results) {
-    for (const slot of slots) {
-      foundSlots.push({ ...slot, locationId });
+    // Update last check timestamp & store found slots for the popup
+    const foundSlots = [];
+    for (const { locationId, slots } of results) {
+      for (const slot of slots) {
+        foundSlots.push({ ...slot, locationId });
+      }
     }
-  }
-  await chrome.storage.local.set({
-    lastCheck: new Date().toISOString(),
-    lastFoundSlots: foundSlots,
-  });
+    await chrome.storage.local.set({
+      lastCheck: new Date().toISOString(),
+      lastFoundSlots: foundSlots,
+      lastCheckedAt: Date.now(),
+    });
 
-  // Record slot history
-  if (foundSlots.length > 0) {
-    await recordSlotHistory(foundSlots);
-  }
+    // Record slot history
+    if (foundSlots.length > 0) {
+      await recordSlotHistory(foundSlots);
+    }
 
-  // Send notifications for new slots
-  if (results.length > 0) {
-    await notifyNewSlots(results, config);
-  }
+    // Send notifications for new slots
+    if (results.length > 0) {
+      await notifyNewSlots(results, config);
+    }
 
-  // Update badge
-  const totalSlots = results.reduce((sum, r) => sum + r.slots.length, 0);
-  await updateBadge(totalSlots);
+    // Update badge
+    const totalSlots = results.reduce((sum, r) => sum + r.slots.length, 0);
+    await updateBadge(totalSlots);
+
+    // Success: reset error state and alarm interval
+    await chrome.storage.local.set({
+      lastError: null,
+      lastErrorTime: null,
+      failureCount: 0
+    });
+    await setupAlarm();
+
+  } catch (err) {
+    // Error occurred: increment failure count and store error
+    const { failureCount = 0 } = await chrome.storage.local.get('failureCount');
+    const newCount = failureCount + 1;
+    await chrome.storage.local.set({
+      lastError: errorMessage || err.message || 'Could not reach CBP API. Check your connection.',
+      lastErrorTime: Date.now(),
+      failureCount: newCount
+    });
+    console.error(`[NEXUS Alert] Check failed, failureCount now: ${newCount}`);
+  }
 }
 
 async function checkLocation(locationId, config) {
@@ -319,7 +368,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     return true;
   }
   if (msg.action === 'getStatus') {
-    chrome.storage.local.get(['config', 'lastCheck', 'locations', 'lastFoundSlots', 'slotHistory'], (data) => {
+    chrome.storage.local.get(['config', 'lastCheck', 'locations', 'lastFoundSlots', 'slotHistory', 'lastError', 'lastErrorTime', 'failureCount'], (data) => {
       sendResponse(data);
     });
     return true;

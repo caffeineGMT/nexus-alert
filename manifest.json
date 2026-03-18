@@ -11,7 +11,8 @@
     "tabs"
   ],
   "host_permissions": [
-    "https://ttp.cbp.dhs.gov/*"
+    "https://ttp.cbp.dhs.gov/*",
+    "https://api.nexus-alert.com/*"
   ],
   "background": {
     "service_worker": "background.js"

@@ -7,6 +7,19 @@ document.addEventListener('DOMContentLoaded', async () => {
   const lastFoundSlots = status.lastFoundSlots || [];
   const slotHistory = status.slotHistory || [];
 
+  // ─── Error Banner ───────────────────────────────────────────────
+
+  if (status.lastError && status.lastErrorTime) {
+    const errorAge = Date.now() - status.lastErrorTime;
+    const FIVE_MINUTES = 5 * 60 * 1000;
+    if (errorAge < FIVE_MINUTES) {
+      const banner = document.getElementById('errorBanner');
+      const message = document.getElementById('errorMessage');
+      message.textContent = '⚠ Could not reach CBP API. Retrying with backoff...';
+      banner.style.display = 'flex';
+    }
+  }
+
   // ─── Tab Navigation ─────────────────────────────────────────────
 
   const tabItems = document.querySelectorAll('.tab-item');
@@ -48,11 +61,19 @@ document.addEventListener('DOMContentLoaded', async () => {
       programTabs.forEach(t => t.classList.remove('active'));
       tab.classList.add('active');
       updateConfig({ program: tab.dataset.program });
-      renderLocations(locations, tab.dataset.program, config.locations || []);
+      document.getElementById('locationSpinner').style.display = 'block';
+      setTimeout(() => {
+        renderLocations(locations, tab.dataset.program, config.locations || []);
+        document.getElementById('locationSpinner').style.display = 'none';
+      }, 100);
     });
   });
 
-  renderLocations(locations, config.program || 'NEXUS', config.locations || []);
+  document.getElementById('locationSpinner').style.display = 'block';
+  setTimeout(() => {
+    renderLocations(locations, config.program || 'NEXUS', config.locations || []);
+    document.getElementById('locationSpinner').style.display = 'none';
+  }, 100);
 
   // ─── Date Filters ───────────────────────────────────────────────
 
@@ -219,6 +240,31 @@ function renderLiveSlots(slots, locations) {
 
 function renderLocations(allLocations, program, selectedIds) {
   const list = document.getElementById('locationList');
+
+  // Check if allLocations is empty (no locations loaded yet)
+  if (!allLocations || Object.keys(allLocations).length === 0) {
+    list.innerHTML = `
+      <div class="empty-state">
+        <p>No locations loaded yet</p>
+        <button class="btn btn-secondary" id="refreshLocationsEmptyBtn" style="margin-top:8px">Refresh Locations</button>
+      </div>
+    `;
+    // Wire up the button
+    const btn = document.getElementById('refreshLocationsEmptyBtn');
+    if (btn) {
+      btn.addEventListener('click', async () => {
+        btn.textContent = 'Refreshing...';
+        btn.disabled = true;
+        await sendMessage({ action: 'refreshLocations' });
+        const fresh = await sendMessage({ action: 'getStatus' });
+        renderLocations(fresh.locations || {}, program, selectedIds);
+        btn.textContent = 'Refresh Locations';
+        btn.disabled = false;
+      });
+    }
+    return;
+  }
+
   const filtered = Object.values(allLocations)
     .filter(loc => {
       if (!loc.services) return false;

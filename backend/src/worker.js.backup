@@ -1,8 +1,6 @@
 // NEXUS Alert — Cloudflare Worker Backend
 // Server-side monitoring with email notifications via Resend
 
-import Stripe from 'stripe';
-
 const API_BASE = 'https://ttp.cbp.dhs.gov/schedulerapi';
 const SLOTS_URL = `${API_BASE}/slots`;
 
