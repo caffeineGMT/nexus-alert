@@ -1,8 +1,10 @@
 import PricingSection from './components/PricingSection';
 import EmailCaptureForm from "./components/EmailCaptureForm";
+import { PageWrapper } from './page-wrapper';
 
 export default function Home() {
   return (
+    <PageWrapper>
     <div className="min-h-screen bg-[#0a0a0a] text-[#ededed]">
       {/* Nav */}
       <nav className="fixed top-0 w-full z-50 border-b border-[#222] bg-[#0a0a0a]/80 backdrop-blur-md">
@@ -230,6 +232,7 @@ export default function Home() {
         </div>
       </footer>
     </div>
+    </PageWrapper>
   );
 }
 

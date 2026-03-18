@@ -4,6 +4,14 @@ let currentStep = 1;
 let selectedProgram = 'NEXUS';
 let selectedLocationIds = [];
 let allLocations = {};
+let referralCode = null;
+
+// Capture referral code from URL parameters
+const urlParams = new URLSearchParams(window.location.search);
+if (urlParams.has('ref')) {
+  referralCode = urlParams.get('ref');
+  console.log('[NEXUS Alert] Referral code detected:', referralCode);
+}
 
 // ─── Step Navigation ───────────────────────────────────────────────
 
@@ -248,6 +256,7 @@ document.addEventListener('DOMContentLoaded', () => {
         locations: selectedLocationIds,
         soundEnabled: document.getElementById('soundToggle').checked,
         email: document.getElementById('emailInput').value || null,
+        referralCode: referralCode || existingConfig?.referralCode || null,
         onboardingComplete: true
       };
 

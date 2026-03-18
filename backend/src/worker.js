@@ -35,6 +35,15 @@ export default {
     if (url.pathname === '/api/license' && request.method === 'GET') {
       return await handleGetLicense(request, env, corsHeaders);
     }
+    if (url.pathname.startsWith('/api/referrals/') && request.method === 'GET') {
+      return await handleGetReferralStats(request, env, corsHeaders);
+    }
+    if (url.pathname === '/api/activity' && request.method === 'GET') {
+      return await handleGetActivity(request, env, corsHeaders);
+    }
+    if (url.pathname === '/api/stats' && request.method === 'GET') {
+      return await handleGetStats(request, env, corsHeaders);
+    }
 
     // Auth check for all other endpoints
     const authHeader = request.headers.get('Authorization');
@@ -80,32 +89,50 @@ export default {
 async function handleCheckout(request, env, corsHeaders) {
   try {
     const body = await request.json();
-    const { email } = body;
+    const { email, ref, plan } = body;
 
     if (!email) {
       return json({ error: 'email is required' }, 400, corsHeaders);
     }
+
+    // Validate plan parameter
+    const billingCycle = plan === 'annual' ? 'annual' : 'monthly';
 
     // Initialize Stripe with fetch-based HTTP client (required for Cloudflare Workers)
     const stripe = new Stripe(env.STRIPE_SECRET_KEY, {
       httpClient: Stripe.createFetchHttpClient(),
     });
 
+    // Select the appropriate Stripe Price ID based on billing cycle
+    const priceId = billingCycle === 'annual'
+      ? env.STRIPE_ANNUAL_PRICE_ID
+      : env.STRIPE_MONTHLY_PRICE_ID;
+
+    if (!priceId) {
+      return json({
+        error: `Price ID not configured for ${billingCycle} plan`,
+      }, 500, corsHeaders);
+    }
+
+    // Build metadata with optional referral code and billing cycle
+    const metadata = { email, billingCycle };
+    if (ref) {
+      metadata.referralCode = ref;
+    }
+
     // Create checkout session
     const session = await stripe.checkout.sessions.create({
       mode: 'subscription',
       line_items: [
         {
-          price: env.STRIPE_PRICE_ID,
+          price: priceId,
           quantity: 1,
         },
       ],
       customer_email: email,
       success_url: 'https://nexus-alert.com/success?session_id={CHECKOUT_SESSION_ID}',
       cancel_url: 'https://nexus-alert.com/pricing',
-      metadata: {
-        email: email,
-      },
+      metadata,
     });
 
     return json({ url: session.url }, 200, corsHeaders);
@@ -148,19 +175,33 @@ async function handleStripeWebhook(request, env, corsHeaders) {
       case 'checkout.session.completed': {
         const session = event.data.object;
         const email = session.metadata.email;
+        const referralCode = session.metadata.referralCode;
+        const billingCycle = session.metadata.billingCycle || 'monthly';
 
         if (email) {
-          // Store license record in KV
+          // Store license record in KV with billing cycle info
           const licenseData = {
             status: 'premium',
             stripeCustomerId: session.customer,
             stripeSubscriptionId: session.subscription,
             activatedAt: new Date().toISOString(),
             tier: 'premium',
+            billingCycle,
           };
 
           await env.NEXUS_ALERTS_KV.put(`license:${email}`, JSON.stringify(licenseData));
-          console.log(`Premium license activated for ${email}`);
+          console.log(`Premium license activated for ${email} (${billingCycle})`);
+
+          // Track billing cycle mix for analytics
+          await trackBillingCycle(billingCycle, env);
+
+          // Track premium upgrade activity for social proof
+          await trackActivity('premium_upgrade', { email }, env);
+
+          // Handle referral tracking and credit
+          if (referralCode) {
+            await handleReferralConversion(referralCode, email, session.subscription, env);
+          }
         }
         break;
       }
@@ -618,6 +659,176 @@ async function sendSmsNotification(email, phone, slots, env) {
   }
 }
 
+// ─── Referral Program ─────────────────────────────────────────────
+
+async function handleGetReferralStats(request, env, corsHeaders) {
+  try {
+    const url = new URL(request.url);
+    const code = url.pathname.split('/').pop();
+
+    if (!code) {
+      return json({ error: 'Referral code is required' }, 400, corsHeaders);
+    }
+
+    // Get referral data from KV
+    const referralDataStr = await env.NEXUS_ALERTS_KV.get(`referral:${code}`);
+    const referralData = referralDataStr ? JSON.parse(referralDataStr) : null;
+
+    if (!referralData) {
+      // No referrals yet for this code
+      return json({ clicks: 0, conversions: 0 }, 200, corsHeaders);
+    }
+
+    return json({
+      clicks: referralData.clicks || 0,
+      conversions: referralData.conversions?.length || 0,
+    }, 200, corsHeaders);
+  } catch (err) {
+    console.error('Referral stats error:', err);
+    return json({ error: err.message }, 500, corsHeaders);
+  }
+}
+
+async function handleReferralConversion(referralCode, newUserEmail, subscriptionId, env) {
+  try {
+    // Get referral data
+    const referralDataStr = await env.NEXUS_ALERTS_KV.get(`referral:${referralCode}`);
+    let referralData = referralDataStr ? JSON.parse(referralDataStr) : null;
+
+    // Decode referral code to get referrer email
+    let referrerEmail;
+    try {
+      const decoded = atob(referralCode);
+      referrerEmail = decoded;
+    } catch (e) {
+      console.error(`Invalid referral code: ${referralCode}`);
+      return;
+    }
+
+    // Initialize or update referral data
+    if (!referralData) {
+      referralData = {
+        referrerEmail,
+        clicks: 0,
+        conversions: [],
+      };
+    }
+
+    // Add conversion
+    referralData.conversions = referralData.conversions || [];
+    referralData.conversions.push({
+      email: newUserEmail,
+      timestamp: new Date().toISOString(),
+      subscriptionId,
+    });
+
+    // Save updated referral data
+    await env.NEXUS_ALERTS_KV.put(`referral:${referralCode}`, JSON.stringify(referralData));
+
+    console.log(`Referral conversion tracked: ${referrerEmail} referred ${newUserEmail}`);
+
+    // Credit referrer with 1 free month by extending their subscription
+    await creditReferrerSubscription(referrerEmail, env);
+
+    // Send notification email to referrer
+    await sendReferralCreditEmail(referrerEmail, newUserEmail, env);
+  } catch (err) {
+    console.error('Referral conversion error:', err);
+  }
+}
+
+async function creditReferrerSubscription(referrerEmail, env) {
+  try {
+    // Get referrer's license data
+    const licenseDataStr = await env.NEXUS_ALERTS_KV.get(`license:${referrerEmail}`);
+    if (!licenseDataStr) {
+      console.log(`Referrer ${referrerEmail} has no license record, cannot credit`);
+      return;
+    }
+
+    const licenseData = JSON.parse(licenseDataStr);
+    const subscriptionId = licenseData.stripeSubscriptionId;
+
+    if (!subscriptionId) {
+      console.log(`Referrer ${referrerEmail} has no active subscription, cannot credit`);
+      return;
+    }
+
+    // Initialize Stripe
+    const stripe = new Stripe(env.STRIPE_SECRET_KEY, {
+      httpClient: Stripe.createFetchHttpClient(),
+    });
+
+    // Get current subscription
+    const subscription = await stripe.subscriptions.retrieve(subscriptionId);
+
+    // Extend subscription by 1 month (30 days)
+    const currentPeriodEnd = subscription.current_period_end;
+    const newPeriodEnd = currentPeriodEnd + (30 * 24 * 60 * 60); // Add 30 days in seconds
+
+    await stripe.subscriptions.update(subscriptionId, {
+      trial_end: newPeriodEnd,
+      proration_behavior: 'none', // Don't charge for the extension
+    });
+
+    console.log(`Extended subscription for ${referrerEmail} by 1 month`);
+  } catch (err) {
+    console.error(`Failed to credit referrer ${referrerEmail}:`, err);
+  }
+}
+
+async function sendReferralCreditEmail(referrerEmail, newUserEmail, env) {
+  try {
+    // Obfuscate the new user's email for privacy
+    const [username, domain] = newUserEmail.split('@');
+    const obfuscatedEmail = `${username.slice(0, 2)}***@${domain}`;
+
+    const html = `
+      <div style="font-family:-apple-system,sans-serif;max-width:600px;margin:0 auto">
+        <div style="background:#1e3a5f;color:white;padding:20px;border-radius:8px 8px 0 0">
+          <h1 style="margin:0;font-size:20px">🎉 You Earned a Free Month!</h1>
+        </div>
+        <div style="background:#f9f9f9;padding:20px;border:1px solid #e0e0e0;border-top:none;border-radius:0 0 8px 8px">
+          <p style="font-size:16px;margin-bottom:16px">Great news! Someone just upgraded to Premium using your referral link.</p>
+          <div style="background:white;border:1px solid #e0e0e0;border-radius:6px;padding:16px;margin:16px 0">
+            <div style="font-size:14px;color:#666;margin-bottom:4px">New Premium User</div>
+            <div style="font-size:18px;font-weight:600;color:#22c55e">${obfuscatedEmail}</div>
+          </div>
+          <p style="font-size:14px;color:#666">Your subscription has been extended by <strong style="color:#1e3a5f">1 month FREE</strong> as a thank you!</p>
+          <p style="font-size:14px;color:#666;margin-top:16px">Keep sharing your referral link to earn more free months.</p>
+          <a href="https://nexus-alert.com" style="display:inline-block;background:#3b82f6;color:white;padding:12px 24px;border-radius:6px;text-decoration:none;font-weight:600;margin-top:16px">
+            View Dashboard
+          </a>
+        </div>
+      </div>
+    `;
+
+    // Send via Resend API
+    const resp = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${env.RESEND_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        from: 'NEXUS Alert <notifications@nexus-alert.com>',
+        to: [referrerEmail],
+        subject: '🎉 You Earned a Free Month of NEXUS Alert Premium!',
+        html,
+      }),
+    });
+
+    if (!resp.ok) {
+      const err = await resp.text();
+      console.error(`Failed to send referral credit email to ${referrerEmail}:`, err);
+    } else {
+      console.log(`Referral credit email sent to ${referrerEmail}`);
+    }
+  } catch (err) {
+    console.error('Referral email error:', err);
+  }
+}
+
 // ─── HMAC Signing for Unsubscribe Links ──────────────────────────
 
 async function generateHmacToken(email, secret) {
@@ -652,6 +863,27 @@ async function verifyHmacToken(email, token, secret) {
   } catch (err) {
     console.error('Token verification error:', err);
     return false;
+  }
+}
+
+// ─── Analytics & Tracking ─────────────────────────────────────────
+
+async function trackBillingCycle(billingCycle, env) {
+  try {
+    // Increment counter for the billing cycle
+    const key = `analytics:billing_cycle:${billingCycle}`;
+    const current = parseInt(await env.NEXUS_ALERTS_KV.get(key) || '0');
+    await env.NEXUS_ALERTS_KV.put(key, String(current + 1));
+
+    // Also track total conversions
+    const totalKey = 'analytics:billing_cycle:total';
+    const totalCurrent = parseInt(await env.NEXUS_ALERTS_KV.get(totalKey) || '0');
+    await env.NEXUS_ALERTS_KV.put(totalKey, String(totalCurrent + 1));
+
+    console.log(`Tracked billing cycle: ${billingCycle} (total: ${totalCurrent + 1})`);
+  } catch (err) {
+    console.error('Failed to track billing cycle:', err);
+    // Non-critical, don't throw
   }
 }
 

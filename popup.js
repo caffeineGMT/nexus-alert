@@ -135,6 +135,84 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('upgradeEmail').value = config.email;
   }
 
+  // Billing cycle toggle
+  let selectedPlan = 'monthly';
+  const billingToggleBtns = document.querySelectorAll('.billing-toggle-btn');
+  const upgradeBtn = document.getElementById('upgradeBtn');
+
+  billingToggleBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      billingToggleBtns.forEach(b => {
+        b.classList.remove('active');
+        b.style.background = 'transparent';
+        b.style.color = 'var(--text-muted)';
+      });
+      btn.classList.add('active');
+      btn.style.background = 'var(--accent)';
+      btn.style.color = 'white';
+
+      selectedPlan = btn.dataset.plan;
+
+      // Update button text based on selected plan
+      if (selectedPlan === 'annual') {
+        upgradeBtn.textContent = 'Upgrade — $49.99/year';
+      } else {
+        upgradeBtn.textContent = 'Upgrade — $4.99/mo';
+      }
+    });
+  });
+
+  // ─── Settings: Referral Program ────────────────────────────────
+
+  // Show referral section only if user has email configured
+  if (config.email) {
+    document.getElementById('referralSection').style.display = 'block';
+
+    // Generate referral code from email (base64 encoded, first 8 chars)
+    const referralCode = btoa(config.email).slice(0, 8);
+    const referralUrl = `https://nexus-alert.com?ref=${referralCode}`;
+    document.getElementById('referralUrl').value = referralUrl;
+
+    // Fetch referral stats
+    fetchReferralStats(config.email);
+
+    // Copy referral URL to clipboard
+    document.getElementById('copyReferralBtn').addEventListener('click', async () => {
+      const btn = document.getElementById('copyReferralBtn');
+      const urlInput = document.getElementById('referralUrl');
+
+      try {
+        await navigator.clipboard.writeText(urlInput.value);
+        const originalText = btn.textContent;
+        btn.textContent = 'Copied!';
+        btn.style.background = 'var(--green)';
+        setTimeout(() => {
+          btn.textContent = originalText;
+          btn.style.background = '';
+        }, 2000);
+      } catch (err) {
+        // Fallback: select the text
+        urlInput.select();
+        document.execCommand('copy');
+        btn.textContent = 'Copied!';
+      }
+    });
+  }
+
+  async function fetchReferralStats(email) {
+    try {
+      const referralCode = btoa(email).slice(0, 8);
+      const resp = await fetch(`https://api.nexus-alert.com/api/referrals/${encodeURIComponent(referralCode)}`);
+      if (resp.ok) {
+        const data = await resp.json();
+        document.getElementById('referralClicks').textContent = data.clicks || 0;
+        document.getElementById('referralConversions').textContent = data.conversions || 0;
+      }
+    } catch (err) {
+      console.error('[NEXUS Alert] Failed to fetch referral stats:', err);
+    }
+  }
+
   // Upgrade button
   document.getElementById('upgradeBtn').addEventListener('click', async () => {
     const email = document.getElementById('upgradeEmail').value.trim();
@@ -148,14 +226,20 @@ document.addEventListener('DOMContentLoaded', async () => {
     btn.textContent = 'Redirecting...';
     btn.disabled = true;
     try {
+      // Get referral code from config if user came from a referral link
+      const body = { email, plan: selectedPlan };
+      if (config.referralCode) {
+        body.ref = config.referralCode;
+      }
+
       const resp = await fetch('https://api.nexus-alert.com/api/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email })
+        body: JSON.stringify(body)
       });
       const data = await resp.json();
-      if (data.checkoutUrl) {
-        chrome.tabs.create({ url: data.checkoutUrl });
+      if (data.url) {
+        chrome.tabs.create({ url: data.url });
       } else {
         throw new Error('No checkout URL returned');
       }

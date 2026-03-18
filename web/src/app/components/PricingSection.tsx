@@ -39,15 +39,31 @@ function CheckIcon({ green }: { green?: boolean }) {
 export default function PricingSection() {
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
+  const [billingCycle, setBillingCycle] = useState<'monthly' | 'annual'>('monthly');
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
     try {
+      // Get referral code from localStorage (set by landing page)
+      const ref = localStorage.getItem('nexus_alert_ref');
+
+      // Store email for success page
+      localStorage.setItem('nexus_alert_email', email);
+
+      // Build request body
+      const body: { email: string; plan: string; ref?: string } = {
+        email,
+        plan: billingCycle,
+      };
+      if (ref) {
+        body.ref = ref;
+      }
+
       const res = await fetch('/api/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify(body),
       });
       const data = await res.json();
       if (data.url && data.url !== '#') {
@@ -68,6 +84,33 @@ export default function PricingSection() {
             Start free. Upgrade when you want faster alerts and email/SMS
             notifications delivered even when your browser is closed.
           </p>
+        </div>
+
+        {/* Billing Toggle */}
+        <div className="flex items-center justify-center gap-3 mb-8">
+          <button
+            onClick={() => setBillingCycle('monthly')}
+            className={`px-4 py-2 rounded-lg text-sm font-semibold transition ${
+              billingCycle === 'monthly'
+                ? 'bg-[#3b82f6] text-white'
+                : 'bg-transparent text-[#888] hover:text-white'
+            }`}
+          >
+            Monthly
+          </button>
+          <button
+            onClick={() => setBillingCycle('annual')}
+            className={`px-4 py-2 rounded-lg text-sm font-semibold transition relative ${
+              billingCycle === 'annual'
+                ? 'bg-[#3b82f6] text-white'
+                : 'bg-transparent text-[#888] hover:text-white'
+            }`}
+          >
+            Annual
+            <span className="ml-1.5 text-xs bg-[#22c55e] text-black px-2 py-0.5 rounded-full font-bold">
+              Save 16%
+            </span>
+          </button>
         </div>
 
         {/* Cards grid */}
@@ -111,10 +154,22 @@ export default function PricingSection() {
             <p className="text-xs uppercase tracking-widest text-[#888] font-medium mb-3">
               Premium
             </p>
-            <div className="flex items-end gap-1 mb-6" style={{ fontVariantNumeric: 'tabular-nums' }}>
-              <span className="text-4xl font-bold">$4.99</span>
-              <span className="text-xl text-[#888] mb-1">/mo</span>
-            </div>
+            {billingCycle === 'monthly' ? (
+              <div className="flex items-end gap-1 mb-6" style={{ fontVariantNumeric: 'tabular-nums' }}>
+                <span className="text-4xl font-bold">$4.99</span>
+                <span className="text-xl text-[#888] mb-1">/mo</span>
+              </div>
+            ) : (
+              <div className="mb-6">
+                <div className="flex items-end gap-1" style={{ fontVariantNumeric: 'tabular-nums' }}>
+                  <span className="text-4xl font-bold">$49.99</span>
+                  <span className="text-xl text-[#888] mb-1">/year</span>
+                </div>
+                <div className="text-sm text-[#22c55e] mt-1 font-semibold">
+                  $4.16/mo — Save $10/year
+                </div>
+              </div>
+            )}
 
             <ul className="space-y-3 mb-6 flex-1">
               {premiumFeatures.map((f) => (
@@ -124,6 +179,13 @@ export default function PricingSection() {
                 </li>
               ))}
             </ul>
+
+            {/* Urgency Banner */}
+            <div className="mb-4 p-3 rounded-lg bg-gradient-to-r from-[#eab308]/10 to-[#f59e0b]/10 border border-[#eab308]/30">
+              <p className="text-xs text-[#eab308] font-semibold text-center leading-relaxed">
+                🔥 Limited time: Annual plan at launch price — lock in $49.99/year before it increases to $59.99
+              </p>
+            </div>
 
             {/* Email capture + submit */}
             <form onSubmit={handleSubmit} className="mt-4 flex gap-2">
@@ -140,7 +202,7 @@ export default function PricingSection() {
                 disabled={loading}
                 className="px-4 py-2 rounded-lg bg-[#22c55e] text-black text-sm font-bold hover:bg-[#16a34a] disabled:opacity-60 disabled:cursor-not-allowed transition whitespace-nowrap"
               >
-                {loading ? 'Processing…' : 'Go Premium'}
+                {loading ? 'Processing…' : billingCycle === 'annual' ? 'Go Annual' : 'Go Premium'}
               </button>
             </form>
           </div>
