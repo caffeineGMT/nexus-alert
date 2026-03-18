@@ -5,7 +5,9 @@
   "scripts": {
     "test": "vitest run",
     "test:watch": "vitest",
-    "package": "node scripts/package.js"
+    "package": "node scripts/package.js",
+    "generate-images": "node scripts/generate-promotional-images.js",
+    "open-image-generator": "open store-assets/GENERATE-IMAGES-SIMPLE.html"
   },
   "devDependencies": {
     "puppeteer": "^24.39.1",
