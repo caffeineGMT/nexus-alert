@@ -2,6 +2,9 @@
 
 import { useEffect } from 'react';
 
+// TODO: Replace with real testimonials from /marketing/testimonials/
+// See /marketing/testimonials/INTEGRATION-GUIDE.md for instructions
+// Current testimonials are PLACEHOLDERS for Chrome Web Store submission
 const testimonials = [
   {
     name: 'Sarah Chen',

@@ -1,0 +1,70 @@
+Timestamp,Subreddit,Post URL,Upvotes,Comments,Sentiment,Install Spike,CTR,Actions Taken,Notes
+2024-03-19 09:00,r/Nexus,[PASTE URL],1,0,neutral,0,0%,Posted - monitoring starts,Initial post
+2024-03-19 09:10,r/GlobalEntry,[PASTE URL],1,0,neutral,0,0%,Posted - monitoring starts,Initial post
+2024-03-19 09:20,r/PersonalFinanceCanada,[PASTE URL],1,0,neutral,0,0%,Posted - monitoring starts,Initial post
+2024-03-19 09:30,ALL POSTS,,,,,,,,Update all 3 rows below with current metrics
+2024-03-19 10:00,ALL POSTS,,,,,,,,Hour 1 checkpoint
+2024-03-19 10:30,ALL POSTS,,,,,,,,
+2024-03-19 11:00,ALL POSTS,,,,,,,,Hour 2 checkpoint - CRITICAL
+2024-03-19 12:00,ALL POSTS,,,,,,,,
+2024-03-19 13:00,ALL POSTS,,,,,,,,Hour 4 checkpoint
+2024-03-19 14:00,ALL POSTS,,,,,,,,
+2024-03-19 15:00,ALL POSTS,,,,,,,,
+2024-03-19 16:00,ALL POSTS,,,,,,,,
+2024-03-19 17:00,ALL POSTS,,,,,,,,Hour 8 checkpoint
+2024-03-19 18:00,ALL POSTS,,,,,,,,
+2024-03-19 21:00,ALL POSTS,,,,,,,,Hour 12 checkpoint - End of Day 1
+
+HOUR-BY-HOUR TARGETS,,,,,,,,,
+Hour,Time,r/Nexus Target,r/GE Target,r/PFC Target,Total Install Target,r/Nexus Actual,r/GE Actual,r/PFC Actual,Total Install Actual
+0,9:00 AM,5,5,10,15,,,,
+1,10:00 AM,15,20,40,50,,,,
+2,11:00 AM,25,35,80,100,,,,
+4,1:00 PM,35,50,120,175,,,,
+8,5:00 PM,45,70,160,275,,,,
+12,9:00 PM,50,75,180,350,,,,
+
+COMMENT LOG,,,,,,,,,
+Time,Subreddit,Comment Type,Response Time,Template Used,User Sentiment,Follow-up Needed,Install Converted,Notes
+09:30,r/Nexus,Question,5 min,Template #2 (Safety),Positive,No,No,Asked about permissions
+,,,,,,,,,
+,,,,,,,,,
+
+SEEDED COMMENTS,,,,,,,,,
+Time,Subreddit,Thread Title,Thread URL,Comment Posted,Upvotes,Replies,Install Converted,Notes
+11:30,r/Nexus,Can't find appointments,https://reddit.com/...,Yes,2,1,Yes,OP installed
+
+INSTALL TRACKING,,,,,,,,,
+Time,Source,UTM Content,Chrome Web Store Installs,Premium Signups,Conversion Rate,Notes
+09:00,Baseline,N/A,0,0,0%,Starting point
+10:00,Reddit,r_nexus_launch,15,0,3%,First hour spike
+11:00,Reddit,All 3 posts,50,1,5%,Hour 2 target hit
+13:00,Reddit,All 3 posts,175,3,7%,Hour 4 target
+17:00,Reddit,All 3 posts,275,8,8%,Hour 8 target
+21:00,Reddit,All 3 posts,350,12,9%,End of Day 1
+
+DAILY SUMMARY,,,,,,,,,
+Date,Total Installs,Total Upvotes,Total Comments,Sentiment Ratio,Premium Conversions,Top Performing Post,Issues/Risks,Tomorrow's Focus
+Day 1 (Tue),350,305,65,90% positive,12,r/PersonalFinanceCanada,None,Comment seeding
+Day 2 (Wed),,,,,,,,Organic comments
+Day 3 (Thu),,,,,,,,Final push
+
+FINAL 72-HOUR METRICS,,,,,,,,,
+Metric,Target,Actual,Status,Notes
+Total Installs,500,,,Update on Friday 9am
+Combined Upvotes,300,,,
+Total Comments,50,,,
+Positive Sentiment,%90,,,
+Premium Conversions,10,,,
+Negative Incidents,<2,,,
+
+INSTRUCTIONS,,,,,,,,,
+1. Update timestamp rows every 30 minutes during Hours 0-2,,,,,,,,,
+2. Update hourly during Hours 2-12,,,,,,,,,
+3. Log EVERY comment you respond to in Comment Log section,,,,,,,,,
+4. Log EVERY seeded comment in Seeded Comments section,,,,,,,,,
+5. Check Chrome Web Store dashboard every hour for install spikes,,,,,,,,,
+6. Calculate CTR = (Clicks / Upvotes) from Google Analytics,,,,,,,,,
+7. Sentiment: positive/neutral/negative based on comment tone,,,,,,,,,
+8. Fill in Daily Summary at end of each day,,,,,,,,,
+9. Complete Final 72-Hour Metrics on Friday 9am,,,,,,,,,

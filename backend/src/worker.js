@@ -92,6 +92,13 @@ export default {
     if (url.pathname === '/api/webhooks/resend' && request.method === 'POST') {
       return await handleResendWebhook(request, env, corsHeaders);
     }
+    if (url.pathname === '/api/webhooks/convertkit' && request.method === 'POST') {
+      return await handleConvertKitWebhookEndpoint(request, env, corsHeaders);
+    }
+    if (url.pathname === '/api/subscribe' && request.method === 'POST') {
+      return await handlePublicSubscribe(request, env, corsHeaders, sentry);
+
+    }
 
     // Auth check for all other endpoints
     const authHeader = request.headers.get('Authorization');
@@ -1911,9 +1918,26 @@ async function sendEmailSequences(env) {
             emailSent = await sendEmail('premium_case_study', email, env);
             if (emailSent) sequence = { stage: 2, lastSent: now };
           } else if (daysSinceReg >= 7 && sequence.stage === 2) {
-            // Day 7: Upgrade offer
-            emailSent = await sendEmail('upgrade_offer', email, env);
+            // Day 7: Referral invite (viral growth priority)
+            const code = generateReferralCode(email);
+            const shareUrl = `https://nexus-alert.com?ref=${code}`;
+            const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(`I found my NEXUS appointment in 3 days with @NexusAlert 🎉 ${shareUrl}`)}`;
+            const emailShareUrl = `mailto:?subject=${encodeURIComponent('Check out NEXUS Alert!')}&body=${encodeURIComponent(`Hey! Are you still waiting for a NEXUS appointment?\n\nI've been using this Chrome extension that alerts me instantly when slots open up - it's way better than refreshing manually.\n\nCheck it out: ${shareUrl}`)}`;
+            const unsubscribeToken = await generateHmacToken(email, env.WEBHOOK_SECRET);
+            const unsubscribeUrl = `https://api.nexus-alert.com/api/unsubscribe?email=${encodeURIComponent(email)}&token=${encodeURIComponent(unsubscribeToken)}`;
+
+            emailSent = await sendEmail('referral_invite', email, env, {
+              email,
+              shareUrl,
+              twitterUrl,
+              emailUrl: emailShareUrl,
+              unsubscribeUrl,
+            });
             if (emailSent) sequence = { stage: 3, lastSent: now };
+          } else if (daysSinceReg >= 10 && sequence.stage === 3) {
+            // Day 10: Upgrade offer
+            emailSent = await sendEmail('upgrade_offer', email, env);
+            if (emailSent) sequence = { stage: 4, lastSent: now };
           }
         } else {
           // ─── PREMIUM USER SEQUENCE ────────────────────────────────
@@ -2058,6 +2082,13 @@ async function sendEmailSequences(env) {
 // ─── Resend Webhook Handler ──────────────────────────────────────
 
 async function handleResendWebhook(request, env, corsHeaders) {
+    }
+    if (url.pathname === '/api/webhooks/convertkit' && request.method === 'POST') {
+      return await handleConvertKitWebhookEndpoint(request, env, corsHeaders);
+    }
+    if (url.pathname === '/api/subscribe' && request.method === 'POST') {
+      return await handlePublicSubscribe(request, env, corsHeaders, sentry);
+
   try {
     const body = await request.json();
     const eventType = body.type;

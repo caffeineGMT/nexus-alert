@@ -6,12 +6,17 @@ import Testimonials from './components/Testimonials';
 import ExitIntentPopup from './components/ExitIntentPopup';
 import TrustBadges from './components/TrustBadges';
 import SuccessMetrics from './components/SuccessMetrics';
+import ReferralTracker from './components/ReferralTracker';
 import { PageWrapper } from './page-wrapper';
+import { Suspense } from 'react';
 
 export default function Home() {
   return (
     <PageWrapper>
     <>
+    <Suspense fallback={null}>
+      <ReferralTracker />
+    </Suspense>
     <ExitIntentPopup />
     <div className="min-h-screen bg-[#0a0a0a] text-[#ededed]">
       {/* Nav */}
