@@ -11,9 +11,50 @@ import { PageWrapper } from './page-wrapper';
 import { Suspense } from 'react';
 
 export default function Home() {
+  // Schema.org structured data for SEO
+  const organizationSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'Organization',
+    name: 'NEXUS Alert',
+    url: 'https://nexus-alert.com',
+    logo: 'https://nexus-alert.com/logo.png',
+    description:
+      'Automated NEXUS appointment tracker and Global Entry slot finder. Monitor interview cancellations 24/7 with instant alerts.',
+    sameAs: ['https://github.com/caffeineGMT/nexus-alert'],
+  };
+
+  const softwareSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'SoftwareApplication',
+    name: 'NEXUS Alert',
+    applicationCategory: 'BrowserExtension',
+    operatingSystem: 'Chrome',
+    offers: {
+      '@type': 'Offer',
+      price: '0',
+      priceCurrency: 'USD',
+      availability: 'https://schema.org/InStock',
+    },
+    aggregateRating: {
+      '@type': 'AggregateRating',
+      ratingValue: '5.0',
+      reviewCount: '5',
+    },
+    description:
+      'Free Chrome extension that monitors NEXUS, Global Entry, and SENTRI appointment slots 24/7 and sends instant alerts when cancellations appear.',
+  };
+
   return (
     <PageWrapper>
     <>
+    <script
+      type="application/ld+json"
+      dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
+    />
+    <script
+      type="application/ld+json"
+      dangerouslySetInnerHTML={{ __html: JSON.stringify(softwareSchema) }}
+    />
     <Suspense fallback={null}>
       <ReferralTracker />
     </Suspense>

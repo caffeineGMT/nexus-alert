@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Product Hunt Images Preview</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 40px 20px;
+            background: #f5f5f5;
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 40px;
+        }
+        .section {
+            background: white;
+            padding: 30px;
+            margin-bottom: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .section h2 {
+            margin-top: 0;
+            color: #2563EB;
+        }
+        .gallery {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+        }
+        .gallery img {
+            width: 100%;
+            height: auto;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .thumbnail {
+            text-align: center;
+        }
+        .thumbnail img {
+            width: 240px;
+            height: 240px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .specs {
+            background: #f9fafb;
+            padding: 15px;
+            border-radius: 4px;
+            margin-top: 10px;
+            font-size: 14px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <h1>🚀 Product Hunt Images Preview</h1>
+
+    <div class="section">
+        <h2>Gallery Images (1270 × 760)</h2>
+        <div class="gallery">
+            <div>
+                <h3>Gallery 1: Main Interface</h3>
+                <img src="ph-gallery-01.png" alt="Gallery 1">
+                <div class="specs">Main monitoring interface showing enrollment center selection</div>
+            </div>
+            <div>
+                <h3>Gallery 2: Notification Alert</h3>
+                <img src="ph-gallery-02.png" alt="Gallery 2">
+                <div class="specs">Appointment slots found notification</div>
+            </div>
+            <div>
+                <h3>Gallery 3: Premium Features</h3>
+                <img src="ph-gallery-03.png" alt="Gallery 3">
+                <div class="specs">Premium settings and features overview</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="section thumbnail">
+        <h2>Thumbnail (240 × 240)</h2>
+        <img src="ph-thumbnail.png" alt="Thumbnail">
+        <div class="specs">Square thumbnail for Product Hunt listing</div>
+    </div>
+
+    <div class="section">
+        <h2>Product Hunt Specs</h2>
+        <ul>
+            <li><strong>Gallery Images:</strong> 1270 × 760 pixels (exactly)</li>
+            <li><strong>Thumbnail:</strong> 240 × 240 pixels (exactly)</li>
+            <li><strong>File Format:</strong> PNG or JPG</li>
+            <li><strong>Max File Size:</strong> 5MB per image</li>
+            <li><strong>Gallery Limit:</strong> Up to 5 images (we're using 3)</li>
+        </ul>
+    </div>
+
+    <div class="section">
+        <h2>Next Steps</h2>
+        <ol>
+            <li>Review images above</li>
+            <li>If satisfied, these are ready for Product Hunt submission</li>
+            <li>If changes needed, edit source screenshots and re-run create-ph-images.sh</li>
+            <li>Upload to Product Hunt at submission time</li>
+        </ol>
+    </div>
+</body>
+</html>
