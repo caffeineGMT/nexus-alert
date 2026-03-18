@@ -305,6 +305,46 @@ document.addEventListener('DOMContentLoaded', async () => {
     updateConfig({ autoOpenBooking: autoOpenToggle.checked });
   });
 
+  // ─── Upgrade Banner Logic ──────────────────────────────────────
+
+  // Check if banner should be shown (3+ days after install, not dismissed, free tier)
+  chrome.storage.local.get(['installDate', 'bannerDismissed'], (result) => {
+    const installDate = result.installDate;
+    const bannerDismissed = result.bannerDismissed;
+    const isPremium = config.tier === 'premium';
+
+    if (!isPremium && installDate && !bannerDismissed) {
+      const daysSinceInstall = (Date.now() - installDate) / (1000 * 60 * 60 * 24);
+      if (daysSinceInstall >= 3) {
+        document.getElementById('upgradeBanner').classList.remove('hidden');
+      }
+    }
+  });
+
+  // Banner upgrade button
+  document.getElementById('bannerUpgradeBtn').addEventListener('click', () => {
+    chrome.tabs.create({ url: 'https://nexusalert.app/pricing' });
+  });
+
+  // Banner dismiss button
+  document.getElementById('bannerDismissBtn').addEventListener('click', () => {
+    document.getElementById('upgradeBanner').classList.add('hidden');
+    chrome.storage.local.set({ bannerDismissed: true });
+  });
+
+  // ─── Upgrade Modal Logic ────────────────────────────────────────
+
+  // Modal upgrade button
+  document.getElementById('upgradeNowBtn').addEventListener('click', () => {
+    chrome.tabs.create({ url: 'https://nexusalert.app/pricing' });
+    document.getElementById('upgradeModal').classList.add('hidden');
+  });
+
+  // Modal dismiss button
+  document.getElementById('dismissModalBtn').addEventListener('click', () => {
+    document.getElementById('upgradeModal').classList.add('hidden');
+  });
+
   // ─── Check Now Button ──────────────────────────────────────────
 
   document.getElementById('checkNowBtn').addEventListener('click', async () => {
@@ -319,6 +359,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     const freshStatus = await sendMessage({ action: 'getStatus' });
     renderLiveSlots(freshStatus.lastFoundSlots || [], freshStatus.locations || {});
     renderSlotHistory(freshStatus.slotHistory || [], freshStatus.locations || {});
+
+    // Show upgrade modal for free users after manual check
+    const isPremium = freshStatus.config?.tier === 'premium';
+    if (!isPremium) {
+      document.getElementById('upgradeModal').classList.remove('hidden');
+    }
   });
 
   // ─── Open GOES Button ──────────────────────────────────────────

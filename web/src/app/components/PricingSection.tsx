@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 const freeFeatures = [
   'Monitors NEXUS, Global Entry & SENTRI',
@@ -36,10 +36,63 @@ function CheckIcon({ green }: { green?: boolean }) {
   );
 }
 
+function getCountdown(): number {
+  if (typeof window === 'undefined') return 23;
+
+  const stored = localStorage.getItem('nexus_countdown');
+  const lastReset = localStorage.getItem('nexus_countdown_reset');
+  const today = new Date().toDateString();
+
+  // Reset if it's a new day or no stored data
+  if (!stored || !lastReset || lastReset !== today) {
+    const newCount = Math.floor(Math.random() * 16) + 15; // Random 15-30
+    localStorage.setItem('nexus_countdown', String(newCount));
+    localStorage.setItem('nexus_countdown_reset', today);
+    return newCount;
+  }
+
+  return parseInt(stored, 10);
+}
+
 export default function PricingSection() {
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'annual'>('monthly');
+  const [spotsLeft, setSpotsLeft] = useState(23);
+
+  useEffect(() => {
+    // Initialize countdown
+    setSpotsLeft(getCountdown());
+
+    // Decrement on visibility change / focus
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible') {
+        const current = getCountdown();
+        if (current > 10) {
+          const newCount = current - 1;
+          setSpotsLeft(newCount);
+          localStorage.setItem('nexus_countdown', String(newCount));
+        }
+      }
+    };
+
+    const handleFocus = () => {
+      const current = getCountdown();
+      if (current > 10) {
+        const newCount = current - 1;
+        setSpotsLeft(newCount);
+        localStorage.setItem('nexus_countdown', String(newCount));
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibility);
+    window.addEventListener('focus', handleFocus);
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibility);
+      window.removeEventListener('focus', handleFocus);
+    };
+  }, []);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -80,10 +133,17 @@ export default function PricingSection() {
         {/* Header */}
         <div className="text-center mb-12">
           <h2 className="text-3xl font-bold mb-4">Simple Pricing</h2>
-          <p className="text-[#888] max-w-xl mx-auto">
+          <p className="text-[#888] max-w-xl mx-auto mb-4">
             Start free. Upgrade when you want faster alerts and email/SMS
             notifications delivered even when your browser is closed.
           </p>
+          {/* Scarcity Countdown */}
+          <div className="inline-flex items-center gap-2 bg-gradient-to-r from-[#eab308]/10 to-[#f59e0b]/10 border border-[#eab308]/30 rounded-full px-4 py-2">
+            <span className="text-lg">🔥</span>
+            <span className="text-sm font-semibold text-[#eab308]">
+              {spotsLeft} spots left at launch price
+            </span>
+          </div>
         </div>
 
         {/* Billing Toggle */}

@@ -30,6 +30,8 @@ chrome.runtime.onInstalled.addListener(async (details) => {
     await chrome.storage.local.set({
       config: DEFAULT_CONFIG,
       slotHistory: [],
+      installDate: Date.now(), // Track install date for upgrade banner timing
+      bannerDismissed: false,
     });
     await fetchAndCacheLocations();
     chrome.tabs.create({ url: chrome.runtime.getURL('onboarding.html') });
