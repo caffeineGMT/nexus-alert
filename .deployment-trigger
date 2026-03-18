@@ -1,0 +1,4 @@
+Deployment trigger timestamp: 2026-03-18 13:30 PT
+
+This file triggers Vercel auto-deployment via GitHub integration.
+Commit hash will verify the basePath fix is deployed.
