@@ -54,13 +54,68 @@ function getCountdown(): number {
   return parseInt(stored, 10);
 }
 
+type PriceVariant = 'control' | 'test';
+
+interface PriceConfig {
+  monthly: number;
+  annual: number;
+  annualMonthly: number;
+  annualSavings: number;
+}
+
+const PRICE_CONFIGS: Record<PriceVariant, PriceConfig> = {
+  control: {
+    monthly: 4.99,
+    annual: 49.99,
+    annualMonthly: 4.16,
+    annualSavings: 10,
+  },
+  test: {
+    monthly: 9.99,
+    annual: 79.99,
+    annualMonthly: 6.66,
+    annualSavings: 40,
+  },
+};
+
+function getPriceVariant(): PriceVariant {
+  if (typeof window === 'undefined') return 'control';
+
+  // Check if variant already assigned
+  const stored = localStorage.getItem('nexus_price_variant');
+  if (stored === 'control' || stored === 'test') {
+    return stored as PriceVariant;
+  }
+
+  // Assign variant (50/50 split)
+  const variant: PriceVariant = Math.random() < 0.5 ? 'control' : 'test';
+  localStorage.setItem('nexus_price_variant', variant);
+
+  // Track assignment in Plausible
+  if (typeof window !== 'undefined' && (window as any).plausible) {
+    (window as any).plausible('Price Variant Assigned', {
+      props: {
+        variant: variant,
+        monthly_price: PRICE_CONFIGS[variant].monthly,
+        annual_price: PRICE_CONFIGS[variant].annual,
+      },
+    });
+  }
+
+  return variant;
+}
+
 export default function PricingSection() {
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'annual'>('monthly');
   const [spotsLeft, setSpotsLeft] = useState(23);
+  const [priceVariant, setPriceVariant] = useState<PriceVariant>('control');
 
   useEffect(() => {
+    // Initialize price variant
+    setPriceVariant(getPriceVariant());
+
     // Initialize countdown
     setSpotsLeft(getCountdown());
 
@@ -109,10 +164,22 @@ export default function PricingSection() {
       const source = urlParams.get('utm_source') || 'direct';
       const campaign = urlParams.get('utm_campaign') || '';
 
+      // Get price configuration for this variant
+      const priceConfig = PRICE_CONFIGS[priceVariant];
+      const actualPrice = billingCycle === 'annual' ? priceConfig.annual : priceConfig.monthly;
+
       // Build request body
-      const body: { email: string; plan: string; ref?: string; utm_source?: string; utm_campaign?: string } = {
+      const body: {
+        email: string;
+        plan: string;
+        priceVariant: PriceVariant;
+        ref?: string;
+        utm_source?: string;
+        utm_campaign?: string;
+      } = {
         email,
         plan: billingCycle,
+        priceVariant: priceVariant,
       };
       if (ref) {
         body.ref = ref;
@@ -130,6 +197,8 @@ export default function PricingSection() {
           source: source,
           tier: 'premium',
           billing_cycle: billingCycle,
+          price_variant: priceVariant,
+          price: actualPrice,
           page_url: window.location.pathname,
         });
       }
@@ -143,6 +212,8 @@ export default function PricingSection() {
               source: source,
               campaign: campaign || 'none',
               page: window.location.pathname,
+              price_variant: priceVariant,
+              price: actualPrice,
             },
           }
         );
@@ -203,7 +274,7 @@ export default function PricingSection() {
           >
             Annual
             <span className="ml-1.5 text-xs bg-[#22c55e] text-black px-2 py-0.5 rounded-full font-bold">
-              Save 16%
+              Save 33%
             </span>
           </button>
         </div>
@@ -251,17 +322,17 @@ export default function PricingSection() {
             </p>
             {billingCycle === 'monthly' ? (
               <div className="flex items-end gap-1 mb-6" style={{ fontVariantNumeric: 'tabular-nums' }}>
-                <span className="text-4xl font-bold">$4.99</span>
+                <span className="text-4xl font-bold">${PRICE_CONFIGS[priceVariant].monthly.toFixed(2)}</span>
                 <span className="text-xl text-[#888] mb-1">/mo</span>
               </div>
             ) : (
               <div className="mb-6">
                 <div className="flex items-end gap-1" style={{ fontVariantNumeric: 'tabular-nums' }}>
-                  <span className="text-4xl font-bold">$49.99</span>
+                  <span className="text-4xl font-bold">${PRICE_CONFIGS[priceVariant].annual.toFixed(2)}</span>
                   <span className="text-xl text-[#888] mb-1">/year</span>
                 </div>
                 <div className="text-sm text-[#22c55e] mt-1 font-semibold">
-                  $4.16/mo — Save $10/year
+                  ${PRICE_CONFIGS[priceVariant].annualMonthly.toFixed(2)}/mo — Save ${PRICE_CONFIGS[priceVariant].annualSavings}/year
                 </div>
               </div>
             )}
@@ -278,7 +349,7 @@ export default function PricingSection() {
             {/* Urgency Banner */}
             <div className="mb-4 p-3 rounded-lg bg-gradient-to-r from-[#eab308]/10 to-[#f59e0b]/10 border border-[#eab308]/30">
               <p className="text-xs text-[#eab308] font-semibold text-center leading-relaxed">
-                🔥 Limited time: Annual plan at launch price — lock in $49.99/year before it increases to $59.99
+                🔥 Limited time: Annual plan — Save ${PRICE_CONFIGS[priceVariant].annualSavings}/year with annual billing
               </p>
             </div>
 

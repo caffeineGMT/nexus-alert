@@ -230,7 +230,7 @@ export default {
 async function handleCheckout(request, env, corsHeaders) {
   try {
     const body = await request.json();
-    const { email, ref, plan, promoCode, utm_source, utm_medium, utm_campaign, utm_content } = body;
+    const { email, ref, plan, priceVariant, promoCode, utm_source, utm_medium, utm_campaign, utm_content } = body;
 
     if (!email) {
       return json({ error: 'email is required' }, 400, corsHeaders);
@@ -323,19 +323,34 @@ async function handleCheckout(request, env, corsHeaders) {
     // Validate plan parameter for regular tiers
     const billingCycle = plan === 'annual' ? 'annual' : 'monthly';
 
-    // Select the appropriate Stripe Price ID based on billing cycle
-    const priceId = billingCycle === 'annual'
-      ? env.STRIPE_ANNUAL_PRICE_ID
-      : env.STRIPE_MONTHLY_PRICE_ID;
+    // Select the appropriate Stripe Price ID based on billing cycle and A/B test variant
+    let priceId;
+    const isTestVariant = priceVariant === 'test';
+
+    if (isTestVariant) {
+      // A/B test: Use test prices ($9.99/mo or $79.99/year)
+      priceId = billingCycle === 'annual'
+        ? env.STRIPE_ANNUAL_PRICE_TEST
+        : env.STRIPE_MONTHLY_PRICE_TEST;
+    } else {
+      // Control: Use standard prices ($4.99/mo or $49.99/year)
+      priceId = billingCycle === 'annual'
+        ? env.STRIPE_ANNUAL_PRICE_ID
+        : env.STRIPE_MONTHLY_PRICE_ID;
+    }
 
     if (!priceId) {
       return json({
-        error: `Price ID not configured for ${billingCycle} plan`,
+        error: `Price ID not configured for ${billingCycle} plan (variant: ${priceVariant || 'control'})`,
       }, 500, corsHeaders);
     }
 
-    // Build metadata with optional referral code, billing cycle, and promo code
+    // Build metadata with optional referral code, billing cycle, price variant, and promo code
     const metadata = { email, billingCycle };
+    if (priceVariant) {
+      metadata.priceVariant = priceVariant;
+      metadata.abTest = 'pricing_optimization_2026';
+    }
     if (ref) {
       metadata.referralCode = ref;
     }
@@ -2208,13 +2223,105 @@ async function handleGetMetrics(request, env, corsHeaders) {
     const licenseKeys = await env.NEXUS_ALERTS_KV.list({ prefix: 'license:' });
     const activeMonitoring = subscriberList.length + licenseKeys.keys.length;
 
+    // ─── CONVERSION FUNNEL METRICS ───────────────────────────────────
+
+    // Count free tier users (subscriber_list entries)
+    const freeTierUsers = subscriberList.length;
+
+    // Count premium users (license:* entries with tier=premium)
+    let premiumUsers = 0;
+    let annualUsers = 0;
+    let monthlyUsers = 0;
+    let totalMRR = 0;
+
+    for (const key of licenseKeys.keys) {
+      const licenseStr = await env.NEXUS_ALERTS_KV.get(key.name);
+      if (licenseStr) {
+        try {
+          const license = JSON.parse(licenseStr);
+          if (license.tier === 'premium') {
+            premiumUsers++;
+            // Calculate MRR based on plan type
+            if (license.plan === 'annual') {
+              annualUsers++;
+              totalMRR += 59.88 / 12; // $59.88/year = $4.99/month
+            } else {
+              monthlyUsers++;
+              totalMRR += 4.99;
+            }
+          }
+        } catch (e) {
+          console.error('Error parsing license:', e);
+        }
+      }
+    }
+
+    // Total installs (free + premium)
+    const totalInstalls = freeTierUsers + premiumUsers;
+
+    // Conversion rate (premium / total)
+    const conversionRate = totalInstalls > 0
+      ? ((premiumUsers / totalInstalls) * 100).toFixed(2)
+      : '0.00';
+
+    // Calculate daily new sign-ups (activity events from last 24 hours)
+    const oneDayAgo = Date.now() - (24 * 60 * 60 * 1000);
+    const recentSignups = activities.filter(a => {
+      if (!a || a.type !== 'extension_installed') return false;
+      const timestamp = a.timestamp || 0;
+      return timestamp > oneDayAgo;
+    });
+    const dailySignups = recentSignups.length;
+
+    // Conversion funnel events from Plausible tracking
+    const upgradeClicked = activities.filter(a => a && a.type === 'upgrade_clicked').length;
+    const checkoutCompleted = activities.filter(a => a && a.type === 'checkout_completed').length;
+    const settingsOpened = activities.filter(a => a && a.type === 'settings_opened').length;
+
+    // Calculate drop-off rates
+    const upgradeClickRate = totalInstalls > 0
+      ? ((upgradeClicked / totalInstalls) * 100).toFixed(2)
+      : '0.00';
+
+    const checkoutCompletionRate = upgradeClicked > 0
+      ? ((checkoutCompleted / upgradeClicked) * 100).toFixed(2)
+      : '0.00';
+
     return json({
-      slotsFoundTotal: slotsFoundTotal || 2847, // Fallback to seed number
+      // Legacy metrics (for backwards compatibility)
+      slotsFoundTotal: slotsFoundTotal || 2847,
       avgTimeToSlot,
       successRate,
-      activeMonitoring: activeMonitoring || 1247, // Fallback to seed number
-      count: activeMonitoring || 1247, // For TrustBadges component
+      activeMonitoring: activeMonitoring || 1247,
+      count: activeMonitoring || 1247,
       metric: `${successRate}% faster than manual checking`,
+
+      // New conversion funnel metrics
+      totalInstalls,
+      freeTierUsers,
+      premiumUsers,
+      conversionRate: parseFloat(conversionRate),
+      dailySignups,
+      mrr: totalMRR.toFixed(2),
+      annualUsers,
+      monthlyUsers,
+
+      // Funnel drop-off analysis
+      funnel: {
+        totalInstalls,
+        upgradeClicked,
+        checkoutCompleted,
+        premiumUsers,
+        upgradeClickRate: parseFloat(upgradeClickRate),
+        checkoutCompletionRate: parseFloat(checkoutCompletionRate),
+      },
+
+      // Daily growth metrics
+      growth: {
+        dailySignups,
+        weeklyProjection: dailySignups * 7,
+        monthlyProjection: dailySignups * 30,
+      },
     }, 200, corsHeaders);
   } catch (err) {
     console.error('Metrics fetch error:', err);
@@ -2727,7 +2834,7 @@ async function sendEmailSequences(env) {
         const daysSinceChurn = (now - churnData.canceledAt) / (24 * 60 * 60 * 1000);
 
         // Send win-back email after 30 days
-        if (daysSinceChurn >= 30 && !churnData.winBackSent) {
+        if (daysSinceChurn >= 30 && daysSinceChurn < 31 && !churnData.winBackSent) {
           const emailSent = await sendEmail('win_back', churnData.email, env);
           if (emailSent) {
             // Mark as sent
@@ -2735,8 +2842,140 @@ async function sendEmailSequences(env) {
             await env.NEXUS_ALERTS_KV.put(key.name, JSON.stringify(churnData));
           }
         }
+
+        // Send 60-day win-back email (3 months free offer)
+        if (daysSinceChurn >= 60 && daysSinceChurn < 61 && !churnData.winBack60Sent) {
+          const emailSent = await sendEmail('win_back_60day', churnData.email, env, {
+            email: churnData.email,
+          });
+          if (emailSent) {
+            churnData.winBack60Sent = true;
+            await env.NEXUS_ALERTS_KV.put(key.name, JSON.stringify(churnData));
+          }
+        }
+
+        // Send 60-day alternative (algorithm improvement message)
+        // Use alternating strategy: send algorithm message to users who churned on even days
+        if (daysSinceChurn >= 60 && daysSinceChurn < 61 && !churnData.winBackAlgorithmSent) {
+          const churnDate = new Date(churnData.canceledAt);
+          const useAlgorithmMessage = churnDate.getDate() % 2 === 0;
+
+          if (useAlgorithmMessage) {
+            const emailSent = await sendEmail('win_back_algorithm', churnData.email, env, {
+              email: churnData.email,
+            });
+            if (emailSent) {
+              churnData.winBackAlgorithmSent = true;
+              await env.NEXUS_ALERTS_KV.put(key.name, JSON.stringify(churnData));
+            }
+          }
+        }
       } catch (err) {
         console.error(`Error processing win-back for ${key.name}:`, err);
+      }
+    }
+
+    // ─── PREMIUM USER RETENTION (14+ Days Without Slot) ──────────────
+    for (const email of subscriberList) {
+      try {
+        const subData = await env.NEXUS_ALERTS_KV.get(`sub:${email}`);
+        if (!subData) continue;
+
+        const subscriber = JSON.parse(subData);
+
+        // Skip unsubscribed users
+        if (subscriber.unsubscribed) continue;
+
+        // Get license data to check if premium
+        const licenseDataStr = await env.NEXUS_ALERTS_KV.get(`license:${email}`);
+        const license = licenseDataStr ? JSON.parse(licenseDataStr) : null;
+        const isPremium = license?.tier === 'premium';
+
+        if (!isPremium) continue; // Only for premium users
+
+        // Check if user is still actively searching (has locations set)
+        if (!subscriber.locations || subscriber.locations.length === 0) continue;
+
+        // Calculate days since last slot found (or since registration if never found)
+        const lastSlotFound = subscriber.last_slot_found
+          ? new Date(subscriber.last_slot_found).getTime()
+          : new Date(subscriber.createdAt).getTime();
+
+        const daysSinceLastSlot = (now - lastSlotFound) / (24 * 60 * 60 * 1000);
+
+        // Check if retention email already sent
+        const retentionKey = `retention_sent:${email}`;
+        const retentionSent = await env.NEXUS_ALERTS_KV.get(retentionKey);
+
+        // Send retention tips if 14+ days without finding a slot and email not sent yet
+        if (daysSinceLastSlot >= 14 && !retentionSent) {
+          const emailSent = await sendEmail('retention_tips', email, env);
+          if (emailSent) {
+            // Mark as sent with 30-day TTL (can re-trigger after 30 days)
+            await env.NEXUS_ALERTS_KV.put(retentionKey, 'true', {
+              expirationTtl: 30 * 24 * 60 * 60, // 30 days
+            });
+            console.log(`Sent retention tips to ${email} (${Math.round(daysSinceLastSlot)} days without slot)`);
+          }
+        }
+      } catch (err) {
+        console.error(`Error processing retention for ${email}:`, err);
+      }
+    }
+
+    // ─── ANNUAL UPGRADE PROMPTS (After 6 Months) ─────────────────────
+    const licenseKeys = await env.NEXUS_ALERTS_KV.list({ prefix: 'license:' });
+
+    for (const key of licenseKeys.keys) {
+      try {
+        const licenseDataStr = await env.NEXUS_ALERTS_KV.get(key.name);
+        if (!licenseDataStr) continue;
+
+        const license = JSON.parse(licenseDataStr);
+
+        // Only target active monthly premium subscribers
+        if (license.tier !== 'premium' || license.status !== 'active') continue;
+        if (!license.stripeSubscriptionId) continue;
+
+        // Check if subscription is monthly (not annual)
+        const stripe = new Stripe(env.STRIPE_SECRET_KEY, {
+          httpClient: Stripe.createFetchHttpClient(),
+        });
+
+        try {
+          const subscription = await stripe.subscriptions.retrieve(license.stripeSubscriptionId);
+
+          // Check if it's a monthly plan
+          const isMonthly = subscription.items.data.some(item =>
+            item.price.recurring?.interval === 'month'
+          );
+
+          if (!isMonthly) continue; // Skip annual subscribers
+
+          // Calculate subscription age
+          const subscriptionStart = subscription.created * 1000; // Convert to milliseconds
+          const monthsActive = (now - subscriptionStart) / (30 * 24 * 60 * 60 * 1000);
+
+          // Check if annual upgrade email already sent
+          const email = license.email || key.name.replace('license:', '');
+          const annualUpgradeKey = `annual_upgrade_sent:${email}`;
+          const annualUpgradeSent = await env.NEXUS_ALERTS_KV.get(annualUpgradeKey);
+
+          // Send annual upgrade prompt after 6 months
+          if (monthsActive >= 6 && !annualUpgradeSent) {
+            const emailSent = await sendEmail('annual_upgrade', email, env, { email });
+            if (emailSent) {
+              // Mark as sent (persist indefinitely - only send once)
+              await env.NEXUS_ALERTS_KV.put(annualUpgradeKey, 'true');
+              console.log(`Sent annual upgrade prompt to ${email} (${Math.round(monthsActive)} months active)`);
+            }
+          }
+        } catch (stripeErr) {
+          // Skip if we can't fetch subscription (might be canceled)
+          console.log(`Could not fetch subscription for ${license.stripeSubscriptionId}:`, stripeErr.message);
+        }
+      } catch (err) {
+        console.error(`Error processing annual upgrade for ${key.name}:`, err);
       }
     }
 

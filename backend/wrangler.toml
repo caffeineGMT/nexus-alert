@@ -37,8 +37,10 @@ SENTRY_DSN = "" # Sentry DSN for error tracking (https://YOUR_PROJECT_ID.ingest.
 # ────────────────────────────────────────────────────────────────────
 # wrangler secret put STRIPE_SECRET_KEY         (Stripe secret key, starts with sk_)
 # wrangler secret put STRIPE_WEBHOOK_SECRET     (Stripe webhook signing secret, starts with whsec_)
-# wrangler secret put STRIPE_MONTHLY_PRICE_ID   (Monthly subscription price ID, e.g., price_1Abc...)
-# wrangler secret put STRIPE_ANNUAL_PRICE_ID    (Annual subscription price ID, e.g., price_1Def...)
+# wrangler secret put STRIPE_MONTHLY_PRICE_ID   (Monthly subscription price ID - control $4.99, e.g., price_1Abc...)
+# wrangler secret put STRIPE_ANNUAL_PRICE_ID    (Annual subscription price ID - control $49.99, e.g., price_1Def...)
+# wrangler secret put STRIPE_MONTHLY_PRICE_TEST (A/B test monthly price ID - test $9.99, e.g., price_1Ghi...)
+# wrangler secret put STRIPE_ANNUAL_PRICE_TEST  (A/B test annual price ID - test $79.99, e.g., price_1Jkl...)
 # wrangler secret put TWILIO_ACCOUNT_SID        (Twilio account SID)
 # wrangler secret put TWILIO_AUTH_TOKEN         (Twilio auth token)
 # wrangler secret put RESEND_API_KEY            (Resend.com API key)
@@ -89,8 +91,10 @@ LOG_LEVEL = "info"
 # Production secrets (set via wrangler secret put --env production):
 # - STRIPE_SECRET_KEY
 # - STRIPE_WEBHOOK_SECRET
-# - STRIPE_MONTHLY_PRICE_ID
-# - STRIPE_ANNUAL_PRICE_ID
+# - STRIPE_MONTHLY_PRICE_ID (Control: $4.99/mo)
+# - STRIPE_ANNUAL_PRICE_ID (Control: $49.99/yr)
+# - STRIPE_MONTHLY_PRICE_TEST (A/B Test: $9.99/mo)
+# - STRIPE_ANNUAL_PRICE_TEST (A/B Test: $79.99/yr)
 # - RESEND_API_KEY
 # - TWILIO_ACCOUNT_SID
 # - TWILIO_AUTH_TOKEN
