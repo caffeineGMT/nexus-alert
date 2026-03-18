@@ -2110,12 +2110,6 @@ async function sendEmailSequences(env) {
 async function handleResendWebhook(request, env, corsHeaders) {
     }
     if (url.pathname === '/api/webhooks/convertkit' && request.method === 'POST') {
-      return await handleConvertKitWebhookEndpoint(request, env, corsHeaders);
-    }
-    if (url.pathname === '/api/subscribe' && request.method === 'POST') {
-      return await handlePublicSubscribe(request, env, corsHeaders, sentry);
-
-  try {
     const body = await request.json();
     const eventType = body.type;
 
