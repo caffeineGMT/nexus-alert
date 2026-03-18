@@ -279,12 +279,7 @@ async function notifyNewSlots(results, config) {
     }
 
     // Clean old notified entries (older than 24 hours)
-    const cutoff = Date.now() - 24 * 60 * 60 * 1000;
-    for (const [key, timestamp] of Object.entries(notified)) {
-      if (timestamp < cutoff) delete notified[key];
-    }
-
-    config.notifiedSlots = notified;
+    config.notifiedSlots = pruneOldSlots(notified);
     await chrome.storage.local.set({ config });
     console.log(`[NEXUS Alert] Sent ${newCount} new notification(s)`);
   }
