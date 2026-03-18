@@ -9,7 +9,12 @@
     "test:watch": "vitest",
     "load-test": "node load-test-simple.js",
     "load-test:full": "node load-test.js",
-    "load-test:stripe": "./stripe-webhook-load-test.sh"
+    "load-test:stripe": "./stripe-webhook-load-test.sh",
+    "monitor:health": "./scripts/monitor-health.sh",
+    "monitor:analytics": "./scripts/analytics-dashboard.js",
+    "monitor:all": "./monitoring-dashboard.sh",
+    "health": "curl -s https://api.nexus-alert.com/health | jq .",
+    "tail": "wrangler tail --env production --format pretty"
   },
   "devDependencies": {
     "@cloudflare/vitest-pool-workers": "^0.5.0",

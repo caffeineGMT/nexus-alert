@@ -686,6 +686,136 @@ async function handleStatus(env, corsHeaders) {
   }, 200, corsHeaders);
 }
 
+// Comprehensive health check endpoint for monitoring
+async function handleHealthCheck(env, corsHeaders) {
+  const now = Date.now();
+  const checks = {
+    timestamp: new Date().toISOString(),
+    status: 'healthy',
+    checks: {},
+    metrics: {},
+    alerts: []
+  };
+
+  try {
+    // Check 1: KV namespace accessible
+    const kvStartTime = Date.now();
+    const testKey = await env.NEXUS_ALERTS_KV.get('last_run');
+    const kvLatency = Date.now() - kvStartTime;
+    checks.checks.kv_accessible = {
+      status: testKey !== null ? 'pass' : 'warn',
+      latency_ms: kvLatency,
+      message: testKey !== null ? 'KV namespace accessible' : 'KV namespace accessible but no recent runs'
+    };
+    if (kvLatency > 1000) {
+      checks.alerts.push({ severity: 'warning', message: `High KV latency: ${kvLatency}ms` });
+    }
+
+    // Check 2: Recent cron execution
+    const lastRun = await env.NEXUS_ALERTS_KV.get('last_run');
+    if (lastRun) {
+      const lastRunTime = new Date(lastRun).getTime();
+      const elapsed = now - lastRunTime;
+      const elapsedMinutes = Math.floor(elapsed / 60000);
+
+      checks.checks.cron_execution = {
+        status: elapsed < 600000 ? 'pass' : 'fail', // 10 minutes threshold
+        last_run: lastRun,
+        elapsed_minutes: elapsedMinutes,
+        message: elapsed < 600000 ? 'Cron executing normally' : `Last run was ${elapsedMinutes} minutes ago`
+      };
+
+      if (elapsed > 600000) {
+        checks.status = 'degraded';
+        checks.alerts.push({
+          severity: 'critical',
+          message: `Cron has not run for ${elapsedMinutes} minutes`
+        });
+      }
+    } else {
+      checks.checks.cron_execution = {
+        status: 'fail',
+        message: 'No cron runs recorded'
+      };
+      checks.status = 'unhealthy';
+      checks.alerts.push({ severity: 'critical', message: 'Cron has never run' });
+    }
+
+    // Check 3: Subscriber system
+    const list = JSON.parse(await env.NEXUS_ALERTS_KV.get('subscriber_list') || '[]');
+    checks.checks.subscriber_system = {
+      status: 'pass',
+      count: list.length,
+      message: `${list.length} subscribers registered`
+    };
+
+    // Check 4: API failure tracking
+    const apiFailures = consecutiveApiFailures;
+    checks.checks.cbp_api = {
+      status: apiFailures < 3 ? 'pass' : 'fail',
+      consecutive_failures: apiFailures,
+      last_failure: lastApiFailureTime ? new Date(lastApiFailureTime).toISOString() : null,
+      message: apiFailures === 0 ? 'CBP API responding normally' : `${apiFailures} consecutive API failures`
+    };
+    if (apiFailures >= 3) {
+      checks.status = 'degraded';
+      checks.alerts.push({
+        severity: 'warning',
+        message: `CBP API has ${apiFailures} consecutive failures`
+      });
+    }
+
+    // Check 5: Error rate monitoring
+    const errorCount = parseInt(await env.NEXUS_ALERTS_KV.get('error_count_1h') || '0');
+    checks.checks.error_rate = {
+      status: errorCount < 10 ? 'pass' : 'warn',
+      errors_last_hour: errorCount,
+      message: errorCount < 10 ? 'Low error rate' : `Elevated error rate: ${errorCount} errors/hour`
+    };
+    if (errorCount >= 10) {
+      checks.alerts.push({
+        severity: 'warning',
+        message: `High error rate: ${errorCount} errors in last hour`
+      });
+    }
+
+    // Metrics
+    const totalChecks = parseInt(await env.NEXUS_ALERTS_KV.get('total_checks') || '0');
+    const totalNotifications = parseInt(await env.NEXUS_ALERTS_KV.get('total_notifications') || '0');
+
+    checks.metrics = {
+      total_checks: totalChecks,
+      total_notifications: totalNotifications,
+      subscribers: list.length,
+      notification_rate: totalChecks > 0 ? (totalNotifications / totalChecks * 100).toFixed(2) + '%' : '0%',
+      uptime_indicator: checks.status === 'healthy' ? '99.9%' : 'degraded'
+    };
+
+    // Determine HTTP status code
+    let httpStatus = 200;
+    if (checks.status === 'degraded') httpStatus = 503;
+    if (checks.status === 'unhealthy') httpStatus = 503;
+
+    return json(checks, httpStatus, {
+      ...corsHeaders,
+      'Cache-Control': 'no-cache, no-store, must-revalidate'
+    });
+
+  } catch (err) {
+    checks.status = 'unhealthy';
+    checks.checks.internal_error = {
+      status: 'fail',
+      message: err.message
+    };
+    checks.alerts.push({ severity: 'critical', message: `Health check failed: ${err.message}` });
+
+    return json(checks, 500, {
+      ...corsHeaders,
+      'Cache-Control': 'no-cache, no-store, must-revalidate'
+    });
+  }
+}
+
 // ─── Slot Checking ────────────────────────────────────────────────
 
 async function checkAllSubscribers(env, sentry) {
@@ -1493,26 +1623,177 @@ async function verifyHmacToken(email, token, secret) {
 
 // ─── Slack Alerts ──────────────────────────────────────────────────
 
-async function sendSlackAlert(message, env) {
+async function sendSlackAlert(message, env, options = {}) {
   if (!env.SLACK_WEBHOOK_URL) {
     console.log('[Slack Alert] Webhook URL not configured, skipping alert');
     return;
   }
 
   try {
+    const { severity = 'error', metadata = {}, includeMetrics = false } = options;
+
+    // Severity icons and colors
+    const severityConfig = {
+      critical: { icon: '🚨', color: '#FF0000', level: 'CRITICAL' },
+      error: { icon: '❌', color: '#FF6B6B' , level: 'ERROR' },
+      warning: { icon: '⚠️', color: '#FFA500', level: 'WARNING' },
+      info: { icon: 'ℹ️', color: '#3B82F6', level: 'INFO' }
+    };
+
+    const config = severityConfig[severity] || severityConfig.error;
+
+    // Build Slack message with rich formatting
+    const blocks = [
+      {
+        type: 'header',
+        text: {
+          type: 'plain_text',
+          text: `${config.icon} NEXUS Alert - ${config.level}`,
+          emoji: true
+        }
+      },
+      {
+        type: 'section',
+        text: {
+          type: 'mrkdwn',
+          text: `*Message:* ${message}`
+        }
+      }
+    ];
+
+    // Add timestamp
+    blocks.push({
+      type: 'context',
+      elements: [{
+        type: 'mrkdwn',
+        text: `*Time:* ${new Date().toISOString()}`
+      }]
+    });
+
+    // Add metadata if provided
+    if (Object.keys(metadata).length > 0) {
+      const metadataText = Object.entries(metadata)
+        .map(([key, value]) => `*${key}:* ${value}`)
+        .join('\n');
+
+      blocks.push({
+        type: 'section',
+        text: {
+          type: 'mrkdwn',
+          text: metadataText
+        }
+      });
+    }
+
+    // Add metrics if requested
+    if (includeMetrics && env) {
+      try {
+        const totalChecks = await env.NEXUS_ALERTS_KV.get('total_checks');
+        const totalNotifs = await env.NEXUS_ALERTS_KV.get('total_notifications');
+        const list = JSON.parse(await env.NEXUS_ALERTS_KV.get('subscriber_list') || '[]');
+
+        blocks.push({
+          type: 'section',
+          text: {
+            type: 'mrkdwn',
+            text: `*System Metrics:*\n• Subscribers: ${list.length}\n• Total Checks: ${totalChecks || 0}\n• Total Notifications: ${totalNotifs || 0}`
+          }
+        });
+      } catch (err) {
+        console.error('[Slack Alert] Failed to fetch metrics:', err);
+      }
+    }
+
+    // Add action buttons for critical alerts
+    if (severity === 'critical') {
+      blocks.push({
+        type: 'actions',
+        elements: [
+          {
+            type: 'button',
+            text: {
+              type: 'plain_text',
+              text: 'View Dashboard',
+              emoji: true
+            },
+            url: 'https://dash.cloudflare.com'
+          },
+          {
+            type: 'button',
+            text: {
+              type: 'plain_text',
+              text: 'View Logs',
+              emoji: true
+            },
+            url: 'https://dash.cloudflare.com'
+          }
+        ]
+      });
+    }
+
+    const payload = {
+      text: `${config.icon} NEXUS Alert: ${message}`, // Fallback text
+      blocks,
+      attachments: [{
+        color: config.color,
+        footer: 'NEXUS Alert Monitoring',
+        footer_icon: 'https://nexus-alert.com/icon.png',
+        ts: Math.floor(Date.now() / 1000)
+      }]
+    };
+
     const response = await fetch(env.SLACK_WEBHOOK_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ text: `🚨 NEXUS Alert: ${message}` }),
+      body: JSON.stringify(payload),
     });
 
     if (!response.ok) {
       console.error('[Slack Alert] Failed to send:', await response.text());
     } else {
-      console.log('[Slack Alert] Sent:', message);
+      console.log(`[Slack Alert] Sent ${severity} alert:`, message);
     }
   } catch (err) {
     console.error('[Slack Alert] Error sending alert:', err);
+  }
+}
+
+// Track errors for monitoring
+async function trackError(error, context, env) {
+  try {
+    // Increment hourly error counter
+    const errorKey = 'error_count_1h';
+    const currentCount = parseInt(await env.NEXUS_ALERTS_KV.get(errorKey) || '0');
+    await env.NEXUS_ALERTS_KV.put(errorKey, String(currentCount + 1), {
+      expirationTtl: 3600 // Reset every hour
+    });
+
+    // Log structured error
+    console.error(JSON.stringify({
+      type: 'error',
+      message: error.message,
+      stack: error.stack,
+      context,
+      timestamp: new Date().toISOString()
+    }));
+
+    // Send alert for critical errors
+    if (context.severity === 'critical' || currentCount >= 10) {
+      await sendSlackAlert(
+        `Error in ${context.location}: ${error.message}`,
+        env,
+        {
+          severity: 'critical',
+          metadata: {
+            'Error Type': error.name,
+            'Location': context.location,
+            'Error Count (1h)': currentCount + 1
+          }
+        }
+      );
+    }
+  } catch (err) {
+    console.error('[Error Tracking] Failed to track error:', err);
   }
 }
 

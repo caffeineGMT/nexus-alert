@@ -10,6 +10,10 @@ crons = ["*/2 * * * *"]
 binding = "NEXUS_ALERTS_KV"
 id = "00000000000000000000000000000000" # Replace with real ID from Cloudflare dashboard before deploying
 
+[[kv_namespaces]]
+binding = "TESTIMONIALS"
+id = "00000000000000000000000000000001" # Replace with real ID: wrangler kv:namespace create TESTIMONIALS
+
 # Cloudflare Queue for email/SMS notifications
 [[queues.producers]]
 queue = "email-notifications"

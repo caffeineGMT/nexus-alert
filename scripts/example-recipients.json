@@ -1,0 +1,28 @@
+{
+  "recipients": [
+    {
+      "email": "user1@example.com",
+      "name": "John Doe",
+      "source": "chrome_web_store_review",
+      "notes": "Left 5-star review on CWS"
+    },
+    {
+      "email": "user2@example.com",
+      "name": "Sarah Chen",
+      "source": "landing_page_signup",
+      "notes": "Signed up for email list in February"
+    },
+    {
+      "email": "user3@example.com",
+      "name": "David Kim",
+      "source": "github_star",
+      "notes": "Starred the GitHub repo"
+    }
+  ],
+  "instructions": [
+    "Replace example emails with real user emails",
+    "Ensure you have permission to email these users",
+    "Set RESEND_API_KEY environment variable before running",
+    "Run with: node scripts/send-testimonial-requests.js --batch scripts/recipients.json"
+  ]
+}

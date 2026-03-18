@@ -1,0 +1,184 @@
+==============================================
+NEXUS ALERT - REDDIT DM TEMPLATES
+==============================================
+
+Use these templates to reach out to Reddit users who have engaged with NEXUS Alert content.
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+TEMPLATE 1: User Mentioned NEXUS Alert
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Subject: NEXUS Alert creator here - would love to hear your story!
+
+Hey [Username],
+
+I saw your comment about NEXUS Alert on r/GlobalEntry and wanted to reach out personally!
+
+I'm Michael, the creator of NEXUS Alert. I'm preparing to officially launch on Product Hunt and the Chrome Web Store, and I'd love to feature real user success stories.
+
+Would you be willing to share a quick testimonial about your experience? It'd be 2-3 sentences:
+- Which program (NEXUS/Global Entry/SENTRI)
+- How long you waited originally
+- How quickly NEXUS Alert helped you find a slot
+- What the experience was like
+
+In return, I'd love to give you **6 months of Premium free** (unlimited 2-min checks, email alerts, SMS notifications — worth $30).
+
+Submit here if interested:
+👉 https://nexus-alert.com/testimonials/submit
+
+Or just reply to this DM and I'll work with you directly!
+
+Thanks for being an early supporter,
+Michael
+NEXUS Alert - https://nexus-alert.com
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+TEMPLATE 2: User Had Appointment Struggles
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Subject: Quick favor from NEXUS Alert creator?
+
+Hey [Username],
+
+I'm Michael, creator of NEXUS Alert (the Chrome extension for finding NEXUS/Global Entry appointments).
+
+I saw your post about [specific topic - struggling with appointments/getting approved/etc] and wanted to reach out.
+
+I'm officially launching NEXUS Alert this month and would love to feature real user stories. Did you end up using any appointment-finding tools, or would you be open to trying NEXUS Alert?
+
+If you have a success story to share (even if you didn't use NEXUS Alert), I'd give you **6 months Premium free** as a thank you for a quick 2-3 sentence testimonial.
+
+Submit here if interested:
+👉 https://nexus-alert.com/testimonials/submit
+
+No pressure either way - just figured I'd ask!
+
+Cheers,
+Michael
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+TEMPLATE 3: Short & Direct (Follow-up)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Hey [Username],
+
+Quick follow-up on my previous message about NEXUS Alert testimonials.
+
+Still interested in getting 6 months Premium free? Just need 2-3 sentences about your experience:
+👉 https://nexus-alert.com/testimonials/submit
+
+Takes 2 minutes, and you get $30 worth of Premium access.
+
+Let me know if you have any questions!
+
+Michael
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+SOCIAL MEDIA POST (Reddit)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Title: [Creator] NEXUS Alert success stories wanted - get 6 months Premium free
+
+Hey r/GlobalEntry,
+
+I'm the creator of NEXUS Alert, the Chrome extension that monitors NEXUS/Global Entry appointment slots.
+
+I'm officially launching on Product Hunt and the Chrome Web Store this month, and I'd love to feature real user testimonials.
+
+**What I'm looking for:**
+- Did NEXUS Alert help you find an appointment?
+- Share a quick 2-3 sentence testimonial
+- Get 6 months of Premium free (2-min checks, email/SMS alerts)
+
+**Submit here:** https://nexus-alert.com/testimonials/submit
+
+Thanks for being early supporters! Your stories will help thousands of people find appointments faster.
+
+Michael
+NEXUS Alert - https://nexus-alert.com
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+TWITTER/X POST
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🎉 NEXUS Alert is launching on Product Hunt soon!
+
+If you used the extension to find your NEXUS/Global Entry appointment, I'd love to feature your story.
+
+Share a quick testimonial and get 6 months Premium free:
+👉 https://nexus-alert.com/testimonials/submit
+
+RT appreciated! 🙏
+
+#NEXUS #GlobalEntry #ProductHunt
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+TIPS FOR SUCCESS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✅ DO:
+- Personalize with username and specific post details
+- Respond within 1 hour to replies (high conversion)
+- Be friendly and grateful
+- Emphasize $30 value of Premium
+- Offer to help write the testimonial
+
+❌ DON'T:
+- Send to same person twice
+- Be pushy or aggressive
+- Send generic copy/paste (personalize!)
+- Spam multiple subreddits
+- Message people who already said no
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+REDDIT POSTS TO TARGET
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+High Priority (15+ Reddit Leads):
+1. https://reddit.com/r/GlobalEntry/comments/1rhltzt/ (17 upvotes)
+2. https://reddit.com/r/GlobalEntry/comments/1o7j8oz/ (tool builder)
+3. https://reddit.com/r/GlobalEntry/comments/1pvp1a4/ (approval!)
+4. https://reddit.com/r/GlobalEntry/comments/1r0f24k/ (kids NEXUS)
+5. https://reddit.com/r/GlobalEntry/comments/1rdq6jx/ (YYZ wait)
+
+See leads.json for complete list.
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CONVERSION TRACKING
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+After sending each DM, update: testimonial-tracking.json
+
+Track:
+- Username contacted
+- Date sent
+- Template used
+- Response (yes/no/pending)
+- Submission status
+- Testimonial ID (after approval)
+
+
+==============================================
+READY TO START?
+==============================================
+
+1. Copy Template 1 above
+2. Go to Reddit post from leads.json
+3. Find engaged commenter
+4. Click username → Send Message
+5. Paste template (customize [Username] and details)
+6. Send!
+7. Update tracking file
+
+Target: 5 DMs in 30 minutes
+
+GO! 🚀
