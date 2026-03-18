@@ -1,8 +1,26 @@
 # Community Seeding Campaign - NEXUS Alert
 
-## 🚀 **NEW: 72-Hour Blitz Campaign Available!**
+## 🚀 **NEW: Reddit Value-First Launch Campaign (March 19, 2026)**
 
-**TWO STRATEGIES AVAILABLE:**
+**THREE STRATEGIES AVAILABLE:**
+
+### Option 0: 🎯 Reddit Value-First Launch (NEWEST) - 500+ Installs in 72 Hours
+**Goal**: Drive 500+ installs in 72 hours through value-first authentic posts
+**Time Commitment**: High engagement first 2 days (9am-6pm PT Tuesday, monitoring Wednesday-Thursday)
+**Files**:
+- **CAMPAIGN_SUMMARY.md** ⭐ **START HERE** - Complete campaign overview
+- **REDDIT_LAUNCH_72HR_PLAN.md** - Hour-by-hour execution guide
+- **LAUNCH_DAY_CHECKLIST.md** - Quick reference checklist
+- **SCREENSHOT_GUIDE.md** - How to create visual assets
+- **reddit-posts/r-personalfinancecanada-value.md** - NEW post for high-value audience
+
+**When to use**: When you want authentic community engagement with zero spam, have screenshots ready, and can commit to responsive engagement for 72 hours.
+
+**Launch Date**: Tuesday, March 19, 2026 at 9:00 AM PT
+
+---
+
+**TWO OTHER STRATEGIES AVAILABLE:**
 
 ### Option 1: 🔥 72-Hour Blitz (RECOMMENDED) - 500+ Installs in 1 Week
 **Goal**: Drive 500+ installs in first week through coordinated Tuesday launch
@@ -17,6 +35,101 @@
 
 ---
 
+## 🎯 Option 0: Reddit Value-First Launch (March 19, 2026)
+
+### What's Different from Other Campaigns
+
+**Authentic Value-First Approach:**
+- No aggressive growth hacking
+- Posts focus on problem-solving, tool is secondary
+- Emphasizes free tier (premium optional)
+- Respond to EVERY comment within 2 hours
+- Zero spam, 100% organic
+
+**3 Subreddits, Same Day:**
+1. **r/Nexus** (9:00 AM PT) - "I built a free tool..." success story
+2. **r/GlobalEntry** (9:05 AM PT) - "Automated slot monitoring..." results
+3. **r/PersonalFinanceCanada** (9:10 AM PT) - **NEW** - Time/value ROI framing
+
+**Why r/PersonalFinanceCanada?**
+- 500K+ members (10x larger than r/Nexus + r/GlobalEntry combined)
+- Efficiency-focused audience that values time savings
+- Canadian NEXUS users (high relevance)
+- Expected: 80-180 upvotes, 200-300 installs (highest value channel)
+
+### Quick Start Files
+
+1. **CAMPAIGN_SUMMARY.md** (15 min) ⭐ **START HERE**
+   - Full campaign overview
+   - Success metrics (300+ upvotes, 50+ comments, 500 installs, $0 CAC)
+   - Execution strategy
+
+2. **REDDIT_LAUNCH_72HR_PLAN.md** (25 min)
+   - Hour-by-hour execution guide
+   - First 2 hours are critical (check every 15 min)
+   - Day 2 and Day 3 monitoring plans
+
+3. **LAUNCH_DAY_CHECKLIST.md** (5 min)
+   - Quick reference for launch morning
+   - Pre-launch checklist (48 hours before)
+   - Response time SLAs
+
+4. **SCREENSHOT_GUIDE.md** (20 min)
+   - How to create 4 required screenshots
+   - Notification, UI, before/after, confirmation
+   - Privacy/security redaction guidelines
+
+5. **reddit-posts/r-personalfinancecanada-value.md** (5 min)
+   - NEW post content
+   - Time-savings ROI framing
+   - "Saved 40+ hours of manual checking"
+
+**Total prep time**: 70 minutes
+
+### Campaign Timeline
+
+**Monday, March 18 (Pre-Launch):**
+- Create 4 screenshots (notification, UI, before/after, confirmation)
+- Upload to Imgur
+- Proofread all 3 posts (zero typos)
+- Test UTM links
+- Set up TRACKING.csv
+
+**Tuesday, March 19 (LAUNCH DAY):**
+- 9:00 AM PT: Post to r/Nexus
+- 9:05 AM PT: Post to r/GlobalEntry
+- 9:10 AM PT: Post to r/PersonalFinanceCanada
+- 9:15 AM - 11:00 AM: Check every 15 min, respond to ALL comments
+- 11:00 AM - 3:00 PM: Check every 30 min
+- 3:00 PM - 11:00 PM: Check every 1-2 hours
+
+**Wednesday, March 20 (Day 2):**
+- Respond to overnight comments
+- Check 24-hour metrics (target: 95-210 upvotes, 30-60 comments, 150-250 installs)
+- Continue engagement (every 2-3 hours)
+
+**Thursday, March 21 (Day 3):**
+- Final 72-hour metrics check
+- Campaign retrospective (what worked/didn't)
+- Collect user testimonials
+- Plan Week 2 follow-up
+
+**Target**: 300+ upvotes, 50+ comments, 500+ installs by Thursday 3pm PT
+
+### Value-First Campaign Files
+
+| File | Purpose | When to Read |
+|------|---------|--------------|
+| **CAMPAIGN_SUMMARY.md** | Complete overview, strategy, metrics | Read first (15 min) |
+| **REDDIT_LAUNCH_72HR_PLAN.md** | Hour-by-hour execution plan | Read second (25 min) |
+| **LAUNCH_DAY_CHECKLIST.md** | Quick reference for launch day | Review before launch (5 min) |
+| **SCREENSHOT_GUIDE.md** | Create 4 visual assets | Read 48 hours before launch (20 min) |
+| **reddit-posts/r-personalfinancecanada-value.md** | NEW post content | Read with other posts (5 min) |
+| **reddit-posts/comment-templates.md** | 7 response templates | Keep open during campaign |
+| **TRACKING.csv** | Updated with March 19 dates | Open on launch day |
+
+---
+
 ### Option 2: 📈 Gradual Seeding (Original Strategy) - 300 Installs in 30 Days
 **Goal**: Drive 300 installs in 30 days through authentic engagement
 **Time Commitment**: 1 hour/day over 30 days (sustainable)
@@ -28,13 +141,16 @@
 
 ## Quick Decision Matrix
 
-| Factor | 72-Hour Blitz | 30-Day Gradual |
-|--------|---------------|----------------|
-| **Time available** | 15 hours over 3 days | 1 hour/day for 30 days |
-| **Installs target** | 500+ in 1 week | 300 in 30 days |
-| **Intensity** | High (9 hours Day 1) | Low (1 hour/day) |
-| **Risk** | Higher (all-or-nothing) | Lower (gradual testing) |
-| **Best for** | Launching, Product Hunt prep | Building community, steady growth |
+| Factor | Value-First (NEW) | 72-Hour Blitz | 30-Day Gradual |
+|--------|-------------------|---------------|----------------|
+| **Time available** | 2-3 days intense | 15 hours over 3 days | 1 hour/day for 30 days |
+| **Installs target** | 500 in 72 hours | 500+ in 1 week | 300 in 30 days |
+| **Intensity** | Very High (Day 1) | High (9 hours Day 1) | Low (1 hour/day) |
+| **Risk** | Medium (authentic) | Higher (all-or-nothing) | Lower (gradual testing) |
+| **Authenticity** | Highest (no spam) | High | High |
+| **Screenshots needed** | Yes (4 required) | Optional | Optional |
+| **Best for** | Authentic launch | Fast growth | Community building |
+| **Launch date** | March 19, 2026 | Flexible Tuesday | Flexible start |
 
 ---
 
@@ -232,16 +348,22 @@ Drive 300 installs in 30 days through authentic, helpful engagement on Reddit an
 
 ## Recommended Path
 
-**For most people: Start with 72-Hour Blitz**
+**For most people: Start with Reddit Value-First Launch (Option 0)**
 
 Why?
-1. Faster results (500 installs in 1 week vs 300 in 30 days)
-2. Concentrated effort (easier to commit 3 days than 30 days)
-3. Better data (know what works in 72 hours vs 30 days)
-4. Creates urgency (good for Product Hunt launch prep)
+1. **Most authentic** - Zero spam, value-first approach builds trust
+2. **Fastest results** - 500 installs in 72 hours (same as Blitz but cleaner)
+3. **Best targeting** - r/PersonalFinanceCanada is 10x larger, high-value audience
+4. **Complete playbook** - Hour-by-hour guide, screenshot instructions, templates
+5. **Ready to execute** - Launch date set (March 19, 2026), all content prepared
 
-**When to use 30-Day Gradual instead:**
-- You can't commit 9 hours on Tuesday
+**When to use 72-Hour Blitz (Option 1) instead:**
+- You want more aggressive growth tactics
+- You prefer coordinated comment seeding
+- You're comfortable with higher spam risk
+
+**When to use 30-Day Gradual (Option 2) instead:**
+- You can't commit 2-3 intense days
 - You prefer sustainable pace over sprint
 - You want to test messaging gradually
 - You're building long-term community presence
@@ -249,6 +371,16 @@ Why?
 ---
 
 ## Next Steps
+
+### If choosing Reddit Value-First Launch (RECOMMENDED):
+1. Read **CAMPAIGN_SUMMARY.md** (15 min) ⭐ START HERE
+2. Read **REDDIT_LAUNCH_72HR_PLAN.md** (25 min)
+3. Read **SCREENSHOT_GUIDE.md** (20 min)
+4. Create 4 screenshots (Monday, March 18)
+5. Review **LAUNCH_DAY_CHECKLIST.md** (5 min)
+6. Execute Tuesday, March 19, 2026 at 9:00 AM PT
+7. Follow hour-by-hour plan for 72 hours
+8. Collect metrics and testimonials
 
 ### If choosing 72-Hour Blitz:
 1. Read **CAMPAIGN_BRIEFING.md** (10 min)
