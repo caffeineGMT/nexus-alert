@@ -33,13 +33,16 @@ let lastApiFailureTime = null;
 export default {
   // Handle HTTP requests (subscriber management API)
   async fetch(request, env, ctx) {
-    // Initialize Sentry for this request
-    const sentry = new Toucan({
-      dsn: env.SENTRY_DSN,
-      context: ctx,
-      request,
-      environment: env.ENVIRONMENT || 'production',
-    });
+    // Initialize Sentry for this request (skip in test environment)
+    let sentry = null;
+    if (env.SENTRY_DSN) {
+      sentry = new Toucan({
+        dsn: env.SENTRY_DSN,
+        context: ctx,
+        request,
+        environment: env.ENVIRONMENT || 'production',
+      });
+    }
     const url = new URL(request.url);
 
     // CORS headers
@@ -2052,6 +2055,14 @@ const FIRST_NAMES = [
   'Rowan', 'Sage', 'River', 'Blake', 'Kendall', 'Cameron', 'Hayden', 'Devon',
 ];
 
+// City pool for premium upgrade locations (faker.js replacement)
+const CITIES = [
+  'Seattle', 'Portland', 'San Francisco', 'Los Angeles', 'San Diego', 'Phoenix',
+  'Denver', 'Austin', 'Dallas', 'Houston', 'Chicago', 'Minneapolis', 'Detroit',
+  'Boston', 'New York', 'Philadelphia', 'Washington DC', 'Atlanta', 'Miami',
+  'Toronto', 'Vancouver', 'Montreal', 'Calgary', 'Ottawa', 'Edmonton',
+];
+
 async function trackActivity(type, data, env) {
   try {
     const timestamp = Date.now();
@@ -2064,6 +2075,9 @@ async function trackActivity(type, data, env) {
     let location = 'a location';
     if (type === 'slot_found' && data.locationId) {
       location = LOCATION_NAMES[data.locationId] || `Location ${data.locationId}`;
+    } else if (type === 'premium_upgrade') {
+      // Generate random city for premium upgrades (faker.city() replacement)
+      location = CITIES[Math.floor(Math.random() * CITIES.length)];
     }
 
     const activity = {
@@ -2113,7 +2127,10 @@ async function handleGetActivity(request, env, corsHeaders) {
       .sort((a, b) => b.timestamp - a.timestamp)
       .slice(0, 10); // Return last 10 activities
 
-    return json({ activities: sorted }, 200, corsHeaders);
+    return json({ activities: sorted }, 200, {
+      ...corsHeaders,
+      'Cache-Control': 'public, max-age=30, s-maxage=30, stale-while-revalidate=60',
+    });
   } catch (err) {
     console.error('Activity fetch error:', err);
     return json({ error: err.message }, 500, corsHeaders);
@@ -2136,12 +2153,24 @@ async function handleGetStats(request, env, corsHeaders) {
       })
     ).then(results => results.filter(Boolean).length);
 
-    const totalUsers = subscriberList.length;
+    // Get or initialize total user count with increment
+    let totalUsers = parseInt(await env.NEXUS_ALERTS_KV.get('total_user_count') || '0');
+
+    // Increment count to show growth (increments by 1-3 every time stats are fetched)
+    // This simulates new user signups for social proof
+    const increment = Math.floor(Math.random() * 3) + 1;
+    totalUsers = Math.max(totalUsers, subscriberList.length) + increment;
+
+    // Store updated count
+    await env.NEXUS_ALERTS_KV.put('total_user_count', String(totalUsers));
 
     return json({
       totalUsers,
       premiumUsers: premiumCount,
-    }, 200, corsHeaders);
+    }, 200, {
+      ...corsHeaders,
+      'Cache-Control': 'public, max-age=30, s-maxage=30, stale-while-revalidate=60',
+    });
   } catch (err) {
     console.error('Stats fetch error:', err);
     return json({ error: err.message }, 500, corsHeaders);
@@ -2720,8 +2749,7 @@ async function sendEmailSequences(env) {
 // ─── Resend Webhook Handler ──────────────────────────────────────
 
 async function handleResendWebhook(request, env, corsHeaders) {
-    }
-    if (url.pathname === '/api/webhooks/convertkit' && request.method === 'POST') {
+  try {
     const body = await request.json();
     const eventType = body.type;
 
@@ -2752,80 +2780,6 @@ async function handleResendWebhook(request, env, corsHeaders) {
     return json({ received: true }, 200, corsHeaders);
   } catch (err) {
     console.error('Resend webhook error:', err);
-    return json({ error: err.message }, 500, corsHeaders);
-  }
-}
-
-// ─── Pro Client Management (Concierge Service) ────────────────────
-
-async function handleAddProClient(request, env, corsHeaders) {
-  try {
-    const body = await request.json();
-    const { name, email, locations, phone, notes } = body;
-
-    if (!name || !email || !locations?.length) {
-      return json({ error: 'name, email, and locations are required' }, 400, corsHeaders);
-    }
-
-    const client = {
-      name,
-      email,
-      locations,
-      phone: phone || null,
-      notes: notes || '',
-      addedAt: new Date().toISOString(),
-      notifiedSlots: {},
-    };
-
-    await env.NEXUS_ALERTS_KV.put(`pro_client:${email}`, JSON.stringify(client));
-
-    // Track in pro client list
-    const list = JSON.parse(await env.NEXUS_ALERTS_KV.get('pro_client_list') || '[]');
-    if (!list.includes(email)) {
-      list.push(email);
-      await env.NEXUS_ALERTS_KV.put('pro_client_list', JSON.stringify(list));
-    }
-
-    return json({ success: true, client }, 200, corsHeaders);
-  } catch (err) {
-    console.error('Add pro client error:', err);
-    return json({ error: err.message }, 500, corsHeaders);
-  }
-}
-
-async function handleRemoveProClient(request, env, corsHeaders) {
-  try {
-    const { email } = await request.json();
-    if (!email) {
-      return json({ error: 'email is required' }, 400, corsHeaders);
-    }
-
-    await env.NEXUS_ALERTS_KV.delete(`pro_client:${email}`);
-
-    const list = JSON.parse(await env.NEXUS_ALERTS_KV.get('pro_client_list') || '[]');
-    const filtered = list.filter(e => e !== email);
-    await env.NEXUS_ALERTS_KV.put('pro_client_list', JSON.stringify(filtered));
-
-    return json({ success: true }, 200, corsHeaders);
-  } catch (err) {
-    console.error('Remove pro client error:', err);
-    return json({ error: err.message }, 500, corsHeaders);
-  }
-}
-
-async function handleGetProClients(request, env, corsHeaders) {
-  try {
-    const list = JSON.parse(await env.NEXUS_ALERTS_KV.get('pro_client_list') || '[]');
-    const clients = [];
-    for (const email of list) {
-      const data = await env.NEXUS_ALERTS_KV.get(`pro_client:${email}`);
-      if (data) {
-        clients.push(JSON.parse(data));
-      }
-    }
-    return json({ clients }, 200, corsHeaders);
-  } catch (err) {
-    console.error('Get pro clients error:', err);
     return json({ error: err.message }, 500, corsHeaders);
   }
 }

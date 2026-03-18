@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import useSWR from 'swr';
 
 interface Activity {
   type: 'slot_found' | 'premium_upgrade';
@@ -9,33 +9,24 @@ interface Activity {
   timestamp: number;
 }
 
+interface ActivityResponse {
+  activities: Activity[];
+}
+
+const fetcher = (url: string) => fetch(url).then((res) => res.json());
+
 export default function ActivityFeed() {
-  const [activities, setActivities] = useState<Activity[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    // Initial fetch
-    fetchActivities();
-
-    // Poll every 30 seconds
-    const interval = setInterval(fetchActivities, 30000);
-
-    return () => clearInterval(interval);
-  }, []);
-
-  async function fetchActivities() {
-    try {
-      const res = await fetch('https://api.nexus-alert.com/api/activity');
-      if (res.ok) {
-        const data = await res.json();
-        setActivities(data.activities || []);
-        setIsLoading(false);
-      }
-    } catch (err) {
-      console.error('Failed to fetch activity:', err);
-      setIsLoading(false);
+  const { data, isLoading } = useSWR<ActivityResponse>(
+    'https://api.nexus-alert.com/api/activity',
+    fetcher,
+    {
+      refreshInterval: 30000, // Refresh every 30 seconds
+      revalidateOnFocus: false,
+      revalidateOnReconnect: true,
     }
-  }
+  );
+
+  const activities = data?.activities || [];
 
   function getTimeAgo(timestamp: number) {
     const seconds = Math.floor((Date.now() - timestamp) / 1000);
