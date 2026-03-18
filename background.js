@@ -27,6 +27,7 @@ chrome.runtime.onInstalled.addListener(async (details) => {
       slotHistory: [],
     });
     await fetchAndCacheLocations();
+    chrome.tabs.create({ url: chrome.runtime.getURL('onboarding.html') });
   }
   await setupAlarm();
 });

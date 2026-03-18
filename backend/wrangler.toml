@@ -1,16 +1,21 @@
 name = "nexus-alert-backend"
 main = "src/worker.js"
-compatibility_date = "2024-01-01"
+compatibility_date = "2026-03-18"
 
-# KV namespace for storing subscriber configs and notification state
-[[kv_namespaces]]
-binding = "NEXUS_KV"
-id = "YOUR_KV_NAMESPACE_ID"
-
-# Cron trigger — check every 3 minutes
 [triggers]
-crons = ["*/3 * * * *"]
+crons = ["*/2 * * * *"]
 
-# Environment variables (set via wrangler secret)
-# RESEND_API_KEY — for email delivery via Resend.com
-# WEBHOOK_SECRET — for authenticating API requests
+[[kv_namespaces]]
+binding = "NEXUS_ALERTS_KV"
+id = "YOUR_KV_NAMESPACE_ID" # Replace via deploy.sh or manually
+
+[vars]
+# Non-secret config — set secrets via `wrangler secret put <NAME>`
+# STRIPE_SECRET_KEY — wrangler secret
+# STRIPE_WEBHOOK_SECRET — wrangler secret
+STRIPE_PRICE_ID = "" # Override via wrangler secret put STRIPE_PRICE_ID
+# TWILIO_ACCOUNT_SID — wrangler secret
+# TWILIO_AUTH_TOKEN — wrangler secret
+TWILIO_FROM_NUMBER = "" # Your Twilio number in E.164 format
+# RESEND_API_KEY — wrangler secret
+# WEBHOOK_SECRET — wrangler secret

@@ -7,7 +7,8 @@
     "alarms",
     "notifications",
     "storage",
-    "offscreen"
+    "offscreen",
+    "tabs"
   ],
   "host_permissions": [
     "https://ttp.cbp.dhs.gov/*"
@@ -27,5 +28,11 @@
     "16": "icons/icon16.png",
     "48": "icons/icon48.png",
     "128": "icons/icon128.png"
-  }
+  },
+  "web_accessible_resources": [
+    {
+      "resources": ["onboarding.html"],
+      "matches": ["<all_urls>"]
+    }
+  ]
 }
