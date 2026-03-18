@@ -387,6 +387,451 @@ const articles: Record<string, Article> = {
       ],
     },
   },
+  'browser-compatibility': {
+    slug: 'browser-compatibility',
+    title: 'Which browsers are supported?',
+    category: 'Installation',
+    content: {
+      intro: 'NEXUS Alert is built for Chromium-based browsers and has specific version requirements.',
+      sections: [
+        {
+          heading: 'Supported Browsers',
+          content:
+            '<ul class="list-disc list-inside space-y-2"><li>Google Chrome (version 88+)</li><li>Microsoft Edge (version 88+)</li><li>Brave Browser (version 1.20+)</li><li>Opera (version 74+)</li><li>Vivaldi (version 3.6+)</li></ul>',
+        },
+        {
+          heading: 'Unsupported Browsers',
+          content:
+            'Firefox and Safari are NOT supported because they use different extension APIs (WebExtensions vs Chrome Extensions Manifest V3). We may add Firefox support in the future.',
+        },
+        {
+          heading: 'Checking Your Browser Version',
+          content:
+            'In Chrome, go to Settings → About Chrome to see your version number. In Edge, go to Settings → About Microsoft Edge. Make sure you\'re on the latest version for best performance.',
+        },
+        {
+          heading: 'Mobile Support',
+          content:
+            'Chrome extensions are not supported on mobile browsers (iOS/Android). You must use a desktop or laptop computer.',
+        },
+      ],
+    },
+  },
+  'extension-not-appearing': {
+    slug: 'extension-not-appearing',
+    title: 'Extension icon not appearing in toolbar',
+    category: 'Installation',
+    content: {
+      intro: 'If you installed NEXUS Alert but don\'t see the icon in your toolbar, try these steps.',
+      sections: [
+        {
+          heading: 'Pin the Extension',
+          content:
+            'Click the puzzle icon (Extensions) in your Chrome toolbar, find NEXUS Alert in the list, and click the pin icon next to it. The icon should now appear in your main toolbar.',
+        },
+        {
+          heading: 'Verify Installation',
+          content:
+            'Go to chrome://extensions in your address bar and verify that NEXUS Alert appears in the list and is enabled (toggle should be blue/on).',
+        },
+        {
+          heading: 'Restart Chrome',
+          content:
+            'Sometimes extensions don\'t fully load until you restart the browser. Close all Chrome windows completely and reopen Chrome.',
+        },
+        {
+          heading: 'Reinstall the Extension',
+          content:
+            'If the above steps don\'t work, try uninstalling and reinstalling. Go to chrome://extensions, find NEXUS Alert, click "Remove," then reinstall from the Chrome Web Store.',
+        },
+      ],
+    },
+  },
+  'uninstall-reinstall': {
+    slug: 'uninstall-reinstall',
+    title: 'How to uninstall or reinstall the extension',
+    category: 'Installation',
+    content: {
+      intro: 'Complete guide to removing NEXUS Alert from your browser or reinstalling it.',
+      sections: [
+        {
+          heading: 'Uninstalling via Chrome',
+          content:
+            'Method 1: Right-click the NEXUS Alert icon in your toolbar and select "Remove from Chrome." Method 2: Go to chrome://extensions, find NEXUS Alert, and click the "Remove" button.',
+        },
+        {
+          heading: 'What Happens to Your Data',
+          content:
+            'Uninstalling the extension will delete all local data (selected locations, notification preferences, slot history). If you\'re a Premium user, your subscription will remain active. Cancel it via the Stripe Customer Portal if you no longer need it.',
+        },
+        {
+          heading: 'Reinstalling',
+          content:
+            'To reinstall, visit the Chrome Web Store and search for "NEXUS Alert" or click the install link on our homepage at <a href="https://nexus-alert.com" class="text-blue-400 hover:underline">nexus-alert.com</a>. Follow the installation steps again.',
+        },
+        {
+          heading: 'Preserving Your Settings',
+          content:
+            'Unfortunately, Chrome doesn\'t sync extension data across devices or reinstallations. You\'ll need to reconfigure your enrollment centers and notification preferences after reinstalling. Premium users: your license key will still work.',
+        },
+      ],
+    },
+  },
+  'notification-sound': {
+    slug: 'notification-sound',
+    title: 'How to enable or disable notification sounds',
+    category: 'Notifications',
+    content: {
+      intro: 'Manage audio alerts that play when appointment slots are detected.',
+      sections: [
+        {
+          heading: 'Enabling Sound Alerts',
+          content:
+            'Click the NEXUS Alert icon, go to Settings, and toggle "Play sound on slot found" to ON. The extension will play a notification sound when a slot is detected.',
+        },
+        {
+          heading: 'Browser Autoplay Policy',
+          content:
+            'Chrome blocks autoplay audio on sites you haven\'t interacted with. If sound isn\'t working, click anywhere on the page or popup first, then try triggering a notification.',
+        },
+        {
+          heading: 'Adjusting Volume',
+          content:
+            'Use your system volume controls to adjust the notification sound level. The extension uses the default system notification sound and cannot be customized separately.',
+        },
+        {
+          heading: 'Silent Mode',
+          content:
+            'Toggle "Play sound on slot found" to OFF if you want visual notifications only (desktop notifications, emails, SMS) without audio alerts.',
+        },
+      ],
+    },
+  },
+  'email-sms-setup': {
+    slug: 'email-sms-setup',
+    title: 'Setting up email and SMS alerts (Premium)',
+    category: 'Notifications',
+    content: {
+      intro: 'Premium users can receive email and SMS notifications in addition to browser alerts.',
+      sections: [
+        {
+          heading: 'Email Setup',
+          content:
+            'In Settings, enter your email address in the "Email Notifications" field. Make sure to use an address you check regularly. Emails are sent via Resend and include slot details with a direct booking link.',
+        },
+        {
+          heading: 'SMS Setup',
+          content:
+            'Enter your phone number in E.164 format (e.g., +16045551234 for US/Canada). Include the country code (+1) and area code. SMS messages are sent via Twilio.',
+        },
+        {
+          heading: 'Verification',
+          content:
+            'After saving, click "Check Now" to trigger a test check. If slots are found, you should receive notifications via all configured channels (browser, email, SMS).',
+        },
+        {
+          heading: 'Delivery Times',
+          content:
+            'Email and SMS alerts are usually delivered within 10-30 seconds of slot detection. Delays may occur during high-traffic periods.',
+        },
+        {
+          heading: 'Opting Out',
+          content:
+            'To disable email or SMS, simply clear the respective field in Settings and save. You can re-enable at any time.',
+        },
+      ],
+    },
+  },
+  'missed-notification': {
+    slug: 'missed-notification',
+    title: 'I missed a notification - can I see past alerts?',
+    category: 'Notifications',
+    content: {
+      intro: 'View notification history and past appointment slot alerts.',
+      sections: [
+        {
+          heading: 'Viewing Slot History',
+          content:
+            'Click the NEXUS Alert icon and select "View History" at the bottom of the popup. This shows all slots detected in the past 30 days, including date, time, location, and program.',
+        },
+        {
+          heading: 'Checking Email History',
+          content:
+            'Premium users: search your email inbox for messages from help@nexus-alert.com. All slot notifications are archived in your email.',
+        },
+        {
+          heading: 'Why You Might Miss Notifications',
+          content:
+            'Browser notifications can be dismissed accidentally or hidden by other apps. Enable email/SMS (Premium) for redundancy. Free users: slots may appear and disappear between 30-minute check cycles.',
+        },
+        {
+          heading: 'Re-Enabling Notifications',
+          content:
+            'If you\'ve disabled notifications, go to chrome://settings/content/notifications and ensure nexus-alert.com is set to "Allow."',
+        },
+      ],
+    },
+  },
+  'billing-questions': {
+    slug: 'billing-questions',
+    title: 'Billing and payment methods',
+    category: 'Billing',
+    content: {
+      intro: 'Accepted payment methods, billing cycles, and invoice access.',
+      sections: [
+        {
+          heading: 'Accepted Payment Methods',
+          content:
+            'We accept all major credit and debit cards (Visa, Mastercard, Amex, Discover) via Stripe. Digital wallets (Apple Pay, Google Pay) are also supported.',
+        },
+        {
+          heading: 'Billing Cycles',
+          content:
+            'Monthly subscriptions renew on the same day each month (e.g., if you subscribe on Jan 15, you\'ll be charged on the 15th of each month). Annual subscriptions renew yearly.',
+        },
+        {
+          heading: 'Viewing Invoices',
+          content:
+            'After each payment, you\'ll receive an email receipt from Stripe. You can also access invoices via the Stripe Customer Portal (link provided in billing emails).',
+        },
+        {
+          heading: 'Updating Payment Method',
+          content:
+            'Visit the Stripe Customer Portal to update your card, billing address, or payment method. Changes take effect immediately.',
+        },
+        {
+          heading: 'Failed Payments',
+          content:
+            'If a payment fails, we\'ll retry 3 times over 7 days. You\'ll receive email notifications. If all retries fail, your subscription will be canceled and you\'ll downgrade to Free tier.',
+        },
+      ],
+    },
+  },
+  'refund-policy': {
+    slug: 'refund-policy',
+    title: 'Refund and money-back guarantee',
+    category: 'Billing',
+    content: {
+      intro: 'Learn about our refund policy and satisfaction guarantee.',
+      sections: [
+        {
+          heading: '30-Day Money-Back Guarantee',
+          content:
+            'We offer a full refund within 30 days of your first payment if you\'re not satisfied. Email help@nexus-alert.com with your request.',
+        },
+        {
+          heading: 'Partial Refunds',
+          content:
+            'Refunds for subsequent billing cycles are not guaranteed but will be considered on a case-by-case basis. We do not offer prorated refunds for mid-cycle cancellations.',
+        },
+        {
+          heading: 'Refund Processing Time',
+          content:
+            'Approved refunds are processed via Stripe and typically appear in your account within 5-10 business days, depending on your bank.',
+        },
+        {
+          heading: 'Abuse Prevention',
+          content:
+            'We reserve the right to deny refunds if there\'s evidence of abuse (e.g., repeatedly signing up and canceling for refunds).',
+        },
+      ],
+    },
+  },
+  'extension-not-working': {
+    slug: 'extension-not-working',
+    title: 'Extension stopped working or checking',
+    category: 'Troubleshooting',
+    content: {
+      intro: 'Fix issues when monitoring stops or the extension becomes unresponsive.',
+      sections: [
+        {
+          heading: 'Verify Monitoring is Enabled',
+          content:
+            'Click the extension icon and check that the "Monitoring Enabled" toggle is ON. If it\'s OFF, click it to resume monitoring.',
+        },
+        {
+          heading: 'Check for Extension Updates',
+          content:
+            'Go to chrome://extensions and click "Update" at the top. Outdated versions may have bugs or API compatibility issues.',
+        },
+        {
+          heading: 'Clear Extension Cache',
+          content:
+            'Go to chrome://extensions, find NEXUS Alert, and click "Details." Scroll down and click "Clear storage." This resets the extension without losing your settings.',
+        },
+        {
+          heading: 'Restart Chrome',
+          content:
+            'Close all Chrome windows completely and reopen. This often resolves memory leaks or background script crashes.',
+        },
+        {
+          heading: 'Reinstall the Extension',
+          content:
+            'If none of the above work, uninstall and reinstall NEXUS Alert. You\'ll need to reconfigure your settings.',
+        },
+      ],
+    },
+  },
+  'error-messages': {
+    slug: 'error-messages',
+    title: 'Understanding error messages',
+    category: 'Troubleshooting',
+    content: {
+      intro: 'Common error codes and how to resolve them.',
+      sections: [
+        {
+          heading: 'API Rate Limit Error',
+          content:
+            'Message: "Too many requests. Please wait." This means the CBP API has temporarily blocked your IP due to too many requests. Wait 30 minutes and try again. Premium users have higher rate limits.',
+        },
+        {
+          heading: 'Network Error',
+          content:
+            'Message: "Unable to reach CBP servers." Check your internet connection. If you\'re on a corporate network or VPN, CBP may block the connection. Try switching networks.',
+        },
+        {
+          heading: 'Invalid Location Error',
+          content:
+            'Message: "Selected location is no longer available." This means the enrollment center has closed or changed IDs. Update your selected locations in Settings.',
+        },
+        {
+          heading: 'Notification Permission Error',
+          content:
+            'Message: "Notification permissions denied." Go to chrome://settings/content/notifications and allow notifications for nexus-alert.com.',
+        },
+      ],
+    },
+  },
+  'slots-not-found': {
+    slug: 'slots-not-found',
+    title: "Extension says 'no slots' but I see available appointments",
+    category: 'Troubleshooting',
+    content: {
+      intro: 'Troubleshoot slot detection issues and sync problems.',
+      sections: [
+        {
+          heading: 'Verify Location Match',
+          content:
+            'Make sure the enrollment center you\'re viewing on ttp.cbp.dhs.gov exactly matches one of your selected locations in Settings. Nearby locations may have different slot availability.',
+        },
+        {
+          heading: 'Date Range Filtering',
+          content:
+            'Check your date range settings. If you\'ve set a date filter (e.g., "only show slots after June 1"), slots outside that range won\'t trigger notifications.',
+        },
+        {
+          heading: 'Check Interval Timing',
+          content:
+            'Free users: slots are checked every 30 minutes. A slot may have appeared after your last check. Click "Check Now" to force an immediate check.',
+        },
+        {
+          heading: 'Clear Cache and Retry',
+          content:
+            'Go to chrome://extensions, find NEXUS Alert, click "Details," and clear storage. Then click "Check Now" to refresh data.',
+        },
+      ],
+    },
+  },
+  'performance-issues': {
+    slug: 'performance-issues',
+    title: 'Extension is slow or using too much memory',
+    category: 'Troubleshooting',
+    content: {
+      intro: 'Optimize performance and reduce resource usage.',
+      sections: [
+        {
+          heading: 'Reduce Number of Monitored Locations',
+          content:
+            'Monitoring 10+ locations simultaneously increases CPU/memory usage. Consider reducing to 3-5 locations that are most convenient for you.',
+        },
+        {
+          heading: 'Clear Slot History',
+          content:
+            'Old slot history accumulates and can slow down the extension. Click "Clear History" in Settings to remove old data (keeps last 7 days).',
+        },
+        {
+          heading: 'Disable Other Extensions',
+          content:
+            'If you have many Chrome extensions running, they can conflict or compete for resources. Try disabling unnecessary extensions.',
+        },
+        {
+          heading: 'Check System Resources',
+          content:
+            'Open Chrome\'s Task Manager (Shift+Esc) to see resource usage. If NEXUS Alert is using excessive memory (>100MB), restart Chrome or reinstall the extension.',
+        },
+      ],
+    },
+  },
+  'data-security': {
+    slug: 'data-security',
+    title: 'How is my data secured?',
+    category: 'Privacy',
+    content: {
+      intro: 'Security measures and encryption used to protect your information.',
+      sections: [
+        {
+          heading: 'Data Encryption',
+          content:
+            'All data transmitted between the extension and our backend is encrypted using HTTPS/TLS 1.3. Your email, phone number, and payment information are never stored in plain text.',
+        },
+        {
+          heading: 'Cloudflare Workers Backend',
+          content:
+            'Premium user data is stored on Cloudflare Workers KV, a globally distributed edge storage system with automatic encryption at rest and DDoS protection.',
+        },
+        {
+          heading: 'Payment Security',
+          content:
+            'All payment processing is handled by Stripe, a PCI DSS Level 1 certified provider. We never see or store your full credit card number.',
+        },
+        {
+          heading: 'Third-Party Services',
+          content:
+            'Email delivery (Resend) and SMS (Twilio) are GDPR-compliant and SOC 2 certified. They only receive data necessary for delivery (email address, phone number, message content).',
+        },
+        {
+          heading: 'No Password Storage',
+          content:
+            'NEXUS Alert does not require account creation or passwords. Premium users are identified by license keys tied to their Stripe subscription.',
+        },
+      ],
+    },
+  },
+  'data-deletion': {
+    slug: 'data-deletion',
+    title: 'How to delete my data',
+    category: 'Privacy',
+    content: {
+      intro: 'Request permanent deletion of your account and personal data.',
+      sections: [
+        {
+          heading: 'Free Tier Users',
+          content:
+            'Free tier data is stored locally in your browser only. To delete, simply uninstall the extension. No server-side data exists.',
+        },
+        {
+          heading: 'Premium Users',
+          content:
+            'Email help@nexus-alert.com with the subject "Data Deletion Request" and include the email address associated with your subscription. We\'ll delete all server-side data within 30 days.',
+        },
+        {
+          heading: 'What Gets Deleted',
+          content:
+            'Your email address, phone number (if provided), selected enrollment centers, notification history, and any analytics tied to your account.',
+        },
+        {
+          heading: 'Billing Records',
+          content:
+            'We\'re required to retain billing records (invoices, transaction IDs) for tax/legal compliance for up to 7 years. However, personally identifiable information in those records can be anonymized upon request.',
+        },
+        {
+          heading: 'Reactivating After Deletion',
+          content:
+            'After data deletion, you can always re-subscribe and start fresh. Your previous settings and history will not be recoverable.',
+        },
+      ],
+    },
+  },
 };
 
 export async function generateStaticParams() {
