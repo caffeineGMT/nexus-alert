@@ -1,5 +1,11 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import dynamic from 'next/dynamic';
+
+const EnrollmentCentersMap = dynamic(
+  () => import('../../components/EnrollmentCentersMap'),
+  { ssr: false }
+);
 
 export const metadata: Metadata = {
   title: 'NEXUS Interview Locations: Which Enrollment Center Has the Shortest Wait? (2026)',
