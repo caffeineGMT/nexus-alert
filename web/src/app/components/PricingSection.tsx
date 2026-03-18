@@ -104,13 +104,34 @@ export default function PricingSection() {
       // Store email for success page
       localStorage.setItem('nexus_alert_email', email);
 
+      // Get UTM parameters
+      const urlParams = new URLSearchParams(window.location.search);
+      const source = urlParams.get('utm_source') || 'direct';
+      const campaign = urlParams.get('utm_campaign') || '';
+
       // Build request body
-      const body: { email: string; plan: string; ref?: string } = {
+      const body: { email: string; plan: string; ref?: string; utm_source?: string; utm_campaign?: string } = {
         email,
         plan: billingCycle,
       };
       if (ref) {
         body.ref = ref;
+      }
+      if (source) {
+        body.utm_source = source;
+      }
+      if (campaign) {
+        body.utm_campaign = campaign;
+      }
+
+      // Track checkout start in Google Analytics
+      if (typeof window !== 'undefined' && (window as any).gtag) {
+        (window as any).gtag('event', 'checkout_start', {
+          source: source,
+          tier: 'premium',
+          billing_cycle: billingCycle,
+          page_url: window.location.pathname,
+        });
       }
 
       const res = await fetch('/api/checkout', {

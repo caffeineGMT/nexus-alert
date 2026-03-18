@@ -12,18 +12,22 @@ id = "00000000000000000000000000000000" # Replace with real ID from Cloudflare d
 
 [vars]
 # Non-secret config — set secrets via `wrangler secret put <NAME>`
-STRIPE_PRICE_ID = "" # Set via: wrangler secret put STRIPE_PRICE_ID
 TWILIO_FROM_NUMBER = "" # Your Twilio number in E.164 format
+STRIPE_PRO_PRICE_ID = "" # Pro tier price ID (set after creating in Stripe Dashboard)
+SENTRY_DSN = "" # Sentry DSN for error tracking (https://YOUR_PROJECT_ID.ingest.sentry.io/YOUR_SENTRY_KEY)
 
 # ────────────────────────────────────────────────────────────────────
 # SECRETS (must be set via `wrangler secret put`, NOT in this file):
 # ────────────────────────────────────────────────────────────────────
-# wrangler secret put STRIPE_SECRET_KEY       (Stripe secret key, starts with sk_)
-# wrangler secret put STRIPE_WEBHOOK_SECRET   (Stripe webhook signing secret, starts with whsec_)
-# wrangler secret put TWILIO_ACCOUNT_SID      (Twilio account SID)
-# wrangler secret put TWILIO_AUTH_TOKEN       (Twilio auth token)
-# wrangler secret put RESEND_API_KEY          (Resend.com API key)
-# wrangler secret put WEBHOOK_SECRET          (Internal API authentication secret)
+# wrangler secret put STRIPE_SECRET_KEY         (Stripe secret key, starts with sk_)
+# wrangler secret put STRIPE_WEBHOOK_SECRET     (Stripe webhook signing secret, starts with whsec_)
+# wrangler secret put STRIPE_MONTHLY_PRICE_ID   (Monthly subscription price ID, e.g., price_1Abc...)
+# wrangler secret put STRIPE_ANNUAL_PRICE_ID    (Annual subscription price ID, e.g., price_1Def...)
+# wrangler secret put TWILIO_ACCOUNT_SID        (Twilio account SID)
+# wrangler secret put TWILIO_AUTH_TOKEN         (Twilio auth token)
+# wrangler secret put RESEND_API_KEY            (Resend.com API key)
+# wrangler secret put WEBHOOK_SECRET            (Internal API authentication secret)
+# wrangler secret put SLACK_WEBHOOK_URL         (Slack incoming webhook URL for alerts)
 
 # ────────────────────────────────────────────────────────────────────
 # PRODUCTION ENVIRONMENT
@@ -50,7 +54,8 @@ LOG_LEVEL = "info"
 # Production secrets (set via wrangler secret put --env production):
 # - STRIPE_SECRET_KEY
 # - STRIPE_WEBHOOK_SECRET
-# - STRIPE_PRICE_ID
+# - STRIPE_MONTHLY_PRICE_ID
+# - STRIPE_ANNUAL_PRICE_ID
 # - RESEND_API_KEY
 # - TWILIO_ACCOUNT_SID
 # - TWILIO_AUTH_TOKEN

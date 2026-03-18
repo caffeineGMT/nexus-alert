@@ -1,7 +1,20 @@
 // NEXUS Alert — Background Service Worker
 // Polls CBP's public scheduler API for available appointment slots
 
+import * as Sentry from '@sentry/browser';
 import { isSlotInDateRange, isSlotInTimeRange, isDuplicate, pruneOldSlots } from './src/slotFilters.js';
+
+// Initialize Sentry for error tracking
+Sentry.init({
+  dsn: 'https://REPLACE_WITH_YOUR_SENTRY_DSN@sentry.io/PROJECT_ID',
+  environment: 'production',
+  tracesSampleRate: 0.1, // Sample 10% of transactions
+  beforeSend(event) {
+    // Don't send errors in development
+    if (event.environment === 'development') return null;
+    return event;
+  },
+});
 
 const API_BASE = 'https://ttp.cbp.dhs.gov/schedulerapi';
 const SLOTS_ENDPOINT = `${API_BASE}/slots`;
@@ -98,6 +111,10 @@ async function fetchAndCacheLocations() {
     return allLocations;
   } catch (err) {
     console.error('[NEXUS Alert] Failed to fetch locations:', err);
+    Sentry.captureException(err, {
+      tags: { function: 'fetchAndCacheLocations' },
+      level: 'error',
+    });
     await chrome.storage.local.set({
       lastError: 'Could not reach CBP API. Check your connection.',
       lastErrorTime: Date.now()
@@ -188,6 +205,11 @@ async function checkAllLocations() {
       failureCount: newCount
     });
     console.error(`[NEXUS Alert] Check failed, failureCount now: ${newCount}`);
+    Sentry.captureException(err, {
+      tags: { function: 'checkAllLocations', failureCount: newCount },
+      level: 'error',
+      extra: { errorMessage, hasError },
+    });
   }
 }
 
@@ -307,6 +329,10 @@ async function playAlertSound() {
     chrome.runtime.sendMessage({ action: 'playSound' });
   } catch (err) {
     console.error('[NEXUS Alert] Failed to play sound:', err);
+    Sentry.captureException(err, {
+      tags: { function: 'playAlertSound' },
+      level: 'warning',
+    });
   }
 }
 

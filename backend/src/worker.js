@@ -2,6 +2,7 @@
 // Server-side monitoring with email notifications via Resend
 
 import Stripe from 'stripe';
+import { sendEmail } from './email-templates/index.js';
 
 const API_BASE = 'https://ttp.cbp.dhs.gov/schedulerapi';
 const SLOTS_URL = `${API_BASE}/slots`;
@@ -44,6 +45,9 @@ export default {
     if (url.pathname === '/api/stats' && request.method === 'GET') {
       return await handleGetStats(request, env, corsHeaders);
     }
+    if (url.pathname === '/api/webhooks/resend' && request.method === 'POST') {
+      return await handleResendWebhook(request, env, corsHeaders);
+    }
 
     // Auth check for all other endpoints
     const authHeader = request.headers.get('Authorization');
@@ -72,6 +76,15 @@ export default {
       if (url.pathname === '/api/status' && request.method === 'GET') {
         return await handleStatus(env, corsHeaders);
       }
+      if (url.pathname === '/api/pro/clients' && request.method === 'POST') {
+        return await handleAddProClient(request, env, corsHeaders);
+      }
+      if (url.pathname === '/api/pro/clients' && request.method === 'DELETE') {
+        return await handleRemoveProClient(request, env, corsHeaders);
+      }
+      if (url.pathname === '/api/pro/clients' && request.method === 'GET') {
+        return await handleGetProClients(request, env, corsHeaders);
+      }
       return json({ error: 'Not found' }, 404, corsHeaders);
     } catch (err) {
       return json({ error: err.message }, 500, corsHeaders);
@@ -80,7 +93,10 @@ export default {
 
   // Handle cron triggers
   async scheduled(event, env, ctx) {
-    ctx.waitUntil(checkAllSubscribers(env));
+    ctx.waitUntil(Promise.all([
+      checkAllSubscribers(env),
+      sendEmailSequences(env),
+    ]));
   },
 };
 
@@ -95,13 +111,48 @@ async function handleCheckout(request, env, corsHeaders) {
       return json({ error: 'email is required' }, 400, corsHeaders);
     }
 
-    // Validate plan parameter
-    const billingCycle = plan === 'annual' ? 'annual' : 'monthly';
-
     // Initialize Stripe with fetch-based HTTP client (required for Cloudflare Workers)
     const stripe = new Stripe(env.STRIPE_SECRET_KEY, {
       httpClient: Stripe.createFetchHttpClient(),
     });
+
+    // Handle Pro tier separately
+    if (plan === 'pro') {
+      const priceId = env.STRIPE_PRO_PRICE_ID;
+      if (!priceId) {
+        return json({
+          error: 'Pro tier Price ID not configured',
+        }, 500, corsHeaders);
+      }
+
+      const metadata = { email, tier: 'pro' };
+      if (ref) {
+        metadata.referralCode = ref;
+      }
+
+      // Create checkout session with 60-day trial
+      const session = await stripe.checkout.sessions.create({
+        mode: 'subscription',
+        line_items: [
+          {
+            price: priceId,
+            quantity: 1,
+          },
+        ],
+        customer_email: email,
+        subscription_data: {
+          trial_period_days: 60,
+        },
+        success_url: 'https://nexus-alert.com/pro/dashboard?session_id={CHECKOUT_SESSION_ID}',
+        cancel_url: 'https://nexus-alert.com/pro',
+        metadata,
+      });
+
+      return json({ url: session.url }, 200, corsHeaders);
+    }
+
+    // Validate plan parameter for regular tiers
+    const billingCycle = plan === 'annual' ? 'annual' : 'monthly';
 
     // Select the appropriate Stripe Price ID based on billing cycle
     const priceId = billingCycle === 'annual'
@@ -177,25 +228,36 @@ async function handleStripeWebhook(request, env, corsHeaders) {
         const email = session.metadata.email;
         const referralCode = session.metadata.referralCode;
         const billingCycle = session.metadata.billingCycle || 'monthly';
+        const tierFromMetadata = session.metadata.tier;
 
         if (email) {
-          // Store license record in KV with billing cycle info
+          // Retrieve session with line items to get price ID
+          const expandedSession = await stripe.checkout.sessions.retrieve(session.id, {
+            expand: ['line_items'],
+          });
+
+          const priceId = expandedSession.line_items?.data[0]?.price?.id;
+          const isPro = priceId === env.STRIPE_PRO_PRICE_ID || tierFromMetadata === 'pro';
+
+          // Store license record in KV with tier detection
           const licenseData = {
-            status: 'premium',
+            status: isPro ? 'pro' : 'premium',
             stripeCustomerId: session.customer,
             stripeSubscriptionId: session.subscription,
             activatedAt: new Date().toISOString(),
-            tier: 'premium',
-            billingCycle,
+            tier: isPro ? 'pro' : 'premium',
+            billingCycle: isPro ? 'pro' : billingCycle,
           };
 
           await env.NEXUS_ALERTS_KV.put(`license:${email}`, JSON.stringify(licenseData));
-          console.log(`Premium license activated for ${email} (${billingCycle})`);
+          console.log(`${isPro ? 'Pro' : 'Premium'} license activated for ${email}${isPro ? '' : ` (${billingCycle})`}`);
 
-          // Track billing cycle mix for analytics
-          await trackBillingCycle(billingCycle, env);
+          // Track billing cycle mix for analytics (skip for Pro)
+          if (!isPro) {
+            await trackBillingCycle(billingCycle, env);
+          }
 
-          // Track premium upgrade activity for social proof
+          // Track upgrade activity for social proof
           await trackActivity('premium_upgrade', { email }, env);
 
           // Handle referral tracking and credit
@@ -224,6 +286,15 @@ async function handleStripeWebhook(request, env, corsHeaders) {
 
           await env.NEXUS_ALERTS_KV.put(`license:${email}`, JSON.stringify(licenseData));
           console.log(`Subscription canceled for ${email}, downgraded to free`);
+
+          // Track churn for win-back email (send after 30 days)
+          await env.NEXUS_ALERTS_KV.put(`churn:${email}`, JSON.stringify({
+            canceledAt: Date.now(),
+            email,
+          }));
+
+          // Send immediate pause offer email
+          await sendEmail('pause_offer', email, env);
         }
         break;
       }
@@ -476,7 +547,12 @@ async function checkAllSubscribers(env) {
     }
 
     if (newSlots.length > 0) {
-      await sendEmailNotification(sub.email, newSlots, env);
+      // Send white-label email for Pro tier clients, regular email otherwise
+      if (sub.tier === 'pro_client' && sub.lawFirmEmail) {
+        await sendWhiteLabelEmail(sub.email, newSlots, sub.lawFirmEmail, env);
+      } else {
+        await sendEmailNotification(sub.email, newSlots, env);
+      }
       totalNotifs++;
 
       // Track slot found activity for social proof
@@ -616,6 +692,82 @@ async function sendEmailNotification(email, slots, env) {
   if (!resp.ok) {
     const err = await resp.text();
     console.error(`Failed to send email to ${email}:`, err);
+  }
+}
+
+// ─── White-Label Email for Pro Tier ──────────────────────────────
+async function sendWhiteLabelEmail(clientEmail, slots, lawFirmEmail, env) {
+  const slotRows = slots.map(slot => {
+    const date = new Date(slot.startTimestamp);
+    const dateStr = date.toLocaleDateString('en-US', {
+      weekday: 'long',
+      month: 'long',
+      day: 'numeric',
+      year: 'numeric',
+    });
+    const timeStr = date.toLocaleTimeString('en-US', {
+      hour: 'numeric',
+      minute: '2-digit',
+    });
+    return `<tr>
+      <td style="padding:8px 12px;border-bottom:1px solid #eee">${dateStr}</td>
+      <td style="padding:8px 12px;border-bottom:1px solid #eee">${timeStr}</td>
+      <td style="padding:8px 12px;border-bottom:1px solid #eee">Location ${slot.locationId}</td>
+    </tr>`;
+  }).join('');
+
+  // Extract firm name from law firm email domain
+  const firmDomain = lawFirmEmail.split('@')[1];
+  const firmName = firmDomain.split('.')[0];
+  const capitalizedFirmName = firmName.charAt(0).toUpperCase() + firmName.slice(1);
+
+  const html = `
+    <div style="font-family:-apple-system,sans-serif;max-width:600px;margin:0 auto">
+      <div style="background:#1e3a5f;color:white;padding:20px;border-radius:8px 8px 0 0">
+        <h1 style="margin:0;font-size:20px">${capitalizedFirmName} Appointments — Slots Available!</h1>
+      </div>
+      <div style="background:#f9f9f9;padding:20px;border:1px solid #e0e0e0;border-top:none;border-radius:0 0 8px 8px">
+        <p>New appointment slots have been found for your NEXUS application:</p>
+        <table style="width:100%;border-collapse:collapse;margin:16px 0">
+          <thead>
+            <tr style="background:#e8e8e8">
+              <th style="padding:8px 12px;text-align:left">Date</th>
+              <th style="padding:8px 12px;text-align:left">Time</th>
+              <th style="padding:8px 12px;text-align:left">Location</th>
+            </tr>
+          </thead>
+          <tbody>${slotRows}</tbody>
+        </table>
+        <a href="https://ttp.cbp.dhs.gov/" style="display:inline-block;background:#22c55e;color:white;padding:12px 24px;border-radius:6px;text-decoration:none;font-weight:600;margin-top:12px">
+          Book Now on GOES
+        </a>
+        <p style="color:#888;font-size:12px;margin-top:20px">
+          Slots disappear quickly — book as soon as possible!<br>
+          Contact ${lawFirmEmail} if you have questions.
+        </p>
+      </div>
+    </div>
+  `;
+
+  // Send via Resend API with white-label from address
+  const resp = await fetch('https://api.resend.com/emails', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${env.RESEND_API_KEY}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      from: `${capitalizedFirmName} Appointments <notifications@nexus-alert.com>`,
+      reply_to: lawFirmEmail,
+      to: [clientEmail],
+      subject: `${capitalizedFirmName} Appointments: ${slots.length} New Slot${slots.length > 1 ? 's' : ''} Available!`,
+      html,
+    }),
+  });
+
+  if (!resp.ok) {
+    const err = await resp.text();
+    console.error(`Failed to send white-label email to ${clientEmail}:`, err);
   }
 }
 
@@ -1014,6 +1166,146 @@ async function handleGetStats(request, env, corsHeaders) {
   }
 }
 
+// ─── Pro Tier Client Management ───────────────────────────────────
+
+async function handleAddProClient(request, env, corsHeaders) {
+  try {
+    const body = await request.json();
+    const { lawFirmEmail, clientEmail, locations, program, dateRange, timeRange } = body;
+
+    if (!lawFirmEmail || !clientEmail) {
+      return json({ error: 'lawFirmEmail and clientEmail are required' }, 400, corsHeaders);
+    }
+
+    // Verify the law firm has a Pro license
+    const licenseDataStr = await env.NEXUS_ALERTS_KV.get(`license:${lawFirmEmail}`);
+    if (!licenseDataStr) {
+      return json({ error: 'No Pro license found for this email' }, 403, corsHeaders);
+    }
+
+    const licenseData = JSON.parse(licenseDataStr);
+    if (licenseData.tier !== 'pro') {
+      return json({ error: 'Pro tier required to manage clients' }, 403, corsHeaders);
+    }
+
+    // Get existing client list
+    const clientListKey = `pro:${lawFirmEmail}:clients`;
+    const clientListStr = await env.NEXUS_ALERTS_KV.get(clientListKey);
+    let clients = clientListStr ? JSON.parse(clientListStr) : [];
+
+    // Check limit (20 clients max for Pro tier)
+    if (clients.length >= 20 && !clients.includes(clientEmail)) {
+      return json({ error: 'Client limit reached (20 max)' }, 400, corsHeaders);
+    }
+
+    // Add client to list if not already there
+    if (!clients.includes(clientEmail)) {
+      clients.push(clientEmail);
+      await env.NEXUS_ALERTS_KV.put(clientListKey, JSON.stringify(clients));
+    }
+
+    // Create subscriber record for the client
+    const subscriber = {
+      email: clientEmail,
+      locations: locations || [],
+      program: program || 'NEXUS',
+      dateRange: dateRange || { start: null, end: null },
+      timeRange: timeRange || { start: null, end: null },
+      phone: null,
+      tier: 'pro_client',
+      lawFirmEmail, // Link back to the law firm
+      last_checked_at: null,
+      createdAt: new Date().toISOString(),
+      notifiedSlots: {},
+    };
+
+    await env.NEXUS_ALERTS_KV.put(`sub:${clientEmail}`, JSON.stringify(subscriber));
+
+    // Add to subscriber list
+    const list = JSON.parse(await env.NEXUS_ALERTS_KV.get('subscriber_list') || '[]');
+    if (!list.includes(clientEmail)) {
+      list.push(clientEmail);
+      await env.NEXUS_ALERTS_KV.put('subscriber_list', JSON.stringify(list));
+    }
+
+    return json({ success: true, clients }, 200, corsHeaders);
+  } catch (err) {
+    console.error('Add Pro client error:', err);
+    return json({ error: err.message }, 500, corsHeaders);
+  }
+}
+
+async function handleRemoveProClient(request, env, corsHeaders) {
+  try {
+    const body = await request.json();
+    const { lawFirmEmail, clientEmail } = body;
+
+    if (!lawFirmEmail || !clientEmail) {
+      return json({ error: 'lawFirmEmail and clientEmail are required' }, 400, corsHeaders);
+    }
+
+    // Get existing client list
+    const clientListKey = `pro:${lawFirmEmail}:clients`;
+    const clientListStr = await env.NEXUS_ALERTS_KV.get(clientListKey);
+    let clients = clientListStr ? JSON.parse(clientListStr) : [];
+
+    // Remove client from list
+    clients = clients.filter(email => email !== clientEmail);
+    await env.NEXUS_ALERTS_KV.put(clientListKey, JSON.stringify(clients));
+
+    // Delete subscriber record
+    await env.NEXUS_ALERTS_KV.delete(`sub:${clientEmail}`);
+
+    // Remove from subscriber list
+    const list = JSON.parse(await env.NEXUS_ALERTS_KV.get('subscriber_list') || '[]');
+    const filtered = list.filter(e => e !== clientEmail);
+    await env.NEXUS_ALERTS_KV.put('subscriber_list', JSON.stringify(filtered));
+
+    return json({ success: true, clients }, 200, corsHeaders);
+  } catch (err) {
+    console.error('Remove Pro client error:', err);
+    return json({ error: err.message }, 500, corsHeaders);
+  }
+}
+
+async function handleGetProClients(request, env, corsHeaders) {
+  try {
+    const url = new URL(request.url);
+    const lawFirmEmail = url.searchParams.get('email');
+
+    if (!lawFirmEmail) {
+      return json({ error: 'email parameter is required' }, 400, corsHeaders);
+    }
+
+    // Get client list
+    const clientListKey = `pro:${lawFirmEmail}:clients`;
+    const clientListStr = await env.NEXUS_ALERTS_KV.get(clientListKey);
+    const clients = clientListStr ? JSON.parse(clientListStr) : [];
+
+    // Get detailed info for each client
+    const clientDetails = await Promise.all(
+      clients.map(async (clientEmail) => {
+        const subData = await env.NEXUS_ALERTS_KV.get(`sub:${clientEmail}`);
+        if (!subData) return { email: clientEmail, locations: [], status: 'inactive' };
+
+        const sub = JSON.parse(subData);
+        return {
+          email: clientEmail,
+          locations: sub.locations || [],
+          program: sub.program || 'NEXUS',
+          lastChecked: sub.last_checked_at,
+          status: 'active',
+        };
+      })
+    );
+
+    return json({ clients: clientDetails }, 200, corsHeaders);
+  } catch (err) {
+    console.error('Get Pro clients error:', err);
+    return json({ error: err.message }, 500, corsHeaders);
+  }
+}
+
 // ─── Helpers ──────────────────────────────────────────────────────
 
 function json(data, status = 200, extraHeaders = {}) {
@@ -1028,4 +1320,235 @@ function json(data, status = 200, extraHeaders = {}) {
 
 function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+// ─── Email Drip Campaign Sequences ───────────────────────────────
+
+async function sendEmailSequences(env) {
+  try {
+    // Rate limit: only run every 12 hours
+    const lastRunKey = 'email_sequences_last_run';
+    const lastRun = await env.NEXUS_ALERTS_KV.get(lastRunKey);
+    const now = Date.now();
+    const twelveHours = 12 * 60 * 60 * 1000;
+
+    if (lastRun && (now - parseInt(lastRun)) < twelveHours) {
+      // Not time yet
+      return;
+    }
+
+    console.log('[Email Sequences] Starting drip campaign run...');
+
+    // Update last run timestamp
+    await env.NEXUS_ALERTS_KV.put(lastRunKey, String(now));
+
+    // Get all subscribers
+    const subscriberList = JSON.parse(await env.NEXUS_ALERTS_KV.get('subscriber_list') || '[]');
+
+    for (const email of subscriberList) {
+      try {
+        const subData = await env.NEXUS_ALERTS_KV.get(`sub:${email}`);
+        if (!subData) continue;
+
+        const subscriber = JSON.parse(subData);
+        const registeredAt = new Date(subscriber.createdAt).getTime();
+        const daysSinceReg = (now - registeredAt) / (24 * 60 * 60 * 1000);
+
+        // Get license data to determine tier
+        const licenseDataStr = await env.NEXUS_ALERTS_KV.get(`license:${email}`);
+        const license = licenseDataStr ? JSON.parse(licenseDataStr) : null;
+        const isPremium = license?.tier === 'premium';
+
+        // Get email sequence state
+        const seqKey = `email_sequence:${email}`;
+        const seqDataStr = await env.NEXUS_ALERTS_KV.get(seqKey);
+        let sequence = seqDataStr ? JSON.parse(seqDataStr) : { stage: 0, lastSent: 0 };
+
+        // Prevent sending multiple emails too quickly (at least 12 hours between emails)
+        const hoursSinceLastEmail = (now - sequence.lastSent) / (60 * 60 * 1000);
+        if (hoursSinceLastEmail < 12) {
+          continue; // Skip this user
+        }
+
+        let emailSent = false;
+
+        if (!isPremium) {
+          // ─── FREE USER SEQUENCE ───────────────────────────────────
+          if (daysSinceReg >= 0 && daysSinceReg < 0.5 && sequence.stage === 0) {
+            // Day 0: Welcome email
+            emailSent = await sendEmail('welcome', email, env);
+            if (emailSent) sequence = { stage: 1, lastSent: now };
+          } else if (daysSinceReg >= 3 && sequence.stage === 1) {
+            // Day 3: Premium case study
+            emailSent = await sendEmail('premium_case_study', email, env);
+            if (emailSent) sequence = { stage: 2, lastSent: now };
+          } else if (daysSinceReg >= 7 && sequence.stage === 2) {
+            // Day 7: Upgrade offer
+            emailSent = await sendEmail('upgrade_offer', email, env);
+            if (emailSent) sequence = { stage: 3, lastSent: now };
+          }
+        } else {
+          // ─── PREMIUM USER SEQUENCE ────────────────────────────────
+          if (daysSinceReg >= 0 && daysSinceReg < 0.5 && sequence.stage === 0) {
+            // Day 0: Premium welcome
+            emailSent = await sendEmail('premium_welcome', email, env);
+            if (emailSent) sequence = { stage: 1, lastSent: now };
+          } else if (daysSinceReg >= 7 && sequence.stage === 1) {
+            // Day 7: Pro tips
+            emailSent = await sendEmail('tips', email, env);
+            if (emailSent) sequence = { stage: 2, lastSent: now };
+          }
+        }
+
+        // Update sequence state if email was sent
+        if (emailSent) {
+          await env.NEXUS_ALERTS_KV.put(seqKey, JSON.stringify(sequence));
+        }
+      } catch (err) {
+        console.error(`Error processing email sequence for ${email}:`, err);
+        // Continue with next user
+      }
+    }
+
+    // ─── WIN-BACK EMAILS FOR CHURNED USERS ────────────────────────
+    const churnKeys = await env.NEXUS_ALERTS_KV.list({ prefix: 'churn:' });
+
+    for (const key of churnKeys.keys) {
+      try {
+        const churnDataStr = await env.NEXUS_ALERTS_KV.get(key.name);
+        if (!churnDataStr) continue;
+
+        const churnData = JSON.parse(churnDataStr);
+        const daysSinceChurn = (now - churnData.canceledAt) / (24 * 60 * 60 * 1000);
+
+        // Send win-back email after 30 days
+        if (daysSinceChurn >= 30 && !churnData.winBackSent) {
+          const emailSent = await sendEmail('win_back', churnData.email, env);
+          if (emailSent) {
+            // Mark as sent
+            churnData.winBackSent = true;
+            await env.NEXUS_ALERTS_KV.put(key.name, JSON.stringify(churnData));
+          }
+        }
+      } catch (err) {
+        console.error(`Error processing win-back for ${key.name}:`, err);
+      }
+    }
+
+    console.log('[Email Sequences] Drip campaign run completed');
+  } catch (err) {
+    console.error('[Email Sequences] Error in sendEmailSequences:', err);
+  }
+}
+
+// ─── Resend Webhook Handler ──────────────────────────────────────
+
+async function handleResendWebhook(request, env, corsHeaders) {
+  try {
+    const body = await request.json();
+    const eventType = body.type;
+
+    if (eventType === 'email.opened') {
+      // Track email open
+      const email = body.data.to[0]; // Recipient email
+      const emailId = body.data.email_id;
+
+      const openKey = `email_opened:${email}`;
+      const openDataStr = await env.NEXUS_ALERTS_KV.get(openKey);
+      const openData = openDataStr ? JSON.parse(openDataStr) : { opens: [], totalOpens: 0 };
+
+      openData.opens.push({
+        emailId,
+        timestamp: Date.now(),
+      });
+      openData.totalOpens += 1;
+
+      // Keep only last 100 opens
+      if (openData.opens.length > 100) {
+        openData.opens = openData.opens.slice(-100);
+      }
+
+      await env.NEXUS_ALERTS_KV.put(openKey, JSON.stringify(openData));
+      console.log(`Email opened by ${email}: ${emailId}`);
+    }
+
+    return json({ received: true }, 200, corsHeaders);
+  } catch (err) {
+    console.error('Resend webhook error:', err);
+    return json({ error: err.message }, 500, corsHeaders);
+  }
+}
+
+// ─── Pro Client Management (Concierge Service) ────────────────────
+
+async function handleAddProClient(request, env, corsHeaders) {
+  try {
+    const body = await request.json();
+    const { name, email, locations, phone, notes } = body;
+
+    if (!name || !email || !locations?.length) {
+      return json({ error: 'name, email, and locations are required' }, 400, corsHeaders);
+    }
+
+    const client = {
+      name,
+      email,
+      locations,
+      phone: phone || null,
+      notes: notes || '',
+      addedAt: new Date().toISOString(),
+      notifiedSlots: {},
+    };
+
+    await env.NEXUS_ALERTS_KV.put(`pro_client:${email}`, JSON.stringify(client));
+
+    // Track in pro client list
+    const list = JSON.parse(await env.NEXUS_ALERTS_KV.get('pro_client_list') || '[]');
+    if (!list.includes(email)) {
+      list.push(email);
+      await env.NEXUS_ALERTS_KV.put('pro_client_list', JSON.stringify(list));
+    }
+
+    return json({ success: true, client }, 200, corsHeaders);
+  } catch (err) {
+    console.error('Add pro client error:', err);
+    return json({ error: err.message }, 500, corsHeaders);
+  }
+}
+
+async function handleRemoveProClient(request, env, corsHeaders) {
+  try {
+    const { email } = await request.json();
+    if (!email) {
+      return json({ error: 'email is required' }, 400, corsHeaders);
+    }
+
+    await env.NEXUS_ALERTS_KV.delete(`pro_client:${email}`);
+
+    const list = JSON.parse(await env.NEXUS_ALERTS_KV.get('pro_client_list') || '[]');
+    const filtered = list.filter(e => e !== email);
+    await env.NEXUS_ALERTS_KV.put('pro_client_list', JSON.stringify(filtered));
+
+    return json({ success: true }, 200, corsHeaders);
+  } catch (err) {
+    console.error('Remove pro client error:', err);
+    return json({ error: err.message }, 500, corsHeaders);
+  }
+}
+
+async function handleGetProClients(request, env, corsHeaders) {
+  try {
+    const list = JSON.parse(await env.NEXUS_ALERTS_KV.get('pro_client_list') || '[]');
+    const clients = [];
+    for (const email of list) {
+      const data = await env.NEXUS_ALERTS_KV.get(`pro_client:${email}`);
+      if (data) {
+        clients.push(JSON.parse(data));
+      }
+    }
+    return json({ clients }, 200, corsHeaders);
+  } catch (err) {
+    console.error('Get pro clients error:', err);
+    return json({ error: err.message }, 500, corsHeaders);
+  }
 }

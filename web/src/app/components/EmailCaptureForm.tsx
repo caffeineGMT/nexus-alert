@@ -33,6 +33,16 @@ export default function EmailCaptureForm() {
       if (!res.ok) throw new Error('Request failed');
       setStatus('success');
       setEmail('');
+
+      // Track email signup in Google Analytics
+      if (typeof window !== 'undefined' && (window as any).gtag) {
+        const urlParams = new URLSearchParams(window.location.search);
+        const source = urlParams.get('utm_source') || 'direct';
+        (window as any).gtag('event', 'email_signup', {
+          source: source,
+          page_url: window.location.pathname,
+        });
+      }
     } catch {
       setStatus('error');
     }
