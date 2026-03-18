@@ -1,14 +1,32 @@
 {
-  "name": "b2b-tools",
+  "name": "nexus-alert-b2b-tools",
   "version": "1.0.0",
-  "description": "",
+  "description": "B2B marketing automation tools for NEXUS Alert Pro tier",
+  "type": "module",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "scrape:google": "node scrape-google-maps.js",
+    "scrape:avvo": "node scrape-avvo.js",
+    "enrich": "node enrich-leads.js",
+    "verify": "node verify-emails.js",
+    "campaign:test": "node email-campaign.js",
+    "campaign:live": "node email-campaign.js --live",
+    "linkedin": "node linkedin-outreach.js",
+    "linkedin:stats": "node linkedin-outreach.js stats",
+    "pipeline": "npm run scrape:google && npm run scrape:avvo && npm run enrich && npm run verify",
+    "test": "echo \"No tests configured\""
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "keywords": [
+    "b2b",
+    "marketing",
+    "automation",
+    "email",
+    "scraping",
+    "immigration",
+    "lawyers"
+  ],
+  "author": "NEXUS Alert",
+  "license": "UNLICENSED",
   "dependencies": {
     "cheerio": "^1.2.0",
     "csv-writer": "^1.6.0",
