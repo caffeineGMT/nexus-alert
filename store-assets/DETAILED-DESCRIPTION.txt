@@ -1,0 +1,94 @@
+NEXUS Alert — Never Miss Your Trusted Traveler Appointment
+
+Stop manually refreshing the GOES website. NEXUS Alert monitors NEXUS, Global Entry, and SENTRI appointment slots in real time and notifies you instantly when openings appear — so you can book before anyone else.
+
+WHY YOU NEED THIS
+Trusted Traveler Program appointments are extremely scarce. When someone cancels, that slot appears briefly and gets booked within minutes. Without monitoring, you'd miss 99% of openings. NEXUS Alert watches 24/7 so you don't have to.
+
+HOW IT WORKS
+1. Choose your program (NEXUS, Global Entry, or SENTRI)
+2. Select the enrollment centers you want to monitor
+3. Set your preferred dates and times (optional filters)
+4. Get instant desktop notifications with sound alerts when slots appear
+5. Click "Book Now" to jump straight to the GOES booking page
+
+FREE TIER FEATURES
+✓ Monitor multiple enrollment centers
+✓ Check slots every 30 minutes automatically
+✓ Desktop notifications with sound alerts
+✓ Smart date & time filters
+✓ Slot history tracking and statistics
+✓ Auto-open booking page (optional)
+✓ Data export for tracking patterns
+✓ Works with NEXUS, Global Entry & SENTRI
+
+PREMIUM TIER ($4.99/month)
+✓ Check every 2 minutes (15x faster than free tier)
+✓ Email notifications when slots appear
+✓ SMS alerts (coming soon)
+✓ Priority support
+
+KEY FEATURES
+• Real-time slot monitoring — checks the official CBP API automatically
+• Instant notifications — desktop alerts with sound the moment a slot opens
+• Multi-location tracking — watch several enrollment centers at once
+• Smart filters — only get notified for dates and times that work for you
+• Slot history — see every opening and identify patterns
+• One-click booking — button takes you straight to the appointment page
+• Privacy-friendly — all data stays in your browser, no account required
+• Open source — full code transparency on GitHub
+
+SUPPORTED PROGRAMS
+✓ NEXUS (Canada-US land, air, sea border crossings)
+✓ Global Entry (expedited US Customs screening)
+✓ SENTRI (Mexico-US land border expedited crossing)
+
+HOW TO USE
+1. Install the extension and click the icon in your Chrome toolbar
+2. Complete the 3-step onboarding to choose your program and locations
+3. The extension will automatically check for slots in the background
+4. When a slot opens, you'll get a notification with sound
+5. Click the notification to book immediately
+
+FREQUENTLY ASKED QUESTIONS
+
+Q: Is this affiliated with CBP or DHS?
+A: No. This is an independent monitoring tool that uses the public CBP Scheduler API.
+
+Q: Does this guarantee I'll get an appointment?
+A: No tool can guarantee availability, but monitoring 24/7 dramatically increases your chances compared to manual checking.
+
+Q: Is my data safe?
+A: Yes. The free tier stores all data locally in your browser. The premium tier only sends your email to our backend for notifications — we never sell or share user data.
+
+Q: How often does it check?
+A: Free tier checks every 30 minutes. Premium tier checks every 2 minutes.
+
+Q: Can I monitor multiple locations?
+A: Yes! Select as many enrollment centers as you want.
+
+Q: What happens when a slot is found?
+A: You get a desktop notification with sound, and optionally the booking page opens automatically.
+
+Q: Do I need to keep Chrome open?
+A: The extension works best when Chrome is running. If you want monitoring even when your browser is closed, upgrade to premium for email alerts.
+
+Q: Can I use this on mobile?
+A: This is a Chrome Extension for desktop. Mobile monitoring is not currently supported.
+
+PRIVACY & SECURITY
+✓ Open source — view the code on GitHub
+✓ No tracking or analytics
+✓ No account required for free tier
+✓ Data stays in your browser
+✓ Premium tier: email stored securely, encrypted in transit
+✓ No data sharing with third parties
+
+SUPPORT
+Need help? Visit our GitHub repository or contact support@nexus-alert.com
+
+FREE TRIAL
+Try the free tier with no account required. Upgrade to premium anytime for faster checks and email alerts.
+
+NOT AFFILIATED WITH CBP, DHS, OR THE U.S. GOVERNMENT
+This is an independent monitoring tool. Appointment availability is determined by the CBP Trusted Traveler Programs office.

@@ -4,3 +4,22 @@ out/
 .vercel/
 *.tsbuildinfo
 next-env.d.ts
+.vercel
+
+# Production secrets (NEVER commit)
+production.env
+.env.production
+.env.local
+*.key
+*.pem
+
+# Stripe secrets
+stripe_*.json
+
+# Cloudflare Worker secrets
+.dev.vars
+.wrangler/
+
+# Monitoring logs
+LAUNCH_LOG.md
+monitoring-*.log

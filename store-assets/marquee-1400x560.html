@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NEXUS Alert — Marquee 1400x560</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      width: 1400px;
+      height: 560px;
+      overflow: hidden;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', sans-serif;
+      background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+
+    /* Animated background grid */
+    .grid {
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(59,130,246,0.1) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(59,130,246,0.1) 1px, transparent 1px);
+      background-size: 50px 50px;
+      opacity: 0.3;
+    }
+
+    .container {
+      position: relative;
+      z-index: 10;
+      display: flex;
+      align-items: center;
+      gap: 80px;
+      max-width: 1300px;
+      padding: 60px;
+    }
+
+    .left {
+      flex: 1;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 8px 16px;
+      background: rgba(34,197,94,0.15);
+      border: 1px solid rgba(34,197,94,0.3);
+      border-radius: 20px;
+      color: #22c55e;
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 24px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    h1 {
+      font-size: 72px;
+      font-weight: 800;
+      color: #fff;
+      line-height: 1.1;
+      margin-bottom: 20px;
+    }
+
+    h1 .highlight {
+      background: linear-gradient(135deg, #3b82f6 0%, #22c55e 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .subtitle {
+      font-size: 24px;
+      color: #888;
+      margin-bottom: 32px;
+      line-height: 1.4;
+    }
+
+    .features {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+      margin-bottom: 32px;
+    }
+
+    .feature {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 16px;
+      color: #e8e8e8;
+    }
+
+    .feature svg {
+      flex-shrink: 0;
+    }
+
+    .cta {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      padding: 16px 32px;
+      background: #3b82f6;
+      color: white;
+      font-size: 18px;
+      font-weight: 600;
+      border-radius: 12px;
+      text-decoration: none;
+      box-shadow: 0 10px 30px rgba(59,130,246,0.4);
+    }
+
+    .right {
+      position: relative;
+    }
+
+    /* Mock extension popup */
+    .popup-mockup {
+      width: 380px;
+      height: 500px;
+      background: #141414;
+      border: 1px solid #2a2a2a;
+      border-radius: 16px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.8);
+      overflow: hidden;
+      position: relative;
+    }
+
+    .popup-header {
+      padding: 16px;
+      border-bottom: 1px solid #2a2a2a;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .popup-header h2 {
+      font-size: 16px;
+      color: #e8e8e8;
+      font-weight: 700;
+    }
+
+    .toggle {
+      width: 40px;
+      height: 22px;
+      background: #3b82f6;
+      border-radius: 22px;
+      position: relative;
+    }
+
+    .toggle::after {
+      content: '';
+      position: absolute;
+      width: 16px;
+      height: 16px;
+      background: white;
+      border-radius: 50%;
+      right: 3px;
+      top: 3px;
+    }
+
+    .status-bar {
+      padding: 10px 16px;
+      background: #1a1a1a;
+      border-bottom: 1px solid #2a2a2a;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      color: #e8e8e8;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      background: #22c55e;
+      border-radius: 50%;
+      box-shadow: 0 0 8px #22c55e;
+    }
+
+    .slot-card {
+      margin: 16px;
+      padding: 12px;
+      background: #1a1a1a;
+      border: 1px solid #2a2a2a;
+      border-left: 3px solid #22c55e;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .slot-info {
+      flex: 1;
+    }
+
+    .slot-date {
+      font-size: 14px;
+      font-weight: 600;
+      color: #e8e8e8;
+      margin-bottom: 4px;
+    }
+
+    .slot-time {
+      font-size: 11px;
+      color: #888;
+    }
+
+    .slot-location {
+      font-size: 10px;
+      color: #666;
+      margin-top: 4px;
+    }
+
+    .book-btn {
+      padding: 6px 16px;
+      background: #22c55e;
+      color: #000;
+      font-size: 12px;
+      font-weight: 600;
+      border-radius: 6px;
+      border: none;
+    }
+
+    .locations {
+      margin: 16px;
+    }
+
+    .location-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px;
+      margin-bottom: 6px;
+      background: #1a1a1a;
+      border: 1px solid #2a2a2a;
+      border-radius: 6px;
+      font-size: 12px;
+      color: #e8e8e8;
+    }
+
+    .checkbox {
+      width: 16px;
+      height: 16px;
+      background: #3b82f6;
+      border-radius: 3px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .checkbox svg {
+      width: 10px;
+      height: 10px;
+    }
+
+    /* Glow effect */
+    .glow {
+      position: absolute;
+      width: 600px;
+      height: 600px;
+      background: radial-gradient(circle, rgba(59,130,246,0.15) 0%, transparent 70%);
+      top: -200px;
+      right: -100px;
+      pointer-events: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="grid"></div>
+  <div class="glow"></div>
+
+  <div class="container">
+    <div class="left">
+      <div class="badge">🔔 Never Miss Your Appointment</div>
+      <h1>
+        <span class="highlight">Never Miss</span><br>
+        Your NEXUS<br>
+        Appointment
+      </h1>
+      <p class="subtitle">
+        Real-time monitoring for NEXUS, Global Entry & SENTRI slots.
+        Get instant notifications when appointments open up.
+      </p>
+
+      <div class="features">
+        <div class="feature">
+          <svg width="20" height="20" fill="none" stroke="#22c55e" stroke-width="2" viewBox="0 0 24 24">
+            <polyline points="20 6 9 17 4 12"/>
+          </svg>
+          <span>Real-time slot monitoring</span>
+        </div>
+        <div class="feature">
+          <svg width="20" height="20" fill="none" stroke="#22c55e" stroke-width="2" viewBox="0 0 24 24">
+            <polyline points="20 6 9 17 4 12"/>
+          </svg>
+          <span>Instant desktop notifications</span>
+        </div>
+        <div class="feature">
+          <svg width="20" height="20" fill="none" stroke="#22c55e" stroke-width="2" viewBox="0 0 24 24">
+            <polyline points="20 6 9 17 4 12"/>
+          </svg>
+          <span>Sound alerts & auto-open</span>
+        </div>
+        <div class="feature">
+          <svg width="20" height="20" fill="none" stroke="#22c55e" stroke-width="2" viewBox="0 0 24 24">
+            <polyline points="20 6 9 17 4 12"/>
+          </svg>
+          <span>Multi-location tracking</span>
+        </div>
+      </div>
+
+      <a href="#" class="cta">
+        <svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
+          <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+        </svg>
+        Add to Chrome — Free
+      </a>
+    </div>
+
+    <div class="right">
+      <div class="popup-mockup">
+        <div class="popup-header">
+          <h2>NEXUS Alert</h2>
+          <div class="toggle"></div>
+        </div>
+
+        <div class="status-bar">
+          <div class="status-dot"></div>
+          <span>Monitoring</span>
+        </div>
+
+        <div class="slot-card">
+          <div class="slot-info">
+            <div class="slot-date">Wed, Mar 20</div>
+            <div class="slot-time">10:30 AM</div>
+            <div class="slot-location">Blaine, WA</div>
+          </div>
+          <button class="book-btn">Book</button>
+        </div>
+
+        <div class="slot-card">
+          <div class="slot-info">
+            <div class="slot-date">Thu, Mar 21</div>
+            <div class="slot-time">2:15 PM</div>
+            <div class="slot-location">Pacific Highway, BC</div>
+          </div>
+          <button class="book-btn">Book</button>
+        </div>
+
+        <div class="locations">
+          <div class="location-item">
+            <div class="checkbox">
+              <svg fill="white" viewBox="0 0 24 24">
+                <polyline points="20 6 9 17 4 12" stroke="white" stroke-width="2" fill="none"/>
+              </svg>
+            </div>
+            <span>Blaine, WA</span>
+          </div>
+          <div class="location-item">
+            <div class="checkbox">
+              <svg fill="white" viewBox="0 0 24 24">
+                <polyline points="20 6 9 17 4 12" stroke="white" stroke-width="2" fill="none"/>
+              </svg>
+            </div>
+            <span>Pacific Highway, BC</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

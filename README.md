@@ -1,12 +1,34 @@
 # NEXUS Alert
 
-[![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)](https://github.com/michaelguo/nexus-alert)
-[![Chrome Web Store](https://img.shields.io/badge/Chrome%20Web%20Store-coming%20soon-lightgrey.svg)](#)
+[![Version](https://img.shields.io/badge/version-2.0.0-blue.svg)](https://github.com/michaelguo/nexus-alert)
+[![Chrome Web Store](https://img.shields.io/badge/Chrome%20Web%20Store-Production%20Ready-green.svg)](#)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
 **NEXUS Alert** is a Chrome Extension that monitors the CBP Trusted Traveler Programs portal (ttp.cbp.dhs.gov) for open appointment slots for **NEXUS**, **Global Entry**, and **SENTRI** enrollment interviews — and notifies you the moment one appears.
 
 Never manually refresh the GOES website again. NEXUS Alert checks for slots automatically and sends you desktop, sound, and email notifications so you can book before slots disappear.
+
+---
+
+## 🚀 Production Deployment (Ready to Launch!)
+
+**Status:** Production-ready | Accepting paying customers | Revenue Goal: $1M ARR
+
+Choose your deployment path:
+
+- **⚡ Quick Start (30 min):** [`backend/PRODUCTION_SETUP.md`](backend/PRODUCTION_SETUP.md)
+- **📚 Detailed Guide:** [`PRODUCTION_DEPLOYMENT.md`](PRODUCTION_DEPLOYMENT.md)
+- **✅ Step-by-Step Checklist:** [`DEPLOYMENT_CHECKLIST.md`](DEPLOYMENT_CHECKLIST.md)
+
+**Testing & Monitoring:**
+```bash
+# Test payment flow end-to-end
+cd backend && ./test-payment-flow.sh
+
+# Monitor production metrics
+export STRIPE_API_KEY=sk_live_XXXXX
+cd backend && ./monitoring-dashboard.sh
+```
 
 ![NEXUS Alert Extension](icons/icon128.png)
 

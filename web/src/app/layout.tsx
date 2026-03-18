@@ -9,13 +9,13 @@ const geistSans = Geist({
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://nexus-alert.com'),
-  title: 'NEXUS Alert — Never Miss an Appointment Slot',
+  title: 'NEXUS Alert - Get Notified of Appointment Slots Instantly | Chrome Extension',
   description:
-    'Free Chrome extension that monitors NEXUS, Global Entry, and SENTRI appointment slots and notifies you the instant one opens up.',
+    'Free Chrome extension that monitors NEXUS, Global Entry, and SENTRI appointment slots and notifies you the instant one opens up. Book your interview weeks sooner.',
   openGraph: {
-    title: 'NEXUS Alert — Never Miss an Appointment Slot',
+    title: 'NEXUS Alert - Get Notified of Appointment Slots Instantly',
     description:
-      'Free Chrome extension that monitors NEXUS, Global Entry, and SENTRI appointment slots.',
+      'Free Chrome extension that monitors NEXUS, Global Entry, and SENTRI appointment slots and notifies you instantly.',
     url: 'https://nexus-alert.com',
     siteName: 'NEXUS Alert',
     // TODO: replace with a properly designed OG image (see web/public/og-image.png)
@@ -24,9 +24,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'NEXUS Alert — Never Miss an Appointment Slot',
+    title: 'NEXUS Alert - Get Notified of Appointment Slots Instantly',
     description:
-      'Free Chrome extension for NEXUS, Global Entry, and SENTRI appointment monitoring.',
+      'Free Chrome extension that monitors NEXUS, Global Entry, and SENTRI appointment slots. Book weeks sooner.',
     images: ['/og-image.png'],
   },
   alternates: {
