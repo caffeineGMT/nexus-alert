@@ -1,0 +1,140 @@
+{
+  "campaign": {
+    "name": "Pre-Launch Testimonial Collection",
+    "start_date": "2026-03-18",
+    "goal": 5,
+    "stretch_goal": 10,
+    "deadline": "2026-03-25"
+  },
+  "stats": {
+    "total_outreach": 0,
+    "responses": 0,
+    "submissions": 0,
+    "approved": 0,
+    "published": 0
+  },
+  "outreach": [
+    {
+      "id": 1,
+      "platform": "reddit",
+      "username": "user_from_colombian_post",
+      "post_url": "https://reddit.com/r/GlobalEntry/comments/1rhltzt/global_entry_for_colombian_citizen_pending_review/",
+      "post_title": "Global Entry for Colombian citizen pending review for 26 months",
+      "contacted_date": null,
+      "method": "reddit_dm",
+      "template_used": "template_1",
+      "status": "not_contacted",
+      "response_date": null,
+      "response": null,
+      "submitted": false,
+      "testimonial_id": null,
+      "notes": "High engagement post - 17 upvotes, multiple NEXUS Alert mentions"
+    },
+    {
+      "id": 2,
+      "platform": "reddit",
+      "username": "user_from_tool_builder_post",
+      "post_url": "https://reddit.com/r/GlobalEntry/comments/1o7j8oz/built_a_tool_to_help_find_global_entry_interview/",
+      "post_title": "Built a tool to help find Global Entry interview slots",
+      "contacted_date": null,
+      "method": "reddit_dm",
+      "template_used": "template_1",
+      "status": "not_contacted",
+      "response_date": null,
+      "response": null,
+      "submitted": false,
+      "testimonial_id": null,
+      "notes": "Direct tool discussion - good engagement"
+    },
+    {
+      "id": 3,
+      "platform": "reddit",
+      "username": "user_from_approval_post",
+      "post_url": "https://reddit.com/r/GlobalEntry/comments/1pvp1a4/and_were_approved/",
+      "post_title": "And We're Approved!",
+      "contacted_date": null,
+      "method": "reddit_dm",
+      "template_used": "template_1",
+      "status": "not_contacted",
+      "response_date": null,
+      "response": null,
+      "submitted": false,
+      "testimonial_id": null,
+      "notes": "Celebration post - 13 upvotes, 24 comments, very positive"
+    },
+    {
+      "id": 4,
+      "platform": "reddit",
+      "username": "user_from_nexus_kids_post",
+      "post_url": "https://reddit.com/r/GlobalEntry/comments/1r0f24k/applied_nexus_for_my_7_year_old_5_year_old_back/",
+      "post_title": "Applied NEXUS for my 7 year old & 5 year old",
+      "contacted_date": null,
+      "method": "reddit_dm",
+      "template_used": "template_2",
+      "status": "not_contacted",
+      "response_date": null,
+      "response": null,
+      "submitted": false,
+      "testimonial_id": null,
+      "notes": "Parent user - family angle could be compelling testimonial"
+    },
+    {
+      "id": 5,
+      "platform": "reddit",
+      "username": "user_from_yyz_wait_post",
+      "post_url": "https://reddit.com/r/GlobalEntry/comments/1rdq6jx/2_hours_wait_time_for_nexus_global_entry/",
+      "post_title": "2 hours wait time for NEXUS / Global Entry interview at YYZ",
+      "contacted_date": null,
+      "method": "reddit_dm",
+      "template_used": "template_1",
+      "status": "not_contacted",
+      "response_date": null,
+      "response": null,
+      "submitted": false,
+      "testimonial_id": null,
+      "notes": "Frustrated user - NEXUS Alert could be solution"
+    }
+  ],
+  "testimonials": [
+    {
+      "id": "placeholder_1",
+      "source": "placeholder",
+      "name": "Example - DO NOT PUBLISH",
+      "location": "Vancouver, BC",
+      "program": "NEXUS",
+      "story": "I manually refreshed the GOES website for 3 weeks with no luck. After installing NEXUS Alert, I got notified of a cancellation within 2 days and booked my appointment immediately. This tool saved me months of waiting!",
+      "submitted_date": null,
+      "status": "placeholder",
+      "approved_date": null,
+      "premium_code": null,
+      "notes": "This is a PLACEHOLDER example. Do not publish without real user permission."
+    }
+  ],
+  "templates": {
+    "template_1": {
+      "name": "Direct Reddit DM - User Mentioned NEXUS Alert",
+      "subject": "NEXUS Alert creator here - would love to hear your story!",
+      "platform": "reddit",
+      "use_case": "For users who already commented about NEXUS Alert"
+    },
+    "template_2": {
+      "name": "Reddit DM - User Struggling with Appointments",
+      "subject": "Quick favor from NEXUS Alert creator?",
+      "platform": "reddit",
+      "use_case": "For users who posted about appointment struggles but didn't mention the tool"
+    },
+    "template_email": {
+      "name": "Email Testimonial Request",
+      "subject": "Share your NEXUS Alert story and get 6 months Premium free",
+      "platform": "email",
+      "use_case": "For email list subscribers or Chrome Web Store users"
+    }
+  },
+  "notes": [
+    "Update this file after each outreach attempt",
+    "Track all communications to avoid duplicate messages",
+    "Log response dates and content for follow-up",
+    "Mark testimonials as 'submitted' when they fill out the form",
+    "Link testimonial_id once approved in admin panel"
+  ]
+}

@@ -108,6 +108,9 @@ export default {
     if (url.pathname === '/api/partner-application' && request.method === 'POST') {
       return await handlePartnerApplication(request, env, corsHeaders);
     }
+    if (url.pathname === '/health' && request.method === 'GET') {
+      return await handleHealthCheck(env, corsHeaders);
+    }
 
     // Auth check for all other endpoints
     const authHeader = request.headers.get('Authorization');
