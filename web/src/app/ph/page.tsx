@@ -1,5 +1,6 @@
 import PricingSection from '../components/PricingSection';
 import EmailCaptureForm from "../components/EmailCaptureForm";
+import CopyButton from "../components/CopyButton";
 
 export const metadata = {
   title: 'NEXUS Alert - Never miss a NEXUS appointment | Product Hunt Special',
@@ -84,15 +85,7 @@ export default function ProductHuntLanding() {
             <div className="mt-3 inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-white/10 border border-white/20">
               <span className="text-sm text-[#aaa]">Use code:</span>
               <code className="text-base font-mono font-bold text-white">PRODUCTHUNT</code>
-              <button
-                onClick={() => {
-                  navigator.clipboard.writeText('PRODUCTHUNT');
-                  alert('Code copied to clipboard!');
-                }}
-                className="ml-2 px-3 py-1 text-xs rounded bg-[#3b82f6] hover:bg-[#2563eb] transition"
-              >
-                Copy
-              </button>
+              <CopyButton text="PRODUCTHUNT" />
             </div>
             <div className="mt-3 text-sm text-[#999]">
               ⏰ Expires in 7 days • Limited to 500 redemptions

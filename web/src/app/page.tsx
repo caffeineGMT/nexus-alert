@@ -35,7 +35,7 @@ export default function Home() {
           <h1 className="text-5xl md:text-6xl font-extrabold leading-tight tracking-tight mb-6">
             Never miss a{" "}
             <span className="bg-gradient-to-r from-[#3b82f6] to-[#22c55e] bg-clip-text text-transparent">
-              NEXUS appointment
+              NEXUS, Global Entry, or SENTRI appointment
             </span>{" "}
             again
           </h1>

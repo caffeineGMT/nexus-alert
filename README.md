@@ -6,6 +6,8 @@
 
 **NEXUS Alert** is a Chrome Extension that monitors the CBP Trusted Traveler Programs portal (ttp.cbp.dhs.gov) for open appointment slots for **NEXUS**, **Global Entry**, and **SENTRI** enrollment interviews — and notifies you the moment one appears.
 
+Whether you need a **NEXUS appointment** for US-Canada border crossings, a **Global Entry interview** across 100+ US enrollment centers, or a **SENTRI slot** at US-Mexico border locations, NEXUS Alert monitors all three programs simultaneously.
+
 Never manually refresh the GOES website again. NEXUS Alert checks for slots automatically and sends you desktop, sound, and email notifications so you can book before slots disappear.
 
 ---

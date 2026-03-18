@@ -1,0 +1,82 @@
+# Cloudflare Workers Analytics Dashboard Query
+# Use this with Cloudflare GraphQL API to create custom dashboards
+# Access at: https://api.cloudflare.com/client/v4/graphql
+
+query WorkerMetrics($accountId: String!, $workerName: String = "nexus-alert-backend") {
+  viewer {
+    accounts(filter: { accountTag: $accountId }) {
+      # Request and error metrics
+      workersInvocationsAdaptive(
+        filter: { scriptName: $workerName }
+        limit: 1000
+        orderBy: [datetime_DESC]
+      ) {
+        sum {
+          requests
+          errors
+          subrequests
+        }
+        avg {
+          wallTime
+          cpuTime
+        }
+        quantiles {
+          cpuTimeP50
+          cpuTimeP75
+          cpuTimeP95
+          cpuTimeP99
+          wallTimeP50
+          wallTimeP75
+          wallTimeP95
+          wallTimeP99
+        }
+        dimensions {
+          datetime
+          status
+        }
+      }
+
+      # KV operations
+      workersKVOperationsAdaptive(
+        filter: { scriptName: $workerName }
+        limit: 1000
+        orderBy: [datetime_DESC]
+      ) {
+        sum {
+          reads
+          writes
+          deletes
+          lists
+        }
+        dimensions {
+          datetime
+        }
+      }
+
+      # Analytics Events (custom metrics logged via console.log)
+      # Note: Custom metrics are parsed from Worker logs
+      # Access logs via: wrangler tail --format json
+    }
+  }
+}
+
+# Example usage:
+# curl -X POST https://api.cloudflare.com/client/v4/graphql \
+#   -H "Authorization: Bearer YOUR_CLOUDFLARE_API_TOKEN" \
+#   -H "Content-Type: application/json" \
+#   -d '{"query":"...","variables":{"accountId":"YOUR_ACCOUNT_ID"}}'
+
+# Variables:
+# {
+#   "accountId": "YOUR_CLOUDFLARE_ACCOUNT_ID"
+# }
+
+# To get your account ID:
+# wrangler whoami
+# Or: https://dash.cloudflare.com/ (bottom right of dashboard)
+
+# To create an API token:
+# https://dash.cloudflare.com/profile/api-tokens
+# Required permissions:
+# - Account.Analytics:Read
+# - Account.Workers Scripts:Read

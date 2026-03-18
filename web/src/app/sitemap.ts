@@ -14,6 +14,18 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 1.0,
     },
     {
+      url: `${baseUrl}/global-entry`,
+      lastModified: currentDate,
+      changeFrequency: 'monthly',
+      priority: 0.9,
+    },
+    {
+      url: `${baseUrl}/sentri`,
+      lastModified: currentDate,
+      changeFrequency: 'monthly',
+      priority: 0.9,
+    },
+    {
       url: `${baseUrl}/blog`,
       lastModified: currentDate,
       changeFrequency: 'weekly',
@@ -34,6 +46,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
     {
       url: `${baseUrl}/blog/best-times-to-check-nexus-appointments`,
       lastModified: '2026-03-18',
+      changeFrequency: 'monthly',
+      priority: 0.8,
+    },
+    {
+      url: `${baseUrl}/blog/global-entry-appointment-tips`,
+      lastModified: currentDate,
       changeFrequency: 'monthly',
       priority: 0.8,
     },

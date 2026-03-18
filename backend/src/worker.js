@@ -104,7 +104,7 @@ export default {
     }
   },
 
-  // Handle cron triggers
+  // Handle cron triggers with cursor-based batching
   async scheduled(event, env, ctx) {
     const sentry = new Toucan({
       dsn: env.SENTRY_DSN,
@@ -113,14 +113,54 @@ export default {
     });
 
     try {
-      await Promise.all([
-        checkAllSubscribers(env, sentry),
+      const BATCH_SIZE = 100; // Process 100 subscribers per cron run
+      const cursor = parseInt(await env.NEXUS_ALERTS_KV.get('cron_cursor') || '0');
+      const list = JSON.parse(await env.NEXUS_ALERTS_KV.get('subscriber_list') || '[]');
+
+      // Calculate batch boundaries
+      const batch = list.slice(cursor, cursor + BATCH_SIZE);
+      const nextCursor = cursor + BATCH_SIZE >= list.length ? 0 : cursor + BATCH_SIZE;
+
+      // Update cursor for next run
+      await env.NEXUS_ALERTS_KV.put('cron_cursor', String(nextCursor));
+
+      console.log(`[BATCH] Processing batch ${cursor}-${cursor + batch.length} of ${list.length} total subscribers. Next cursor: ${nextCursor}`);
+
+      // Process batch and email sequences in parallel
+      ctx.waitUntil(Promise.all([
+        checkSubscriberBatch(batch, env, sentry),
         sendEmailSequences(env),
-      ]);
+      ]));
     } catch (err) {
       sentry.captureException(err);
       await sendSlackAlert(`Cron job failed: ${err.message}`, env);
       throw err;
+    }
+  },
+
+  // Handle Cloudflare Queue messages for email/SMS notifications
+  async queue(batch, env) {
+    for (const msg of batch.messages) {
+      try {
+        const { type, email, phone, slots, lawFirmEmail } = msg.body;
+
+        if (type === 'email') {
+          if (lawFirmEmail) {
+            await sendWhiteLabelEmail(email, slots, lawFirmEmail, env);
+          } else {
+            await sendEmailNotification(email, slots, env);
+          }
+        } else if (type === 'sms') {
+          await sendSmsNotification(email, phone, slots, env);
+        }
+
+        // Rate limit to respect Resend/Twilio limits
+        await sleep(100); // 10 emails/SMS per second max
+      } catch (err) {
+        console.error(`Queue processing error for ${msg.body.email}:`, err);
+        // Message will be retried automatically by Cloudflare Queues
+        throw err;
+      }
     }
   },
 };
@@ -587,6 +627,7 @@ async function checkAllSubscribers(env, sentry) {
         await sendEmailNotification(sub.email, newSlots, env);
       }
       totalNotifs++;
+      notificationsSent++;
 
       // Track slot found activity for social proof
       const locationId = newSlots[0].locationId;
@@ -604,6 +645,8 @@ async function checkAllSubscribers(env, sentry) {
       }
     }
 
+    subscribersChecked++;
+
     // Update last_checked_at for ALL subscribers regardless of tier or whether they got notifications
     sub.last_checked_at = new Date().toISOString();
     await env.NEXUS_ALERTS_KV.put(`sub:${sub.email}`, JSON.stringify(sub));
@@ -615,6 +658,16 @@ async function checkAllSubscribers(env, sentry) {
   await env.NEXUS_ALERTS_KV.put('last_run', new Date().toISOString());
   await env.NEXUS_ALERTS_KV.put('total_checks', String(totalChecks));
   await env.NEXUS_ALERTS_KV.put('total_notifications', String(totalNotifications));
+
+  // Log cron completion metrics
+  const cronDuration = Date.now() - cronStartTime;
+  console.log(JSON.stringify({
+    metric: 'cron_duration_ms',
+    value: cronDuration,
+    subscribers_checked: subscribersChecked,
+    notifications_sent: notificationsSent,
+    locations_checked: locationSet.size
+  }));
 
   console.log(`[NEXUS Alert] Checked ${locationSet.size} locations, sent ${totalNotifs} notification(s)`);
 }
