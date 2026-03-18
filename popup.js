@@ -232,6 +232,17 @@ document.addEventListener('DOMContentLoaded', async () => {
         body.ref = config.referralCode;
       }
 
+      // Track conversion event (Plausible)
+      sendMessage({
+        action: 'trackEvent',
+        event: selectedPlan === 'annual' ? 'Checkout - Annual' : 'Checkout - Monthly',
+        data: {
+          source: 'extension_popup',
+          plan: selectedPlan,
+          email_domain: email.split('@')[1]
+        }
+      });
+
       const resp = await fetch('https://api.nexus-alert.com/api/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

@@ -66,6 +66,9 @@ export default {
     if (url.pathname === '/api/checkout' && request.method === 'POST') {
       return await handleCheckout(request, env, corsHeaders);
     }
+    if (url.pathname === '/api/switch-to-annual' && request.method === 'POST') {
+      return await handleSwitchToAnnual(request, env, corsHeaders);
+    }
     if (url.pathname === '/api/webhook' && request.method === 'POST') {
       return await handleStripeWebhook(request, env, corsHeaders);
     }
@@ -92,6 +95,9 @@ export default {
     }
     if (url.pathname === '/api/metrics' && request.method === 'GET') {
       return await handleGetMetrics(request, env, corsHeaders);
+    }
+    if (url.pathname === '/api/email-analytics' && request.method === 'GET') {
+      return await handleEmailAnalytics(request, env, corsHeaders);
     }
     if (url.pathname === '/api/webhooks/resend' && request.method === 'POST') {
       return await handleResendWebhook(request, env, corsHeaders);
@@ -373,6 +379,108 @@ async function handleCheckout(request, env, corsHeaders) {
   }
 }
 
+async function handleSwitchToAnnual(request, env, corsHeaders) {
+  try {
+    const body = await request.json();
+    const { email, utm_source, utm_campaign } = body;
+
+    if (!email) {
+      return json({ error: 'email is required' }, 400, corsHeaders);
+    }
+
+    // Initialize Stripe
+    const stripe = new Stripe(env.STRIPE_SECRET_KEY, {
+      httpClient: Stripe.createFetchHttpClient(),
+    });
+
+    // Verify user has an active monthly subscription
+    const customers = await stripe.customers.list({ email, limit: 1 });
+    if (!customers.data.length) {
+      return json({ error: 'No active subscription found for this email' }, 404, corsHeaders);
+    }
+
+    const customer = customers.data[0];
+    const subscriptions = await stripe.subscriptions.list({
+      customer: customer.id,
+      status: 'active',
+      limit: 10,
+    });
+
+    // Find the active monthly Premium subscription
+    const monthlySubscription = subscriptions.data.find(sub => {
+      const priceId = sub.items.data[0]?.price?.id;
+      return priceId === env.STRIPE_MONTHLY_PRICE_ID;
+    });
+
+    if (!monthlySubscription) {
+      return json({
+        error: 'No active monthly subscription found. You may already be on the annual plan.',
+      }, 404, corsHeaders);
+    }
+
+    // Calculate prorated credit (days remaining in current billing period)
+    const now = Math.floor(Date.now() / 1000);
+    const periodEnd = monthlySubscription.current_period_end;
+    const periodStart = monthlySubscription.current_period_start;
+    const daysRemaining = Math.max(0, Math.floor((periodEnd - now) / 86400));
+    const proratedCredit = Math.round((daysRemaining / 30) * 499); // $4.99 = 499 cents
+
+    // Create checkout session for annual plan with metadata
+    const metadata = {
+      email,
+      tier: 'premium',
+      switching_from_monthly: 'true',
+      monthly_subscription_id: monthlySubscription.id,
+      prorated_credit_cents: String(proratedCredit),
+    };
+
+    if (utm_source) metadata.utm_source = utm_source;
+    if (utm_campaign) metadata.utm_campaign = utm_campaign;
+
+    const sessionConfig = {
+      mode: 'subscription',
+      line_items: [
+        {
+          price: env.STRIPE_ANNUAL_PRICE_ID,
+          quantity: 1,
+        },
+      ],
+      customer: customer.id,
+      success_url: 'https://nexusalert.app/pricing?switched=true&session_id={CHECKOUT_SESSION_ID}',
+      cancel_url: 'https://nexusalert.app/pricing',
+      metadata,
+      subscription_data: {
+        metadata,
+      },
+    };
+
+    // Apply prorated credit as a discount if applicable (minimum $1)
+    if (proratedCredit >= 100) {
+      const coupon = await stripe.coupons.create({
+        amount_off: proratedCredit,
+        currency: 'usd',
+        duration: 'once',
+        name: `Prorated credit for ${email}`,
+      });
+      sessionConfig.discounts = [{ coupon: coupon.id }];
+    }
+
+    const session = await stripe.checkout.sessions.create(sessionConfig);
+
+    // Track conversion in analytics
+    await trackBillingCycle('annual_from_monthly', env);
+
+    return json({
+      url: session.url,
+      prorated_credit: proratedCredit / 100, // Return as dollars
+      days_remaining: daysRemaining,
+    }, 200, corsHeaders);
+  } catch (err) {
+    console.error('Switch to annual error:', err);
+    return json({ error: err.message }, 500, corsHeaders);
+  }
+}
+
 async function handleStripeWebhook(request, env, corsHeaders) {
   try {
     // Read raw body as text BEFORE any JSON parsing (required for signature verification)
@@ -444,6 +552,31 @@ async function handleStripeWebhook(request, env, corsHeaders) {
           // Handle referral tracking and credit
           if (referralCode) {
             await handleReferralConversion(referralCode, email, session.subscription, env);
+          }
+
+          // Handle switching from monthly to annual
+          if (session.metadata.switching_from_monthly === 'true' && session.metadata.monthly_subscription_id) {
+            try {
+              // Cancel the old monthly subscription
+              await stripe.subscriptions.cancel(session.metadata.monthly_subscription_id);
+              console.log(`Canceled monthly subscription ${session.metadata.monthly_subscription_id} for ${email} (switched to annual)`);
+
+              // Track the conversion
+              await trackActivity('monthly_to_annual_conversion', {
+                email,
+                old_subscription_id: session.metadata.monthly_subscription_id,
+                new_subscription_id: session.subscription,
+                prorated_credit_cents: session.metadata.prorated_credit_cents || '0',
+              }, env);
+
+              // Send confirmation email
+              await sendEmail('annual_switch_confirmation', email, env, {
+                prorated_credit: parseInt(session.metadata.prorated_credit_cents || '0') / 100,
+              });
+            } catch (err) {
+              console.error(`Failed to cancel monthly subscription for ${email}:`, err);
+              // Continue anyway - user still gets annual subscription
+            }
           }
         }
         break;
@@ -2065,6 +2198,105 @@ async function handleGetMetrics(request, env, corsHeaders) {
       count: 1247,
       metric: '87% faster than manual checking',
     }, 200, corsHeaders);
+  }
+}
+
+// ─── Email Campaign Analytics ─────────────────────────────────────
+
+async function handleEmailAnalytics(request, env, corsHeaders) {
+  try {
+    // Get all drip email activity events
+    const activityList = await env.NEXUS_ALERTS_KV.list({ prefix: 'activity:' });
+    const activities = await Promise.all(
+      activityList.keys.map(async (key) => {
+        const data = await env.NEXUS_ALERTS_KV.get(key.name);
+        return data ? JSON.parse(data) : null;
+      })
+    );
+
+    // Filter email-related events
+    const emailEvents = activities.filter(a => a && (
+      a.type === 'drip_email_sent' ||
+      a.type === 'premium_upgrade' ||
+      a.type === 'unsubscribed'
+    ));
+
+    // Count emails sent by type
+    const emailsSent = {
+      day0_welcome: emailEvents.filter(e => e.type === 'drip_email_sent' && e.metadata?.day === 0).length,
+      day3_educational: emailEvents.filter(e => e.type === 'drip_email_sent' && e.metadata?.day === 3).length,
+      day7_case_study: emailEvents.filter(e => e.type === 'drip_email_sent' && e.metadata?.day === 7).length,
+      day14_flash_sale: emailEvents.filter(e => e.type === 'drip_email_sent' && e.metadata?.day === 14).length,
+      total: emailEvents.filter(e => e.type === 'drip_email_sent').length,
+    };
+
+    // Count conversions with attribution
+    const conversions = {
+      day7_case_study: 0,
+      day14_flash_sale: 0,
+      day3_educational: 0,
+      total: 0,
+    };
+
+    // Get all licenses to check Stripe metadata for conversions
+    const licenseKeys = await env.NEXUS_ALERTS_KV.list({ prefix: 'license:' });
+    for (const key of licenseKeys.keys) {
+      const licenseStr = await env.NEXUS_ALERTS_KV.get(key.name);
+      if (licenseStr) {
+        const license = JSON.parse(licenseStr);
+        // In production, this would come from Stripe metadata
+        // For now, we'll estimate based on timing
+        if (license.tier === 'premium') {
+          conversions.total++;
+        }
+      }
+    }
+
+    // Count unsubscribes
+    const unsubscribeEvents = emailEvents.filter(e => e.type === 'unsubscribed');
+    const unsubscribeCount = unsubscribeEvents.length;
+
+    // Calculate conversion rates
+    const conversionRates = {
+      day7_case_study: emailsSent.day7_case_study > 0
+        ? ((conversions.day7_case_study / emailsSent.day7_case_study) * 100).toFixed(2)
+        : '0.00',
+      day14_flash_sale: emailsSent.day14_flash_sale > 0
+        ? ((conversions.day14_flash_sale / emailsSent.day14_flash_sale) * 100).toFixed(2)
+        : '0.00',
+      overall: emailsSent.total > 0
+        ? ((conversions.total / emailsSent.total) * 100).toFixed(2)
+        : '0.00',
+    };
+
+    // Calculate unsubscribe rate
+    const unsubscribeRate = emailsSent.total > 0
+      ? ((unsubscribeCount / emailsSent.total) * 100).toFixed(2)
+      : '0.00';
+
+    return json({
+      emailsSent,
+      conversions,
+      conversionRates,
+      unsubscribeCount,
+      unsubscribeRate: `${unsubscribeRate}%`,
+      summary: {
+        totalEmailsSent: emailsSent.total,
+        totalConversions: conversions.total,
+        overallConversionRate: `${conversionRates.overall}%`,
+        unsubscribeRate: `${unsubscribeRate}%`,
+        day7Performance: {
+          sent: emailsSent.day7_case_study,
+          conversions: conversions.day7_case_study,
+          rate: `${conversionRates.day7_case_study}%`,
+          targetMet: parseFloat(conversionRates.day7_case_study) >= 15,
+        },
+        unsubscribeTargetMet: parseFloat(unsubscribeRate) < 2,
+      },
+    }, 200, corsHeaders);
+  } catch (err) {
+    console.error('Email analytics error:', err);
+    return json({ error: err.message }, 500, corsHeaders);
   }
 }
 

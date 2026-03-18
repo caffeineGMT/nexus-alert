@@ -14,7 +14,10 @@
     "monitor:analytics": "./scripts/analytics-dashboard.js",
     "monitor:all": "./monitoring-dashboard.sh",
     "health": "curl -s https://api.nexus-alert.com/health | jq .",
-    "tail": "wrangler tail --env production --format pretty"
+    "tail": "wrangler tail --env production --format pretty",
+    "setup:promo-codes": "node scripts/setup-promo-codes.js",
+    "test:drip": "./scripts/test-drip-campaign.sh",
+    "analytics:email": "curl -s https://api.nexus-alert.com/api/email-analytics | jq '.summary'"
   },
   "devDependencies": {
     "@cloudflare/vitest-pool-workers": "^0.5.0",

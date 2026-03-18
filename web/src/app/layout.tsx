@@ -96,6 +96,14 @@ export default function RootLayout({
           </>
         )}
 
+        {/* Plausible Analytics */}
+        <Script
+          defer
+          data-domain="nexus-alert.com"
+          src="https://plausible.io/js/script.js"
+          strategy="afterInteractive"
+        />
+
         {/* Crisp Live Chat Widget - Hidden on /help routes via CSS to reduce clutter */}
         {crispWebsiteId && crispWebsiteId !== 'your-crisp-website-id-here' && (
           <>

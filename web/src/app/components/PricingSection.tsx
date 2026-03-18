@@ -134,6 +134,20 @@ export default function PricingSection() {
         });
       }
 
+      // Track conversion event in Plausible
+      if (typeof window !== 'undefined' && (window as any).plausible) {
+        (window as any).plausible(
+          billingCycle === 'annual' ? 'Checkout - Annual' : 'Checkout - Monthly',
+          {
+            props: {
+              source: source,
+              campaign: campaign || 'none',
+              page: window.location.pathname,
+            },
+          }
+        );
+      }
+
       const res = await fetch('/api/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
