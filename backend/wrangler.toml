@@ -24,3 +24,35 @@ TWILIO_FROM_NUMBER = "" # Your Twilio number in E.164 format
 # wrangler secret put TWILIO_AUTH_TOKEN       (Twilio auth token)
 # wrangler secret put RESEND_API_KEY          (Resend.com API key)
 # wrangler secret put WEBHOOK_SECRET          (Internal API authentication secret)
+
+# ────────────────────────────────────────────────────────────────────
+# PRODUCTION ENVIRONMENT
+# ────────────────────────────────────────────────────────────────────
+[env.production]
+name = "nexus-alert-backend"
+compatibility_date = "2026-03-18"
+compatibility_flags = ["nodejs_compat"]
+
+# Production cron: check every 2 minutes (premium feature)
+[env.production.triggers]
+crons = ["*/2 * * * *"]
+
+# Production KV namespace (replace ID after creating namespace)
+[[env.production.kv_namespaces]]
+binding = "NEXUS_ALERTS_KV"
+id = "REPLACE_WITH_PRODUCTION_NAMESPACE_ID"  # Run: wrangler kv:namespace create NEXUS_ALERTS_KV --env production
+
+# Production vars (non-secret)
+[env.production.vars]
+ENVIRONMENT = "production"
+LOG_LEVEL = "info"
+
+# Production secrets (set via wrangler secret put --env production):
+# - STRIPE_SECRET_KEY
+# - STRIPE_WEBHOOK_SECRET
+# - STRIPE_PRICE_ID
+# - RESEND_API_KEY
+# - TWILIO_ACCOUNT_SID
+# - TWILIO_AUTH_TOKEN
+# - TWILIO_FROM_NUMBER
+# - WEBHOOK_SECRET

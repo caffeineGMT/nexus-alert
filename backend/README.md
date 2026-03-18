@@ -315,3 +315,104 @@ Check the Cloudflare dashboard for:
 
 **Total for personal use (free tier):** $0/month
 **Total for 100 premium subscribers:** $499/month revenue - $44 Stripe fees - ~$80 Twilio = **~$375/month profit**
+
+## Production Deployment
+
+For complete production setup with custom domain and all secrets:
+
+📋 **[PRODUCTION_CHECKLIST.md](./PRODUCTION_CHECKLIST.md)** - Step-by-step deployment checklist
+
+📖 **[PRODUCTION_DEPLOYMENT.md](./PRODUCTION_DEPLOYMENT.md)** - Comprehensive deployment guide
+
+🌐 **[DNS_SETUP.md](./DNS_SETUP.md)** - Custom domain configuration
+
+### Quick Production Deploy
+
+```bash
+# 1. Login to Cloudflare
+npx wrangler login
+
+# 2. Create production KV namespace
+npx wrangler kv:namespace create NEXUS_ALERTS_KV --env production
+
+# 3. Copy namespace ID from output and update wrangler.toml
+# Edit: [env.production.kv_namespaces] → id = "YOUR_NAMESPACE_ID"
+
+# 4. Set all secrets
+./scripts/setup-production-secrets.sh
+
+# 5. Deploy to production
+npm run deploy -- --env production
+
+# 6. Add custom domain (via Cloudflare Dashboard)
+# Workers → nexus-alert-backend → Triggers → Add Custom Domain
+# → api.nexus-alert.com
+
+# 7. Verify deployment
+curl https://api.nexus-alert.com/api/status
+```
+
+### Production Environment
+
+The production environment includes:
+- Custom domain: `api.nexus-alert.com`
+- Environment: `production`
+- Cron: Every 2 minutes (`*/2 * * * *`)
+- Separate KV namespace for production data
+- All secrets managed via `wrangler secret put --env production`
+
+### Production Secrets
+
+Set these via the helper script or manually:
+
+```bash
+npx wrangler secret put STRIPE_SECRET_KEY --env production
+npx wrangler secret put STRIPE_WEBHOOK_SECRET --env production
+npx wrangler secret put STRIPE_PRICE_ID --env production
+npx wrangler secret put RESEND_API_KEY --env production
+npx wrangler secret put TWILIO_ACCOUNT_SID --env production
+npx wrangler secret put TWILIO_AUTH_TOKEN --env production
+npx wrangler secret put TWILIO_FROM_NUMBER --env production
+npx wrangler secret put WEBHOOK_SECRET --env production
+```
+
+### Production Monitoring
+
+```bash
+# Real-time logs
+npx wrangler tail --env production --format pretty
+
+# View deployments
+npx wrangler deployments list --env production
+
+# Rollback if needed
+npx wrangler rollback --env production
+
+# Check KV data
+npx wrangler kv:key list --binding=NEXUS_ALERTS_KV --env production --preview false
+```
+
+### Production URLs
+
+- **API Base:** https://api.nexus-alert.com
+- **Status Check:** https://api.nexus-alert.com/api/status
+- **Stripe Webhook:** https://api.nexus-alert.com/api/webhooks/stripe
+
+### Security Checklist
+
+- [ ] All secrets set via `wrangler secret put` (not in code)
+- [ ] Stripe webhook signature verification enabled
+- [ ] Custom domain has SSL certificate
+- [ ] CORS configured for production Chrome extension origin
+- [ ] Rate limiting enabled on critical endpoints
+- [ ] Cloudflare WAF rules configured
+- [ ] Monitoring and alerts set up
+
+### Post-Deployment
+
+After deploying to production:
+1. Update Chrome extension to use `https://api.nexus-alert.com`
+2. Configure Stripe webhook to point to production URL
+3. Test full payment flow end-to-end
+4. Monitor logs for 24 hours
+5. Set up uptime monitoring (e.g., UptimeRobot)
