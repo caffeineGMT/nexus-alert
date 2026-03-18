@@ -858,6 +858,54 @@
         <button class="btn btn-secondary" id="exportDataBtn" style="flex:1">Export Data</button>
       </div>
     </div>
+
+    <!-- Referral Section -->
+    <div class="section" id="referralSection" style="background:linear-gradient(135deg,#1e3a8a 0%,#1e40af 100%);border:2px solid #3b82f6;border-radius:8px;margin:16px;padding:16px">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
+        <span style="font-size:24px">🎁</span>
+        <div>
+          <div style="font-weight:700;font-size:14px">Earn Free Premium Months!</div>
+          <div style="font-size:11px;color:rgba(255,255,255,0.8)">1 month free per friend who upgrades</div>
+        </div>
+      </div>
+
+      <div style="background:rgba(255,255,255,0.1);border-radius:6px;padding:12px;margin-bottom:12px">
+        <div style="font-size:10px;color:rgba(255,255,255,0.7);margin-bottom:6px">YOUR REFERRAL LINK</div>
+        <div style="display:flex;gap:6px;align-items:center">
+          <input type="text" id="referralLink" readonly style="flex:1;background:rgba(0,0,0,0.3);border:1px solid rgba(255,255,255,0.2);color:white;padding:8px;border-radius:4px;font-size:11px;font-family:monospace" value="Loading...">
+          <button class="btn btn-primary" id="copyReferralBtn" style="padding:8px 12px;white-space:nowrap">
+            📋 Copy
+          </button>
+        </div>
+        <div id="copyFeedback" style="display:none;margin-top:6px;font-size:10px;color:#22c55e">✓ Copied to clipboard!</div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:12px">
+        <button class="btn" id="shareTwitterBtn" style="background:#1da1f2;border:none;padding:8px;font-size:11px">
+          🐦 Twitter
+        </button>
+        <button class="btn" id="shareEmailBtn" style="background:#6366f1;border:none;padding:8px;font-size:11px">
+          ✉️ Email
+        </button>
+      </div>
+
+      <div id="referralStats" style="display:none;background:rgba(0,0,0,0.2);border-radius:6px;padding:10px;text-align:center">
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;font-size:11px">
+          <div>
+            <div style="font-size:18px;font-weight:700;color:#22c55e" id="referralCount">0</div>
+            <div style="color:rgba(255,255,255,0.7)">Referrals</div>
+          </div>
+          <div>
+            <div style="font-size:18px;font-weight:700;color:#22c55e" id="freeMonthsEarned">0</div>
+            <div style="color:rgba(255,255,255,0.7)">Free Months</div>
+          </div>
+          <div>
+            <div style="font-size:18px;font-weight:700;color:#22c55e" id="referralClicks">0</div>
+            <div style="color:rgba(255,255,255,0.7)">Clicks</div>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 
   <!-- Footer -->

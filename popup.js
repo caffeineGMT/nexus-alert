@@ -253,6 +253,28 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   });
 
+  // ─── Settings: Discord Community ───────────────────────────────
+
+  // Show Discord community section only for premium users
+  if (config.tier === 'premium') {
+    document.getElementById('communitySection').style.display = 'block';
+
+    // Check if user is Founding 100 member
+    if (config.licenseKey?.metadata?.discord_member_number && parseInt(config.licenseKey.metadata.discord_member_number) <= 100) {
+      document.getElementById('founding100Badge').style.display = 'block';
+    }
+
+    // Join Discord button
+    document.getElementById('joinDiscordBtn').addEventListener('click', () => {
+      // Open Discord invite link (to be created)
+      const discordInviteUrl = 'https://discord.gg/nexus-alert-insiders';
+      chrome.tabs.create({ url: discordInviteUrl });
+
+      // Track Discord join event
+      sendMessage({ action: 'trackEvent', event: 'discord_join_clicked', data: { email: config.email } });
+    });
+  }
+
   // Restore button
   document.getElementById('restoreBtn').addEventListener('click', async () => {
     const email = document.getElementById('upgradeEmail').value.trim();
@@ -272,6 +294,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         // Re-render UI
         document.getElementById('freePlanCard').style.display = 'none';
         document.getElementById('premiumPlanCard').style.display = 'block';
+        document.getElementById('communitySection').style.display = 'block';
         document.getElementById('freeIntervalNotice').style.display = 'none';
         btn.textContent = 'Restored!';
         setTimeout(() => {
@@ -651,3 +674,67 @@ function sendMessage(msg) {
 function updateConfig(partial) {
   sendMessage({ action: 'updateConfig', config: partial });
 }
+
+// ─── Referral Program ─────────────────────────────────────────────────
+
+async function loadReferralData() {
+  const email = config.email || localStorage.getItem('userEmail');
+  if (!email) {
+    // Show email prompt if not set
+    document.getElementById('referralSection').style.display = 'none';
+    return;
+  }
+
+  try {
+    // Generate referral code from email
+    const code = btoa(email).substring(0, 8).toUpperCase();
+    const shareUrl = `https://nexus-alert.com?ref=${code}`;
+
+    document.getElementById('referralLink').value = shareUrl;
+
+    // Load referral stats from backend
+    const response = await fetch(`https://api.nexus-alert.com/api/referrals/${code}`);
+    if (response.ok) {
+      const stats = await response.json();
+      document.getElementById('referralCount').textContent = stats.conversions || 0;
+      document.getElementById('freeMonthsEarned').textContent = stats.conversions || 0;
+      document.getElementById('referralClicks').textContent = stats.clicks || 0;
+
+      if (stats.conversions > 0 || stats.clicks > 0) {
+        document.getElementById('referralStats').style.display = 'block';
+      }
+    }
+
+    // Set up event listeners
+    document.getElementById('copyReferralBtn').addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(shareUrl);
+        const feedback = document.getElementById('copyFeedback');
+        feedback.style.display = 'block';
+        setTimeout(() => {
+          feedback.style.display = 'none';
+        }, 2000);
+      } catch (err) {
+        console.error('Copy failed:', err);
+        // Fallback: select text
+        document.getElementById('referralLink').select();
+      }
+    });
+
+    document.getElementById('shareTwitterBtn').addEventListener('click', () => {
+      const tweetText = encodeURIComponent(`I found my NEXUS appointment in 3 days with @NexusAlert 🎉 ${shareUrl}`);
+      window.open(`https://twitter.com/intent/tweet?text=${tweetText}`, '_blank');
+    });
+
+    document.getElementById('shareEmailBtn').addEventListener('click', () => {
+      const subject = encodeURIComponent('Check out NEXUS Alert!');
+      const body = encodeURIComponent(`Hey! Are you still waiting for a NEXUS appointment?\n\nI've been using this Chrome extension that alerts me instantly when slots open up - it's way better than refreshing manually.\n\nCheck it out: ${shareUrl}`);
+      window.open(`mailto:?subject=${subject}&body=${body}`, '_blank');
+    });
+  } catch (err) {
+    console.error('Error loading referral data:', err);
+  }
+}
+
+// Initialize referral section
+loadReferralData();

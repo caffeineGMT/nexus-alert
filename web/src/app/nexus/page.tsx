@@ -1,3 +1,5 @@
+'use client';
+
 import PricingSection from '../components/PricingSection';
 import EmailCaptureForm from "../components/EmailCaptureForm";
 import ActivityFeed from '../components/ActivityFeed';

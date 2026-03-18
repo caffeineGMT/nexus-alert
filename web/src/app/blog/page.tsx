@@ -29,6 +29,15 @@ const blogPosts = [
     category: 'Guides',
   },
   {
+    slug: 'nexus-interview-tips',
+    title: 'NEXUS Interview Tips: Everything You Need to Know to Pass',
+    excerpt:
+      'Ace your NEXUS interview on the first try. Complete guide covering required documents, interview questions, what to expect, common mistakes to avoid, and insider tips from successful applicants.',
+    date: '2026-03-18',
+    readTime: '9 min read',
+    category: 'Guides',
+  },
+  {
     slug: 'global-entry-vs-nexus-vs-sentri',
     title: 'Global Entry vs NEXUS vs SENTRI: Which Trusted Traveler Program is Right for You?',
     excerpt:

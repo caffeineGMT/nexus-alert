@@ -38,6 +38,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 0.8,
     },
     {
+      url: `${baseUrl}/blog/nexus-interview-tips`,
+      lastModified: '2026-03-18',
+      changeFrequency: 'monthly',
+      priority: 0.8,
+    },
+    {
       url: `${baseUrl}/blog/global-entry-vs-nexus-vs-sentri`,
       lastModified: '2026-03-18',
       changeFrequency: 'monthly',
