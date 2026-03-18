@@ -221,7 +221,7 @@ export default {
 async function handleCheckout(request, env, corsHeaders) {
   try {
     const body = await request.json();
-    const { email, ref, plan } = body;
+    const { email, ref, plan, promoCode } = body;
 
     if (!email) {
       return json({ error: 'email is required' }, 400, corsHeaders);
@@ -231,6 +231,32 @@ async function handleCheckout(request, env, corsHeaders) {
     const stripe = new Stripe(env.STRIPE_SECRET_KEY, {
       httpClient: Stripe.createFetchHttpClient(),
     });
+
+    // Handle promo code validation for PRODUCTHUNT special offer
+    let discountCoupon = null;
+    if (promoCode) {
+      const normalizedCode = promoCode.trim().toUpperCase();
+
+      // PRODUCTHUNT promo code: 100% off first month
+      if (normalizedCode === 'PRODUCTHUNT') {
+        try {
+          // Retrieve the coupon from Stripe to ensure it exists and is valid
+          const coupons = await stripe.coupons.list({ limit: 100 });
+          const productHuntCoupon = coupons.data.find(c =>
+            c.id === 'PRODUCTHUNT' || c.name === 'PRODUCTHUNT'
+          );
+
+          if (productHuntCoupon && productHuntCoupon.valid) {
+            discountCoupon = productHuntCoupon.id;
+          } else {
+            // Coupon doesn't exist yet - will be handled by allow_promotion_codes
+            console.log('PRODUCTHUNT coupon not found in Stripe, will use allow_promotion_codes');
+          }
+        } catch (err) {
+          console.error('Error validating PRODUCTHUNT coupon:', err);
+        }
+      }
+    }
 
     // Handle Pro tier separately
     if (plan === 'pro') {
@@ -245,9 +271,12 @@ async function handleCheckout(request, env, corsHeaders) {
       if (ref) {
         metadata.referralCode = ref;
       }
+      if (promoCode) {
+        metadata.promoCode = promoCode.trim().toUpperCase();
+        metadata.source = 'producthunt';
+      }
 
-      // Create checkout session with 60-day trial
-      const session = await stripe.checkout.sessions.create({
+      const sessionConfig = {
         mode: 'subscription',
         line_items: [
           {
@@ -259,11 +288,18 @@ async function handleCheckout(request, env, corsHeaders) {
         subscription_data: {
           trial_period_days: 60,
         },
-        success_url: 'https://nexus-alert.com/pro/dashboard?session_id={CHECKOUT_SESSION_ID}',
-        cancel_url: 'https://nexus-alert.com/pro',
+        success_url: 'https://nexusalert.app/pro/dashboard?session_id={CHECKOUT_SESSION_ID}',
+        cancel_url: 'https://nexusalert.app/pro',
         metadata,
-      });
+        allow_promotion_codes: true, // Allow users to enter promo codes at checkout
+      };
 
+      // Apply discount if promo code is valid
+      if (discountCoupon) {
+        sessionConfig.discounts = [{ coupon: discountCoupon }];
+      }
+
+      const session = await stripe.checkout.sessions.create(sessionConfig);
       return json({ url: session.url }, 200, corsHeaders);
     }
 
@@ -281,14 +317,19 @@ async function handleCheckout(request, env, corsHeaders) {
       }, 500, corsHeaders);
     }
 
-    // Build metadata with optional referral code and billing cycle
+    // Build metadata with optional referral code, billing cycle, and promo code
     const metadata = { email, billingCycle };
     if (ref) {
       metadata.referralCode = ref;
     }
+    if (promoCode) {
+      metadata.promoCode = promoCode.trim().toUpperCase();
+      metadata.source = 'producthunt';
+      metadata.campaign = 'ph_launch';
+    }
 
-    // Create checkout session
-    const session = await stripe.checkout.sessions.create({
+    // Create checkout session with promo code support
+    const sessionConfig = {
       mode: 'subscription',
       line_items: [
         {
@@ -297,11 +338,18 @@ async function handleCheckout(request, env, corsHeaders) {
         },
       ],
       customer_email: email,
-      success_url: 'https://nexus-alert.com/success?session_id={CHECKOUT_SESSION_ID}',
-      cancel_url: 'https://nexus-alert.com/pricing',
+      success_url: 'https://nexusalert.app/success?session_id={CHECKOUT_SESSION_ID}',
+      cancel_url: 'https://nexusalert.app/pricing',
       metadata,
-    });
+      allow_promotion_codes: true, // Allow users to enter promo codes at checkout
+    };
 
+    // Apply discount if promo code is valid
+    if (discountCoupon) {
+      sessionConfig.discounts = [{ coupon: discountCoupon }];
+    }
+
+    const session = await stripe.checkout.sessions.create(sessionConfig);
     return json({ url: session.url }, 200, corsHeaders);
   } catch (err) {
     console.error('Checkout error:', err);

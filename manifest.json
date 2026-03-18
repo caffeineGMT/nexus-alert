@@ -36,5 +36,11 @@
       "resources": ["onboarding.html"],
       "matches": ["<all_urls>"]
     }
-  ]
+  ],
+  "homepage_url": "https://nexus-alert.com",
+  "externally_connectable": {
+    "matches": [
+      "https://nexus-alert.com/*"
+    ]
+  }
 }

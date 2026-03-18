@@ -396,6 +396,27 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     });
     return true;
   }
+  if (msg.action === 'trackEvent') {
+    // Track conversion events for analytics
+    const { event, data } = msg;
+    console.log(`[NEXUS Alert] Event tracked: ${event}`, data);
+
+    // Send to backend analytics API
+    fetch('https://api.nexus-alert.com/api/analytics/event', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        event,
+        data,
+        timestamp: Date.now(),
+      }),
+    }).catch(err => {
+      console.error('[NEXUS Alert] Failed to track event:', err);
+    });
+
+    sendResponse({ success: true });
+    return true;
+  }
 });
 
 // ─── Helpers ───────────────────────────────────────────────────────

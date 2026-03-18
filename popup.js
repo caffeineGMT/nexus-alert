@@ -340,13 +340,17 @@ document.addEventListener('DOMContentLoaded', async () => {
       const daysSinceInstall = (Date.now() - installDate) / (1000 * 60 * 60 * 24);
       if (daysSinceInstall >= 3) {
         document.getElementById('upgradeBanner').classList.remove('hidden');
+        // Track banner impression
+        sendMessage({ action: 'trackEvent', event: 'upgrade_banner_shown', data: { daysSinceInstall: Math.floor(daysSinceInstall) } });
       }
     }
   });
 
   // Banner upgrade button
   document.getElementById('bannerUpgradeBtn').addEventListener('click', () => {
-    chrome.tabs.create({ url: 'https://nexusalert.app/pricing' });
+    // Track banner click event
+    sendMessage({ action: 'trackEvent', event: 'upgrade_banner_clicked', data: { source: '3day_persistent' } });
+    chrome.tabs.create({ url: 'https://nexusalert.app/pricing?utm_source=extension&utm_medium=banner&utm_campaign=3day_persistent' });
   });
 
   // Banner dismiss button
@@ -359,7 +363,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // Modal upgrade button
   document.getElementById('upgradeNowBtn').addEventListener('click', () => {
-    chrome.tabs.create({ url: 'https://nexusalert.app/pricing' });
+    // Track modal click event
+    sendMessage({ action: 'trackEvent', event: 'upgrade_modal_clicked', data: { source: 'manual_check' } });
+    chrome.tabs.create({ url: 'https://nexusalert.app/pricing?utm_source=extension&utm_medium=modal&utm_campaign=manual_check' });
     document.getElementById('upgradeModal').classList.add('hidden');
   });
 
@@ -387,6 +393,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     const isPremium = freshStatus.config?.tier === 'premium';
     if (!isPremium) {
       document.getElementById('upgradeModal').classList.remove('hidden');
+      // Track modal impression
+      sendMessage({ action: 'trackEvent', event: 'upgrade_modal_shown', data: { trigger: 'manual_check' } });
     }
   });
 
