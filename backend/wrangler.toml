@@ -40,6 +40,13 @@ SENTRY_DSN = "" # Sentry DSN for error tracking (https://YOUR_PROJECT_ID.ingest.
 # wrangler secret put RESEND_API_KEY            (Resend.com API key)
 # wrangler secret put WEBHOOK_SECRET            (Internal API authentication secret)
 # wrangler secret put SLACK_WEBHOOK_URL         (Slack incoming webhook URL for alerts)
+# wrangler secret put CONVERTKIT_API_KEY        (ConvertKit API key for email automation)
+# wrangler secret put CONVERTKIT_API_SECRET     (ConvertKit API secret)
+# wrangler secret put CONVERTKIT_FORM_ID        (ConvertKit form ID for landing page signups)
+# wrangler secret put CONVERTKIT_TAG_FREE       (ConvertKit tag ID for free tier users)
+# wrangler secret put CONVERTKIT_TAG_PREMIUM    (ConvertKit tag ID for premium users)
+# wrangler secret put CONVERTKIT_TAG_CHURNED    (ConvertKit tag ID for churned users)
+# wrangler secret put CONVERTKIT_TAG_CONVERTED  (ConvertKit tag ID for converted users)
 
 # ────────────────────────────────────────────────────────────────────
 # PRODUCTION ENVIRONMENT

@@ -1946,9 +1946,26 @@ async function sendEmailSequences(env) {
             emailSent = await sendEmail('premium_welcome', email, env);
             if (emailSent) sequence = { stage: 1, lastSent: now };
           } else if (daysSinceReg >= 7 && sequence.stage === 1) {
-            // Day 7: Pro tips
-            emailSent = await sendEmail('tips', email, env);
+            // Day 7: Referral invite (viral growth priority for Premium users too)
+            const code = generateReferralCode(email);
+            const shareUrl = `https://nexus-alert.com?ref=${code}`;
+            const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(`I found my NEXUS appointment in 3 days with @NexusAlert 🎉 ${shareUrl}`)}`;
+            const emailShareUrl = `mailto:?subject=${encodeURIComponent('Check out NEXUS Alert!')}&body=${encodeURIComponent(`Hey! Are you still waiting for a NEXUS appointment?\n\nI've been using this Chrome extension that alerts me instantly when slots open up - it's way better than refreshing manually.\n\nCheck it out: ${shareUrl}`)}`;
+            const unsubscribeToken = await generateHmacToken(email, env.WEBHOOK_SECRET);
+            const unsubscribeUrl = `https://api.nexus-alert.com/api/unsubscribe?email=${encodeURIComponent(email)}&token=${encodeURIComponent(unsubscribeToken)}`;
+
+            emailSent = await sendEmail('referral_invite', email, env, {
+              email,
+              shareUrl,
+              twitterUrl,
+              emailUrl: emailShareUrl,
+              unsubscribeUrl,
+            });
             if (emailSent) sequence = { stage: 2, lastSent: now };
+          } else if (daysSinceReg >= 10 && sequence.stage === 2) {
+            // Day 10: Pro tips
+            emailSent = await sendEmail('tips', email, env);
+            if (emailSent) sequence = { stage: 3, lastSent: now };
           }
         }
 

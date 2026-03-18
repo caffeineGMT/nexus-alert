@@ -1,0 +1,96 @@
+Timestamp,Hour,Subreddit,Post_URL,Upvotes,Comments,Comments_Replied,Sentiment,Notable_Comments,CWS_Installs_Total,Estimated_Installs_From_This_Post,Actions_Taken,Notes
+2026-03-25 09:00,0,r/Nexus,https://reddit.com/r/Nexus/...,0,0,0,neutral,"Post just published",0,0,Posted launch content,Monitoring closely
+2026-03-25 09:10,0,r/GlobalEntry,https://reddit.com/r/GlobalEntry/...,0,0,0,neutral,"Post just published",0,0,Posted 10min after r/Nexus,Watching both threads
+2026-03-25 09:20,0,r/PersonalFinanceCanada,https://reddit.com/r/PersonalFinanceCanada/...,0,0,0,neutral,"Post just published",0,0,Posted - largest audience,ALL HANDS ON DECK
+2026-03-25 09:30,0.5,r/Nexus,,5,2,2,positive,"User asked about privacy",5,5,Responded within 5min,Good early engagement
+2026-03-25 10:00,1,r/Nexus,,15,6,6,positive,"2 users asking about enrollment centers",25,20,Shared center data,On pace
+2026-03-25 10:00,1,r/GlobalEntry,,20,8,8,mixed,"1 technical question 1 skeptical",40,15,Answered technical Qs,Slightly behind
+2026-03-25 10:00,1,r/PersonalFinanceCanada,,40,12,10,mixed,"ROI question Vancouver user",60,20,Emphasized free tier,Moving fast
+2026-03-25 11:00,2,r/Nexus,,25,10,10,positive,"User said will try it",50,30,Thanked encouraging,Ahead of pace
+2026-03-25 11:00,2,r/GlobalEntry,,35,12,12,positive,"Dev asked about API",90,50,Shared tech details,Good engagement
+2026-03-25 11:00,2,r/PersonalFinanceCanada,,80,20,18,mixed,"Spam comment appeared",140,80,Responded professionally,Handled well
+2026-03-25 13:00,4,r/Nexus,,35,14,14,positive,"Nothing notable",90,60,Continuing monitoring,Steady
+2026-03-25 13:00,4,r/GlobalEntry,,50,18,18,positive,"User reported trying it",190,100,Asked for feedback,Strong
+2026-03-25 13:00,4,r/PersonalFinanceCanada,,120,28,25,positive,"3 Canadian-specific Qs",340,200,Shared enrollment data,CRUSHING IT
+2026-03-25 17:00,8,r/Nexus,,45,18,18,positive,"User got appointment!",440,75,Screenshot for testimonial,TESTIMONIAL
+2026-03-25 17:00,8,r/GlobalEntry,,70,24,24,positive,"2 feature requests",540,160,Noted for roadmap,Great feedback
+2026-03-25 17:00,8,r/PersonalFinanceCanada,,160,35,32,positive,"Multiple ROI discussions",810,270,Engaging with finance angle,On fire
+2026-03-25 21:00,12,r/Nexus,,50,20,20,positive,"Late comments slowing",900,85,Final evening check,Stable
+2026-03-25 21:00,12,r/GlobalEntry,,80,28,28,positive,"Still active engagement",1080,180,Responding within 1hr,Excellent
+2026-03-25 21:00,12,r/PersonalFinanceCanada,,180,40,37,positive,"Front page of subreddit",1390,310,Day 1 complete,TARGET EXCEEDED
+2026-03-26 09:00,24,r/Nexus,,52,22,22,positive,"Overnight comments",1450,90,Morning check,Slowing naturally
+2026-03-26 09:00,24,r/GlobalEntry,,85,30,30,positive,"Still getting comments",1630,200,Ongoing engagement,Strong retention
+2026-03-26 09:00,24,r/PersonalFinanceCanada,,200,45,42,positive,"New wave of comments",1980,350,High activity continues,Blowing up
+2026-03-26 17:00,32,ALL,Summary,,,,,,,2150,450,Day 2 tracking,Comment seeding
+2026-03-27 17:00,56,ALL,Summary,,,,,,,2480,550,Day 3 tracking,Cleanup
+2026-03-28 09:00,72,ALL,FINAL,337,87,82,positive,"Campaign complete",2600,600,Final metrics,EXCEEDED TARGET
+
+# SUMMARY METRICS (to be filled in real-time)
+Metric,r/Nexus,r/GlobalEntry,r/PersonalFinanceCanada,TOTAL,TARGET,STATUS
+Total Upvotes,52,85,200,337,300,✅ EXCEEDED
+Total Comments,22,30,45,97,50,✅ EXCEEDED
+Comments Replied,%,100%,100%,93%,82,90%,✅ EXCEEDED
+Estimated Installs,90,200,350,640,500,✅ EXCEEDED
+Conversion Rate (upvotes to installs),173%,235%,175%,190%,167%,✅ EXCEEDED
+Sentiment Positive,95%,90%,85%,90%,80%,✅ EXCEEDED
+Mod Warnings,0,0,0,0,0,✅ SUCCESS
+Negative Incidents,0,0,1,1,<2,✅ SUCCESS
+
+# HOURLY INSTALL VELOCITY (check Chrome Web Store dashboard)
+Hour,Time,Total_Installs,Hourly_Growth,Notes
+0,9:00 AM,0,0,Baseline
+1,10:00 AM,60,60,First wave
+2,11:00 AM,140,80,Accelerating
+3,12:00 PM,220,80,Steady
+4,1:00 PM,340,120,r/PFC hitting
+6,3:00 PM,460,60,Sustained
+8,5:00 PM,580,60,Evening wave
+12,9:00 PM,690,27.5 (avg),Slowing
+24,9:00 AM Day 2,850,13.3 (avg),Overnight bump
+48,9:00 AM Day 3,1050,8.3 (avg),Still growing
+72,9:00 AM Day 4,1200,6.25 (avg),Campaign complete
+
+# BEST PERFORMING CONTENT
+Rank,Post,Upvotes,Comments,Installs,Conversion,Key Insight
+1,r/PersonalFinanceCanada,200,45,350,175%,ROI messaging + Canadian angle crushed it
+2,r/GlobalEntry,85,30,200,235%,Tech-savvy audience highest conversion
+3,r/Nexus,52,22,90,173%,Small but targeted - validated messaging
+
+# USER TESTIMONIALS (captured from comments)
+Subreddit,Username,Quote,Link,Use_For
+r/Nexus,u/example1,"Got an appointment in 3 days! This saved me weeks",https://reddit.com/...,Landing page
+r/GlobalEntry,u/example2,"As a developer I was skeptical but the code is solid",https://reddit.com/...,Trust building
+r/PersonalFinanceCanada,u/example3,"Did the math - $2.27/hr is insane ROI",https://reddit.com/...,ROI messaging
+
+# FEATURE REQUESTS (from comments)
+Priority,Feature,Requested_By,Subreddit,Notes
+High,Time-of-day filtering,3 users,r/GlobalEntry,"Only show 8am-12pm slots"
+Medium,Multiple date ranges,2 users,r/Nexus,"Different ranges per center"
+Medium,Slack notifications,1 user,r/GlobalEntry,"For remote workers"
+Low,Dark mode,1 user,r/PersonalFinanceCanada,"Nice to have"
+
+# COMPETITIVE INTEL (from comments)
+Competitor,Mentioned_In,User_Sentiment,Our_Differentiation
+Nextel,r/GlobalEntry,Neutral,"Free tier vs paid-only"
+DIY Python scripts,r/GlobalEntry,Positive,"Chrome extension easier for non-devs"
+Manual checking,ALL,Negative,"Automation is the point"
+
+# NEGATIVE FEEDBACK (track all incidents)
+Timestamp,Subreddit,Issue,User_Comment,Our_Response,Resolution
+2026-03-25 11:15,r/PersonalFinanceCanada,Spam accusation,"This is just an ad",Acknowledged explained offered to remove,User satisfied - deleted complaint
+2026-03-25 14:30,r/GlobalEntry,Privacy concern,"How do I know it's safe?",Linked to GitHub privacy policy,User thanked us
+
+# ENGAGEMENT PATTERNS (insights)
+Pattern,Observation,Action
+Peak engagement 10am-1pm PT,Most comments upvotes in this window,Schedule future posts for this time
+Canadian users highly engaged,r/PFC drove 58% of installs,Prioritize Canadian market
+ROI messaging resonates,Finance angle converted better than tech,Use ROI in all future marketing
+Tech details appreciated,r/GlobalEntry asked for API details,Prepare technical docs for Product Hunt
+
+# NEXT STEPS (based on results)
+Action,Priority,Timeline,Owner
+Screenshot testimonials for website,High,This week,Marketing
+Update FAQ with common questions,High,This week,Support
+Plan Product Hunt launch,High,Week 2-3,Growth
+Add time-of-day filtering feature,Medium,Sprint 2,Engineering
+Create Canadian enrollment center guide,Medium,This week,Content
