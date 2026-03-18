@@ -1,5 +1,8 @@
 import PricingSection from './components/PricingSection';
 import EmailCaptureForm from "./components/EmailCaptureForm";
+import ActivityFeed from './components/ActivityFeed';
+import UserStats from './components/UserStats';
+import Testimonials from './components/Testimonials';
 import { PageWrapper } from './page-wrapper';
 
 export default function Home() {
@@ -55,6 +58,12 @@ export default function Home() {
           <p className="text-[#555] text-xs mt-2">Works on Chrome, Edge, and Brave</p>
           <EmailCaptureForm />
         </div>
+      </section>
+
+      {/* Social Proof - Activity Feed */}
+      <section className="py-16 px-6 border-t border-[#222] bg-gradient-to-b from-[#0a0a0a] to-[#111]">
+        <ActivityFeed />
+        <UserStats />
       </section>
 
       {/* Problem */}
@@ -164,6 +173,8 @@ export default function Home() {
       <PricingSection />
 
       <FAQSection />
+
+      <Testimonials />
 
       {/* Programs */}
       <section className="py-20 px-6 border-t border-[#222]">

@@ -479,6 +479,10 @@ async function checkAllSubscribers(env) {
       await sendEmailNotification(sub.email, newSlots, env);
       totalNotifs++;
 
+      // Track slot found activity for social proof
+      const locationId = newSlots[0].locationId;
+      await trackActivity('slot_found', { email: sub.email, locationId }, env);
+
       // Send SMS for premium subscribers
       if (sub.phone && sub.tier === 'premium') {
         await sendSmsNotification(sub.email, sub.phone, newSlots, env);
@@ -884,6 +888,129 @@ async function trackBillingCycle(billingCycle, env) {
   } catch (err) {
     console.error('Failed to track billing cycle:', err);
     // Non-critical, don't throw
+  }
+}
+
+// ─── Social Proof & Activity Tracking ────────────────────────────
+
+// Map of location IDs to location names (subset for social proof)
+const LOCATION_NAMES = {
+  5020: 'Seattle',
+  5021: 'Blaine, WA',
+  5022: 'Detroit',
+  5023: 'Buffalo',
+  5040: 'San Francisco',
+  5200: 'New York City',
+  5300: 'Los Angeles',
+  5401: 'Toronto',
+  5402: 'Vancouver',
+  5500: 'Montreal',
+  5600: 'Calgary',
+  7820: 'Houston',
+  8040: 'Miami',
+  8100: 'San Diego',
+};
+
+// Names pool for anonymization
+const FIRST_NAMES = [
+  'Alex', 'Jamie', 'Taylor', 'Jordan', 'Casey', 'Morgan', 'Riley', 'Sam',
+  'Charlie', 'Dakota', 'Drew', 'Avery', 'Quinn', 'Skylar', 'Parker', 'Reese',
+  'Rowan', 'Sage', 'River', 'Blake', 'Kendall', 'Cameron', 'Hayden', 'Devon',
+];
+
+async function trackActivity(type, data, env) {
+  try {
+    const timestamp = Date.now();
+    const activityKey = `activity:${timestamp}:${Math.random().toString(36).substring(7)}`;
+
+    // Anonymize email for privacy
+    const emailHash = await hashEmail(data.email || 'anonymous@example.com');
+    const firstName = FIRST_NAMES[emailHash % FIRST_NAMES.length];
+
+    let location = 'a location';
+    if (type === 'slot_found' && data.locationId) {
+      location = LOCATION_NAMES[data.locationId] || `Location ${data.locationId}`;
+    }
+
+    const activity = {
+      type, // 'slot_found' or 'premium_upgrade'
+      name: firstName,
+      location,
+      timestamp,
+    };
+
+    // Store with 7-day TTL (automatically expires)
+    await env.NEXUS_ALERTS_KV.put(activityKey, JSON.stringify(activity), {
+      expirationTtl: 7 * 24 * 60 * 60, // 7 days
+    });
+
+    console.log(`Activity tracked: ${type} - ${firstName} from ${location}`);
+  } catch (err) {
+    console.error('Failed to track activity:', err);
+    // Non-critical, don't throw
+  }
+}
+
+async function hashEmail(email) {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(email);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  // Convert to integer for name selection
+  return hashArray.reduce((acc, byte) => acc + byte, 0);
+}
+
+async function handleGetActivity(request, env, corsHeaders) {
+  try {
+    // List all activity keys (activity:*)
+    const list = await env.NEXUS_ALERTS_KV.list({ prefix: 'activity:' });
+
+    // Get all activities
+    const activities = await Promise.all(
+      list.keys.map(async (key) => {
+        const data = await env.NEXUS_ALERTS_KV.get(key.name);
+        return data ? JSON.parse(data) : null;
+      })
+    );
+
+    // Filter out nulls and sort by timestamp (newest first)
+    const sorted = activities
+      .filter(Boolean)
+      .sort((a, b) => b.timestamp - a.timestamp)
+      .slice(0, 10); // Return last 10 activities
+
+    return json({ activities: sorted }, 200, corsHeaders);
+  } catch (err) {
+    console.error('Activity fetch error:', err);
+    return json({ error: err.message }, 500, corsHeaders);
+  }
+}
+
+async function handleGetStats(request, env, corsHeaders) {
+  try {
+    // Count total users (subscribers + licenses)
+    const subscriberList = JSON.parse(await env.NEXUS_ALERTS_KV.get('subscriber_list') || '[]');
+
+    // Count premium users
+    const licenseKeys = await env.NEXUS_ALERTS_KV.list({ prefix: 'license:' });
+    const premiumCount = await Promise.all(
+      licenseKeys.keys.map(async (key) => {
+        const data = await env.NEXUS_ALERTS_KV.get(key.name);
+        if (!data) return false;
+        const license = JSON.parse(data);
+        return license.tier === 'premium';
+      })
+    ).then(results => results.filter(Boolean).length);
+
+    const totalUsers = subscriberList.length;
+
+    return json({
+      totalUsers,
+      premiumUsers: premiumCount,
+    }, 200, corsHeaders);
+  } catch (err) {
+    console.error('Stats fetch error:', err);
+    return json({ error: err.message }, 500, corsHeaders);
   }
 }
 
