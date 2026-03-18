@@ -16,7 +16,37 @@ Cloudflare Worker backend for NEXUS Alert with server-side slot checking, user r
 - **Twilio account** for SMS notifications (premium tier)
 - **Resend account** for email delivery (free: 100 emails/day)
 
-## Quick Deploy
+## 🚀 Production Migration (Ready to Accept Payments)
+
+**NEW:** Automated Stripe production setup and migration tools!
+
+### Quick Production Setup (15 minutes)
+
+```bash
+cd backend
+
+# Option 1: Automated migration (Recommended)
+./scripts/stripe-production-migration.sh
+
+# Option 2: Verify existing setup
+./scripts/verify-production-setup.sh
+```
+
+**What This Does:**
+- ✓ Switches Stripe from test to live mode
+- ✓ Creates production price IDs (monthly $4.99 + annual $49.99)
+- ✓ Updates Cloudflare Worker secrets
+- ✓ Deploys backend with live credentials
+- ✓ Tests end-to-end payment flow
+
+**Documentation:**
+- **Quick Reference:** [STRIPE_PRODUCTION_QUICK_REF.md](STRIPE_PRODUCTION_QUICK_REF.md) — One-page cheat sheet
+- **Full Guide:** [STRIPE_PRODUCTION_MIGRATION.md](STRIPE_PRODUCTION_MIGRATION.md) — Comprehensive walkthrough
+- **Summary:** [STRIPE_PRODUCTION_COMPLETION_SUMMARY.md](STRIPE_PRODUCTION_COMPLETION_SUMMARY.md) — What's included
+
+---
+
+## Quick Deploy (Development/Testing)
 
 ### Step 1: Install dependencies
 ```bash
@@ -43,8 +73,13 @@ The script will:
 
 ### Stripe Setup
 
+**🚀 For Production:** Use the [automated migration script](#-production-migration-ready-to-accept-payments) instead!
+
+**For Development/Testing:**
+
 1. **Create Product and Price**
    - Go to [Stripe Dashboard → Products](https://dashboard.stripe.com/products)
+   - Toggle to **Test Mode** (top-right)
    - Click "Add Product"
    - Name: "NEXUS Alert Premium"
    - Pricing model: **Recurring**
@@ -60,19 +95,26 @@ The script will:
    - Select events to listen to:
      - ✓ `checkout.session.completed`
      - ✓ `customer.subscription.deleted`
+     - ✓ `customer.subscription.updated`
+     - ✓ `invoice.payment_succeeded`
+     - ✓ `invoice.payment_failed`
    - Click "Add endpoint"
    - Copy the **Webhook signing secret** (starts with `whsec_...`)
 
 3. **Set Stripe secrets**
    ```bash
+   # For monthly/annual pricing (current model)
    npx wrangler secret put STRIPE_SECRET_KEY
-   # Paste your secret key from https://dashboard.stripe.com/apikeys (starts with sk_live_ or sk_test_)
+   # Paste your secret key from https://dashboard.stripe.com/apikeys (starts with sk_test_ for testing)
+
+   npx wrangler secret put STRIPE_MONTHLY_PRICE_ID
+   # Paste the monthly Price ID ($4.99/month)
+
+   npx wrangler secret put STRIPE_ANNUAL_PRICE_ID
+   # Paste the annual Price ID ($49.99/year)
 
    npx wrangler secret put STRIPE_WEBHOOK_SECRET
    # Paste the webhook signing secret from step 2
-
-   npx wrangler secret put STRIPE_PRICE_ID
-   # Paste the Price ID from step 1
    ```
 
 ### Resend Setup

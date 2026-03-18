@@ -1,0 +1,26 @@
+{
+  "leads": {},
+  "stats": {
+    "email1Sent": 0,
+    "email2Sent": 0,
+    "email3Sent": 0,
+    "totalSent": 0,
+    "failed": 0,
+    "opened": 0,
+    "clicked": 0,
+    "replied": 0,
+    "demosBooked": 0
+  },
+  "campaign": {
+    "startedAt": null,
+    "lastRunAt": null,
+    "status": "ready",
+    "targetLeads": 520,
+    "batchSize": 50
+  },
+  "metadata": {
+    "createdAt": "2026-03-18T00:00:00.000Z",
+    "version": "1.0.0",
+    "description": "B2B Immigration Lawyer Outreach Campaign - 3-Email Sequence"
+  }
+}
