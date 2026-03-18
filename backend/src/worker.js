@@ -2,14 +2,26 @@
 // Server-side monitoring with email notifications via Resend
 
 import Stripe from 'stripe';
+import { Toucan } from '@sentry/cloudflare';
 import { sendEmail } from './email-templates/index.js';
 
 const API_BASE = 'https://ttp.cbp.dhs.gov/schedulerapi';
 const SLOTS_URL = `${API_BASE}/slots`;
 
+// Consecutive failure tracking for Slack alerts
+let consecutiveApiFailures = 0;
+let lastApiFailureTime = null;
+
 export default {
   // Handle HTTP requests (subscriber management API)
-  async fetch(request, env) {
+  async fetch(request, env, ctx) {
+    // Initialize Sentry for this request
+    const sentry = new Toucan({
+      dsn: env.SENTRY_DSN,
+      context: ctx,
+      request,
+      environment: env.ENVIRONMENT || 'production',
+    });
     const url = new URL(request.url);
 
     // CORS headers
@@ -87,16 +99,29 @@ export default {
       }
       return json({ error: 'Not found' }, 404, corsHeaders);
     } catch (err) {
+      sentry.captureException(err);
       return json({ error: err.message }, 500, corsHeaders);
     }
   },
 
   // Handle cron triggers
   async scheduled(event, env, ctx) {
-    ctx.waitUntil(Promise.all([
-      checkAllSubscribers(env),
-      sendEmailSequences(env),
-    ]));
+    const sentry = new Toucan({
+      dsn: env.SENTRY_DSN,
+      context: ctx,
+      environment: env.ENVIRONMENT || 'production',
+    });
+
+    try {
+      await Promise.all([
+        checkAllSubscribers(env, sentry),
+        sendEmailSequences(env),
+      ]);
+    } catch (err) {
+      sentry.captureException(err);
+      await sendSlackAlert(`Cron job failed: ${err.message}`, env);
+      throw err;
+    }
   },
 };
 
@@ -218,6 +243,7 @@ async function handleStripeWebhook(request, env, corsHeaders) {
       );
     } catch (err) {
       console.error('Webhook signature verification failed:', err);
+      await sendSlackAlert(`Stripe webhook signature verification failed: ${err.message}`, env);
       return json({ error: 'Invalid signature' }, 400, corsHeaders);
     }
 
@@ -477,8 +503,15 @@ async function handleStatus(env, corsHeaders) {
 
 // ─── Slot Checking ────────────────────────────────────────────────
 
-async function checkAllSubscribers(env) {
+async function checkAllSubscribers(env, sentry) {
+  const cronStartTime = Date.now();
+  let subscribersChecked = 0;
+  let notificationsSent = 0;
+
+  const kvReadStart = Date.now();
   const list = JSON.parse(await env.NEXUS_ALERTS_KV.get('subscriber_list') || '[]');
+  const kvReadDuration = Date.now() - kvReadStart;
+  console.log(JSON.stringify({ metric: 'kv_read_latency_ms', value: kvReadDuration, operation: 'subscriber_list' }));
 
   // Collect all unique locations across subscribers (with tier-based rate limiting)
   const locationSet = new Set();
@@ -517,7 +550,7 @@ async function checkAllSubscribers(env) {
   const slotsByLocation = {};
   for (const locationId of locationSet) {
     try {
-      const slots = await fetchSlots(locationId);
+      const slots = await fetchSlots(locationId, env);
       if (slots.length > 0) {
         slotsByLocation[locationId] = slots;
       }
@@ -586,7 +619,9 @@ async function checkAllSubscribers(env) {
   console.log(`[NEXUS Alert] Checked ${locationSet.size} locations, sent ${totalNotifs} notification(s)`);
 }
 
-async function fetchSlots(locationId) {
+async function fetchSlots(locationId, env) {
+  const startTime = Date.now();
+
   const params = new URLSearchParams({
     orderBy: 'soonest',
     limit: '500',
@@ -595,7 +630,41 @@ async function fetchSlots(locationId) {
   });
 
   const resp = await fetch(`${SLOTS_URL}?${params}`);
-  if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+
+  // Log CBP API latency metric
+  const duration = Date.now() - startTime;
+  console.log(JSON.stringify({ metric: 'cbp_api_latency_ms', value: duration, locationId }));
+
+  if (!resp.ok) {
+    // Track 5xx errors for Slack alerts
+    if (resp.status >= 500) {
+      const now = Date.now();
+
+      // Increment consecutive failures
+      if (!lastApiFailureTime || (now - lastApiFailureTime) > 5 * 60 * 1000) {
+        consecutiveApiFailures = 1;
+      } else {
+        consecutiveApiFailures++;
+      }
+      lastApiFailureTime = now;
+
+      // Alert if failures persist for 5+ minutes (3+ consecutive failures at 2min intervals)
+      if (consecutiveApiFailures >= 3 && env) {
+        await sendSlackAlert(`CBP API returning ${resp.status} errors for ${Math.round((now - (lastApiFailureTime - (consecutiveApiFailures - 1) * 120000)) / 60000)} minutes (${consecutiveApiFailures} consecutive failures)`, env);
+      }
+    } else {
+      // Reset on non-5xx errors
+      consecutiveApiFailures = 0;
+      lastApiFailureTime = null;
+    }
+
+    throw new Error(`HTTP ${resp.status}`);
+  }
+
+  // Success - reset failure tracking
+  consecutiveApiFailures = 0;
+  lastApiFailureTime = null;
+
   return resp.json();
 }
 
@@ -1019,6 +1088,31 @@ async function verifyHmacToken(email, token, secret) {
   } catch (err) {
     console.error('Token verification error:', err);
     return false;
+  }
+}
+
+// ─── Slack Alerts ──────────────────────────────────────────────────
+
+async function sendSlackAlert(message, env) {
+  if (!env.SLACK_WEBHOOK_URL) {
+    console.log('[Slack Alert] Webhook URL not configured, skipping alert');
+    return;
+  }
+
+  try {
+    const response = await fetch(env.SLACK_WEBHOOK_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text: `🚨 NEXUS Alert: ${message}` }),
+    });
+
+    if (!response.ok) {
+      console.error('[Slack Alert] Failed to send:', await response.text());
+    } else {
+      console.log('[Slack Alert] Sent:', message);
+    }
+  } catch (err) {
+    console.error('[Slack Alert] Error sending alert:', err);
   }
 }
 
