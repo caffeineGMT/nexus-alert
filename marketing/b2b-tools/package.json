@@ -7,13 +7,16 @@
   "scripts": {
     "scrape:google": "node scrape-google-maps.js",
     "scrape:avvo": "node scrape-avvo.js",
+    "scrape:aila": "node scrape-aila.js",
     "enrich": "node enrich-leads.js",
     "verify": "node verify-emails.js",
     "campaign:test": "node email-campaign.js",
     "campaign:live": "node email-campaign.js --live",
     "linkedin": "node linkedin-outreach.js",
     "linkedin:stats": "node linkedin-outreach.js stats",
-    "pipeline": "npm run scrape:google && npm run scrape:avvo && npm run enrich && npm run verify",
+    "linkedin:import": "node linkedin-import.js",
+    "pipeline": "node lead-gen-pipeline.js",
+    "pipeline:full": "npm run scrape:google && npm run scrape:avvo && npm run scrape:aila && npm run enrich && npm run verify",
     "test": "echo \"No tests configured\""
   },
   "keywords": [
@@ -28,6 +31,7 @@
   "author": "NEXUS Alert",
   "license": "UNLICENSED",
   "dependencies": {
+    "airtable": "^0.12.2",
     "cheerio": "^1.2.0",
     "csv-writer": "^1.6.0",
     "dotenv": "^17.3.1",

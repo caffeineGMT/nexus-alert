@@ -38,6 +38,39 @@ const DEFAULT_CONFIG = {
 
 // ─── Initialization ────────────────────────────────────────────────
 
+// Helper function to track events via Plausible
+async function trackEvent(eventName, data = {}) {
+  try {
+    // Store event in activity feed for metrics
+    const activityId = `activity:${Date.now()}_${Math.random().toString(36).slice(2)}`;
+    await fetch('https://api.nexus-alert.com/api/activity', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        type: eventName,
+        timestamp: Date.now(),
+        metadata: data,
+      }),
+    }).catch(err => console.error('Failed to track event:', err));
+    
+    // Also send to Plausible for real-time analytics
+    if (typeof fetch !== 'undefined') {
+      await fetch('https://plausible.io/api/event', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          domain: 'nexus-alert.com',
+          name: eventName,
+          url: 'ext://nexus-alert',
+          props: data,
+        }),
+      }).catch(err => console.error('Plausible tracking failed:', err));
+    }
+  } catch (err) {
+    console.error('trackEvent error:', err);
+  }
+}
+
 chrome.runtime.onInstalled.addListener(async (details) => {
   if (details.reason === 'install') {
     await chrome.storage.local.set({
@@ -292,6 +325,13 @@ async function notifyNewSlots(results, config) {
   }
 
   if (newCount > 0) {
+    // Track notification sent event (Plausible)
+    trackEvent('notification_sent', {
+      count: newCount,
+      tier: config.tier || 'free',
+      program: config.program || 'NEXUS'
+    });
+
     // Play sound alert if enabled
     if (config.soundEnabled) {
       await playAlertSound();

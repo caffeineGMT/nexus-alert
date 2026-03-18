@@ -29,6 +29,15 @@ document.addEventListener('DOMContentLoaded', async () => {
       document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
       tab.classList.add('active');
       document.getElementById(`tab-${tab.dataset.tab}`).classList.add('active');
+
+      // Track settings tab open (Plausible)
+      if (tab.dataset.tab === 'settings') {
+        sendMessage({
+          action: 'trackEvent',
+          event: 'settings_opened',
+          data: { source: 'tab_click' }
+        });
+      }
     });
   });
 
@@ -231,6 +240,16 @@ document.addEventListener('DOMContentLoaded', async () => {
       if (config.referralCode) {
         body.ref = config.referralCode;
       }
+
+      // Track upgrade button click (Plausible - funnel step 1)
+      sendMessage({
+        action: 'trackEvent',
+        event: 'upgrade_clicked',
+        data: {
+          source: 'extension_popup',
+          plan: selectedPlan
+        }
+      });
 
       // Track conversion event (Plausible)
       sendMessage({

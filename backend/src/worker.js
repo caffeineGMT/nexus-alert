@@ -93,6 +93,9 @@ export default {
     if (url.pathname === '/api/activity' && request.method === 'GET') {
       return await handleGetActivity(request, env, corsHeaders);
     }
+    if (url.pathname === '/api/activity' && request.method === 'POST') {
+      return await handlePostActivity(request, env, corsHeaders);
+    }
     if (url.pathname === '/api/stats' && request.method === 'GET') {
       return await handleGetStats(request, env, corsHeaders);
     }
@@ -2191,7 +2194,39 @@ async function handleGetActivity(request, env, corsHeaders) {
       .sort((a, b) => b.timestamp - a.timestamp)
       .slice(0, 10); // Return last 10 activities
 
-    return json({ activities: sorted }, 200, {
+    return json({ activities: sorted }
+
+// POST /api/activity - Track events from extension
+async function handlePostActivity(request, env, corsHeaders) {
+  try {
+    const body = await request.json();
+    const { type, timestamp, metadata } = body;
+
+    if (!type) {
+      return json({ error: 'type is required' }, 400, corsHeaders);
+    }
+
+    // Store activity event for metrics
+    const activityKey = `activity:${timestamp || Date.now()}:${Math.random().toString(36).substring(7)}`;
+    const activity = {
+      type,
+      timestamp: timestamp || Date.now(),
+      metadata: metadata || {},
+    };
+
+    // Store with 30-day TTL for metrics analysis
+    await env.NEXUS_ALERTS_KV.put(activityKey, JSON.stringify(activity), {
+      expirationTtl: 30 * 24 * 60 * 60, // 30 days
+    });
+
+    console.log(`Activity event tracked: ${type}`, metadata);
+    
+    return json({ success: true }, 200, corsHeaders);
+  } catch (err) {
+    console.error('POST activity error:', err);
+    return json({ error: err.message }, 500, corsHeaders);
+  }
+}, 200, {
       ...corsHeaders,
       'Cache-Control': 'public, max-age=30, s-maxage=30, stale-while-revalidate=60',
     });
