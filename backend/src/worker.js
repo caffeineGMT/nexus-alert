@@ -12,6 +12,12 @@ import {
   getReferralStats,
   calculateViralCoefficient,
 } from './referrals.js';
+import {
+  addSubscriber as addToConvertKit,
+  tagSubscriber,
+  addToSequence,
+  handleWebhookEvent as handleConvertKitWebhook,
+} from './convertkit.js';
 
 const API_BASE = 'https://ttp.cbp.dhs.gov/schedulerapi';
 const SLOTS_URL = `${API_BASE}/slots`;
@@ -473,6 +479,100 @@ async function handleUnsubscribe(request, env, corsHeaders) {
   await env.NEXUS_ALERTS_KV.put('subscriber_list', JSON.stringify(filtered));
 
   return json({ success: true }, 200, corsHeaders);
+}
+
+async function handleWaitlist(request, env, corsHeaders) {
+  try {
+    const { email, source, offer } = await request.json();
+
+    if (!email) {
+      return json({ error: 'email is required' }, 400, corsHeaders);
+    }
+
+    // Store waitlist entry
+    const waitlistKey = `waitlist:${email}`;
+    const waitlistData = {
+      email,
+      source: source || 'unknown',
+      offer: offer || null,
+      subscribedAt: new Date().toISOString(),
+    };
+
+    await env.NEXUS_ALERTS_KV.put(waitlistKey, JSON.stringify(waitlistData));
+
+    // Add to waitlist tracking list
+    const waitlistListKey = 'waitlist_list';
+    const waitlist = JSON.parse(await env.NEXUS_ALERTS_KV.get(waitlistListKey) || '[]');
+    if (!waitlist.includes(email)) {
+      waitlist.push(email);
+      await env.NEXUS_ALERTS_KV.put(waitlistListKey, JSON.stringify(waitlist));
+    }
+
+    // Send immediate welcome email for waitlist
+    await sendEmail('welcome', email, env);
+
+    console.log(`[Waitlist] Added ${email} from ${source}`);
+
+    return json({ success: true }, 200, corsHeaders);
+  } catch (err) {
+    console.error('[Waitlist] Error:', err);
+    return json({ error: err.message }, 500, corsHeaders);
+  }
+}
+
+async function handleLeadMagnet(request, env, corsHeaders) {
+  try {
+    const { email, leadMagnet, source } = await request.json();
+
+    if (!email || !leadMagnet) {
+      return json({ error: 'email and leadMagnet are required' }, 400, corsHeaders);
+    }
+
+    // Store lead magnet download
+    const leadKey = `lead:${email}`;
+    const existingData = await env.NEXUS_ALERTS_KV.get(leadKey);
+    const leadData = existingData ? JSON.parse(existingData) : {
+      email,
+      downloads: [],
+      subscribedAt: new Date().toISOString(),
+    };
+
+    leadData.downloads.push({
+      type: leadMagnet,
+      source: source || 'unknown',
+      downloadedAt: new Date().toISOString(),
+    });
+
+    await env.NEXUS_ALERTS_KV.put(leadKey, JSON.stringify(leadData));
+
+    // Add to lead list for email nurture
+    const leadListKey = 'lead_list';
+    const leads = JSON.parse(await env.NEXUS_ALERTS_KV.get(leadListKey) || '[]');
+    if (!leads.includes(email)) {
+      leads.push(email);
+      await env.NEXUS_ALERTS_KV.put(leadListKey, JSON.stringify(leads));
+    }
+
+    // Send welcome email with download link
+    await sendEmail('welcome', email, env);
+
+    // Generate PDF download URL (static hosting or generated)
+    const downloadUrls = {
+      checklist: 'https://nexus-alert.com/downloads/nexus-appointment-checklist.pdf',
+      guide: 'https://nexus-alert.com/downloads/nexus-application-guide.pdf',
+      tips: 'https://nexus-alert.com/downloads/appointment-finding-tips.pdf',
+    };
+
+    console.log(`[Lead Magnet] ${email} downloaded ${leadMagnet} from ${source}`);
+
+    return json({
+      success: true,
+      downloadUrl: downloadUrls[leadMagnet],
+    }, 200, corsHeaders);
+  } catch (err) {
+    console.error('[Lead Magnet] Error:', err);
+    return json({ error: err.message }, 500, corsHeaders);
+  }
 }
 
 async function handleUpdateSubscriber(request, env, corsHeaders) {
@@ -1838,6 +1938,92 @@ async function sendEmailSequences(env) {
       }
     }
 
+    // ─── WAITLIST EMAIL SEQUENCES ─────────────────────────────────
+    const waitlistList = JSON.parse(await env.NEXUS_ALERTS_KV.get('waitlist_list') || '[]');
+
+    for (const email of waitlistList) {
+      try {
+        const waitlistDataStr = await env.NEXUS_ALERTS_KV.get(`waitlist:${email}`);
+        if (!waitlistDataStr) continue;
+
+        const waitlistData = JSON.parse(waitlistDataStr);
+        const subscribedAt = new Date(waitlistData.subscribedAt).getTime();
+        const daysSinceSubscribe = (now - subscribedAt) / (24 * 60 * 60 * 1000);
+
+        // Get email sequence state
+        const seqKey = `email_sequence:waitlist:${email}`;
+        const seqDataStr = await env.NEXUS_ALERTS_KV.get(seqKey);
+        let sequence = seqDataStr ? JSON.parse(seqDataStr) : { stage: 0, lastSent: 0 };
+
+        // Prevent sending multiple emails too quickly
+        const hoursSinceLastEmail = (now - sequence.lastSent) / (60 * 60 * 1000);
+        if (hoursSinceLastEmail < 12) continue;
+
+        let emailSent = false;
+
+        if (daysSinceSubscribe >= 3 && sequence.stage === 0) {
+          // Day 3: Remind about the sale
+          emailSent = await sendEmail('upgrade_offer', email, env);
+          if (emailSent) sequence = { stage: 1, lastSent: now };
+        } else if (daysSinceSubscribe >= 7 && sequence.stage === 1) {
+          // Day 7: Flash sale reminder
+          emailSent = await sendEmail('premium_case_study', email, env);
+          if (emailSent) sequence = { stage: 2, lastSent: now };
+        }
+
+        if (emailSent) {
+          await env.NEXUS_ALERTS_KV.put(seqKey, JSON.stringify(sequence));
+        }
+      } catch (err) {
+        console.error(`Error processing waitlist sequence for ${email}:`, err);
+      }
+    }
+
+    // ─── LEAD MAGNET EMAIL SEQUENCES ──────────────────────────────
+    const leadList = JSON.parse(await env.NEXUS_ALERTS_KV.get('lead_list') || '[]');
+
+    for (const email of leadList) {
+      try {
+        const leadDataStr = await env.NEXUS_ALERTS_KV.get(`lead:${email}`);
+        if (!leadDataStr) continue;
+
+        const leadData = JSON.parse(leadDataStr);
+        const subscribedAt = new Date(leadData.subscribedAt).getTime();
+        const daysSinceSubscribe = (now - subscribedAt) / (24 * 60 * 60 * 1000);
+
+        // Get email sequence state
+        const seqKey = `email_sequence:lead:${email}`;
+        const seqDataStr = await env.NEXUS_ALERTS_KV.get(seqKey);
+        let sequence = seqDataStr ? JSON.parse(seqDataStr) : { stage: 0, lastSent: 0 };
+
+        // Prevent sending multiple emails too quickly
+        const hoursSinceLastEmail = (now - sequence.lastSent) / (60 * 60 * 1000);
+        if (hoursSinceLastEmail < 12) continue;
+
+        let emailSent = false;
+
+        if (daysSinceSubscribe >= 3 && sequence.stage === 0) {
+          // Day 3: Educational content
+          emailSent = await sendEmail('tips', email, env);
+          if (emailSent) sequence = { stage: 1, lastSent: now };
+        } else if (daysSinceSubscribe >= 7 && sequence.stage === 1) {
+          // Day 7: Social proof
+          emailSent = await sendEmail('premium_case_study', email, env);
+          if (emailSent) sequence = { stage: 2, lastSent: now };
+        } else if (daysSinceSubscribe >= 14 && sequence.stage === 2) {
+          // Day 14: Upgrade offer
+          emailSent = await sendEmail('upgrade_offer', email, env);
+          if (emailSent) sequence = { stage: 3, lastSent: now };
+        }
+
+        if (emailSent) {
+          await env.NEXUS_ALERTS_KV.put(seqKey, JSON.stringify(sequence));
+        }
+      } catch (err) {
+        console.error(`Error processing lead magnet sequence for ${email}:`, err);
+      }
+    }
+
     // ─── WIN-BACK EMAILS FOR CHURNED USERS ────────────────────────
     const churnKeys = await env.NEXUS_ALERTS_KV.list({ prefix: 'churn:' });
 
@@ -1977,6 +2163,89 @@ async function handleGetProClients(request, env, corsHeaders) {
     return json({ clients }, 200, corsHeaders);
   } catch (err) {
     console.error('Get pro clients error:', err);
+    return json({ error: err.message }, 500, corsHeaders);
+  }
+}
+
+// ─── ConvertKit Integration & Public Subscribe ────────────────────
+
+async function handlePublicSubscribe(request, env, corsHeaders, sentry) {
+  try {
+    const body = await request.json();
+    const { email, locations, program, dateRange, timeRange } = body;
+
+    if (!email) {
+      return json({ error: 'email is required' }, 400, corsHeaders);
+    }
+
+    // Store in KV (even if just email for early access)
+    const subscriber = {
+      email,
+      locations: locations || [],
+      program: program || 'NEXUS',
+      dateRange: dateRange || { start: null, end: null },
+      timeRange: timeRange || { start: null, end: null },
+      tier: 'free',
+      last_checked_at: null,
+      createdAt: new Date().toISOString(),
+      notifiedSlots: {},
+      source: 'landing_page',
+    };
+
+    await env.NEXUS_ALERTS_KV.put(`sub:${email}`, JSON.stringify(subscriber));
+
+    // Track subscriber list
+    const list = JSON.parse(await env.NEXUS_ALERTS_KV.get('subscriber_list') || '[]');
+    if (!list.includes(email)) {
+      list.push(email);
+      await env.NEXUS_ALERTS_KV.put('subscriber_list', JSON.stringify(list));
+    }
+
+    // Add to ConvertKit if keys are configured
+    if (env.CONVERTKIT_API_KEY && env.CONVERTKIT_FORM_ID) {
+      try {
+        await addToConvertKit(
+          email,
+          {
+            program: subscriber.program,
+            locations: subscriber.locations,
+            tier: 'free',
+          },
+          env.CONVERTKIT_API_KEY,
+          env.CONVERTKIT_API_SECRET,
+          env.CONVERTKIT_FORM_ID
+        );
+        console.log(`Added ${email} to ConvertKit`);
+      } catch (ckError) {
+        // Log but don't fail the request if ConvertKit fails
+        console.error('ConvertKit error:', ckError);
+        sentry.captureException(ckError);
+      }
+    }
+
+    // Send welcome email via Resend
+    try {
+      await sendEmail('welcome', email, env);
+    } catch (emailError) {
+      console.error('Welcome email error:', emailError);
+      sentry.captureException(emailError);
+    }
+
+    return json({ success: true, subscriber: { email, program: subscriber.program } }, 200, corsHeaders);
+  } catch (err) {
+    sentry.captureException(err);
+    console.error('Public subscribe error:', err);
+    return json({ error: err.message }, 500, corsHeaders);
+  }
+}
+
+async function handleConvertKitWebhookEndpoint(request, env, corsHeaders) {
+  try {
+    const event = await request.json();
+    await handleConvertKitWebhook(event, env);
+    return json({ success: true }, 200, corsHeaders);
+  } catch (err) {
+    console.error('ConvertKit webhook error:', err);
     return json({ error: err.message }, 500, corsHeaders);
   }
 }

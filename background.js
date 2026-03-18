@@ -306,6 +306,9 @@ async function notifyNewSlots(results, config) {
     config.notifiedSlots = pruneOldSlots(notified);
     await chrome.storage.local.set({ config });
     console.log(`[NEXUS Alert] Sent ${newCount} new notification(s)`);
+
+    // Trigger referral prompt after first successful notification
+    await checkAndPromptReferral();
   }
 }
 
@@ -400,3 +403,48 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
 function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
+
+// ─── Referral Prompts ──────────────────────────────────────────────
+
+async function checkAndPromptReferral() {
+  const { firstSlotNotifiedAt, referralPromptShown } = await chrome.storage.local.get([
+    'firstSlotNotifiedAt',
+    'referralPromptShown',
+  ]);
+
+  // Set the timestamp of first successful notification
+  if (!firstSlotNotifiedAt) {
+    await chrome.storage.local.set({ firstSlotNotifiedAt: Date.now() });
+  }
+
+  // Show referral prompt only once, after first successful notification
+  if (!referralPromptShown && firstSlotNotifiedAt) {
+    const { config } = await chrome.storage.local.get('config');
+    const email = config?.email || '';
+
+    if (email) {
+      // Generate referral code
+      const code = btoa(email).substring(0, 8).toUpperCase();
+      const shareUrl = `https://nexus-alert.com?ref=${code}`;
+
+      // Show notification with referral CTA
+      chrome.notifications.create('referral-prompt', {
+        type: 'basic',
+        iconUrl: 'icons/icon128.png',
+        title: '🎉 Want Free Premium?',
+        message: 'Refer a friend and get 1 month free! Click to get your link.',
+        priority: 1,
+        requireInteraction: false,
+      });
+
+      await chrome.storage.local.set({ referralPromptShown: true });
+    }
+  }
+}
+
+// Handle referral notification clicks
+chrome.notifications.onClicked.addListener((notifId) => {
+  if (notifId === 'referral-prompt') {
+    chrome.action.openPopup();
+  }
+});

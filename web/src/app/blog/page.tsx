@@ -20,6 +20,24 @@ export const metadata: Metadata = {
 
 const blogPosts = [
   {
+    slug: 'success-story-sarah-nexus-3-days',
+    title: 'Success Story: How Sarah Got Her NEXUS Appointment in 3 Days',
+    excerpt:
+      'Sarah was manually checking for weeks with no luck. She installed NEXUS Alert on Friday and booked her appointment by Sunday morning. Read her full story.',
+    date: '2026-03-10',
+    readTime: '3 min read',
+    category: 'Success Stories',
+  },
+  {
+    slug: 'success-story-family-global-entry',
+    title: 'Success Story: Family of 4 Books Global Entry in One Week',
+    excerpt:
+      'Finding 4 matching Global Entry slots at the same location seemed impossible. The Martinez family did it in 7 days using automated monitoring.',
+    date: '2026-03-12',
+    readTime: '4 min read',
+    category: 'Success Stories',
+  },
+  {
     slug: 'how-to-get-nexus-appointment-fast',
     title: 'How to Get a NEXUS Interview Appointment in 2026 (7 Proven Strategies)',
     excerpt:

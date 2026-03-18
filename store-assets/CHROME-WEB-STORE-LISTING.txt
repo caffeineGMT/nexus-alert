@@ -9,14 +9,14 @@ Copy each section exactly as shown below.
 1. PRODUCT NAME
 ================================================================================
 
-NEXUS Alert
+NEXUS Alert - Appointment Slot Finder for NEXUS, Global Entry & SENTRI
 
 
 ================================================================================
 2. SHORT DESCRIPTION (132 characters max — exactly 132 chars)
 ================================================================================
 
-Get instant alerts when NEXUS, Global Entry & SENTRI appointment slots open. Free monitoring every 30min, premium every 2min.
+NEXUS appointment finder & Global Entry appointment alert. Get instant notifications when NEXUS, Global Entry & SENTRI slots open.
 
 
 ================================================================================
@@ -173,7 +173,7 @@ https://nexus-alert.com
 10. KEYWORDS (comma-separated)
 ================================================================================
 
-nexus, global entry, sentri, trusted traveler, appointment, ttp, goes, cbp, slot monitor, notification, border, customs, enrollment
+nexus appointment, global entry appointment, sentri appointment, trusted traveler, appointment finder, appointment alert, slot monitor, ttp, goes, cbp, enrollment center, border crossing, customs
 
 
 ================================================================================
@@ -230,19 +230,19 @@ Justification: Required for premium tier users to receive email and SMS notifica
 ================================================================================
 
 Screenshot 1 Caption:
-Monitor multiple enrollment centers in real time
+Monitor NEXUS appointment slots across multiple enrollment centers in real time
 
 Screenshot 2 Caption:
-See available slots instantly and book with one click
+Global Entry appointment finder - See available slots instantly and book with one click
 
 Screenshot 3 Caption:
-Track slot history and spot patterns
+Track NEXUS & Global Entry appointment history and spot slot availability patterns
 
 Screenshot 4 Caption:
-Customize alerts, sounds, and check frequency
+SENTRI appointment alert settings - Customize notifications, sounds, and check frequency
 
 Screenshot 5 Caption:
-Get notified the instant a slot opens up
+Get instant NEXUS appointment alerts the moment a slot opens up
 
 
 ================================================================================
