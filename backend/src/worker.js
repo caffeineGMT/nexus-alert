@@ -448,9 +448,11 @@ async function checkAllSubscribers(env) {
       for (const [key, ts] of Object.entries(sub.notifiedSlots)) {
         if (ts < cutoff) delete sub.notifiedSlots[key];
       }
-
-      await env.NEXUS_ALERTS_KV.put(`sub:${sub.email}`, JSON.stringify(sub));
     }
+
+    // Update last_checked_at for ALL subscribers regardless of tier or whether they got notifications
+    sub.last_checked_at = new Date().toISOString();
+    await env.NEXUS_ALERTS_KV.put(`sub:${sub.email}`, JSON.stringify(sub));
   }
 
   // Update stats

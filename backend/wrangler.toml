@@ -7,7 +7,7 @@ crons = ["*/2 * * * *"]
 
 [[kv_namespaces]]
 binding = "NEXUS_ALERTS_KV"
-id = "YOUR_KV_NAMESPACE_ID" # Replace via deploy.sh or manually
+id = "00000000000000000000000000000000" # Replace with real ID from Cloudflare dashboard before deploying
 
 [vars]
 # Non-secret config — set secrets via `wrangler secret put <NAME>`

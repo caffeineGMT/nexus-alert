@@ -1,6 +1,8 @@
 // NEXUS Alert — Background Service Worker
 // Polls CBP's public scheduler API for available appointment slots
 
+import { isSlotInDateRange, isSlotInTimeRange, isDuplicate, pruneOldSlots } from './src/slotFilters.js';
+
 const API_BASE = 'https://ttp.cbp.dhs.gov/schedulerapi';
 const SLOTS_ENDPOINT = `${API_BASE}/slots`;
 const LOCATIONS_ENDPOINT = `${API_BASE}/locations/`;
@@ -202,23 +204,8 @@ async function checkLocation(locationId, config) {
 
   let slots = await resp.json();
 
-  // Filter by date range
-  if (config.dateRange?.start) {
-    slots = slots.filter(s => s.startTimestamp >= config.dateRange.start);
-  }
-  if (config.dateRange?.end) {
-    slots = slots.filter(s => s.startTimestamp <= config.dateRange.end);
-  }
-
-  // Filter by time of day
-  if (config.timeRange?.start || config.timeRange?.end) {
-    slots = slots.filter(s => {
-      const time = s.startTimestamp.split('T')[1];
-      if (config.timeRange.start && time < config.timeRange.start) return false;
-      if (config.timeRange.end && time > config.timeRange.end) return false;
-      return true;
-    });
-  }
+  // Filter by date and time range
+  slots = slots.filter(s => isSlotInDateRange(s, config) && isSlotInTimeRange(s, config));
 
   return slots;
 }
@@ -254,8 +241,8 @@ async function notifyNewSlots(results, config) {
     const locName = locations?.[locationId]?.name || `Location ${locationId}`;
 
     for (const slot of slots) {
+      if (isDuplicate({ ...slot, locationId }, notified)) continue;
       const key = `${locationId}-${slot.startTimestamp}`;
-      if (notified[key]) continue;
 
       newCount++;
       notified[key] = Date.now();

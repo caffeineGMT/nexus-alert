@@ -8,8 +8,9 @@ export default function Home() {
       <nav className="fixed top-0 w-full z-50 border-b border-[#222] bg-[#0a0a0a]/80 backdrop-blur-md">
         <div className="max-w-5xl mx-auto px-6 h-14 flex items-center justify-between">
           <span className="text-lg font-bold tracking-tight">NEXUS Alert</span>
+          {/* TODO: replace EXTENSION_ID after Chrome Web Store publishing */}
           <a
-            href="https://github.com/caffeineGMT/nexus-alert"
+            href="https://chrome.google.com/webstore/detail/nexus-alert/EXTENSION_ID"
             target="_blank"
             rel="noopener noreferrer"
             className="px-4 py-2 rounded-lg bg-[#3b82f6] text-white text-sm font-semibold hover:bg-[#2563eb] transition"
@@ -38,21 +39,19 @@ export default function Home() {
             the instant a slot appears — so you can book it before anyone else.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            {/* TODO: replace EXTENSION_ID after Chrome Web Store publishing */}
             <a
-              href="https://github.com/caffeineGMT/nexus-alert"
+              href="https://chrome.google.com/webstore/detail/nexus-alert/EXTENSION_ID"
               target="_blank"
               rel="noopener noreferrer"
-              className="px-8 py-3.5 rounded-xl bg-[#3b82f6] text-white font-semibold text-base hover:bg-[#2563eb] transition"
+              className="inline-flex items-center justify-center px-8 py-3.5 rounded-xl bg-[#3b82f6] text-white font-semibold text-base hover:bg-[#2563eb] transition"
             >
+              <ChromeLogoSVG />
               Add to Chrome — Free
             </a>
-            <a
-              href="#how-it-works"
-              className="px-8 py-3.5 rounded-xl border border-[#333] text-[#ccc] font-semibold text-base hover:border-[#3b82f6] transition"
-            >
-              See How It Works
-            </a>
           </div>
+          <p className="text-[#555] text-xs mt-2">Works on Chrome, Edge, and Brave</p>
+          <EmailCaptureForm />
         </div>
       </section>
 
@@ -190,17 +189,17 @@ export default function Home() {
             Install NEXUS Alert and let it watch for openings while you live
             your life. Completely free, no account needed.
           </p>
+          {/* TODO: replace EXTENSION_ID after Chrome Web Store publishing */}
           <a
-            href="https://github.com/caffeineGMT/nexus-alert"
+            href="https://chrome.google.com/webstore/detail/nexus-alert/EXTENSION_ID"
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-block px-8 py-4 rounded-xl bg-[#3b82f6] text-white font-semibold text-lg hover:bg-[#2563eb] transition"
+            className="inline-flex items-center justify-center px-8 py-4 rounded-xl bg-[#3b82f6] text-white font-semibold text-lg hover:bg-[#2563eb] transition"
           >
+            <ChromeLogoSVG />
             Install NEXUS Alert — Free
           </a>
-          <p className="text-[#555] text-sm mt-6">
-            Works on Chrome, Edge, Brave, and all Chromium browsers.
-          </p>
+          <p className="text-[#555] text-xs mt-2">Works on Chrome, Edge, and Brave</p>
         </div>
       </section>
 
@@ -281,6 +280,22 @@ function FAQSection() {
         </div>
       </div>
     </section>
+  );
+}
+
+function ChromeLogoSVG() {
+  return (
+    <svg
+      className="w-5 h-5 mr-2 inline"
+      viewBox="0 0 24 24"
+      fill="currentColor"
+      aria-hidden="true"
+    >
+      <circle cx="12" cy="12" r="4.5" />
+      <path d="M12 2C9.14 2 6.6 3.23 4.85 5.2L8.37 11.28C8.84 9.38 10.27 8 12 8h9.46A10 10 0 0 0 12 2z" />
+      <path d="M2.17 8.09A10 10 0 0 0 2 10c0 4.08 2.44 7.6 5.98 9.25L11.5 13.2C9.75 12.85 8.4 11.6 8.06 10H2.17z" />
+      <path d="M12 22a10 10 0 0 0 8.64-4.97L17.1 10.9A5.97 5.97 0 0 1 18 12c0 3.31-2.69 6-6 6l-3.52 4.04A9.96 9.96 0 0 0 12 22z" />
+    </svg>
   );
 }
 
