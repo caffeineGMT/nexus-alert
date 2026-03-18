@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { trackEmailCapture, getStoredUTMParams } from '../utils/analytics';
 
 type Status = 'idle' | 'loading' | 'success' | 'error';
 
@@ -32,17 +33,23 @@ export default function EmailCaptureForm() {
       });
       if (!res.ok) throw new Error('Request failed');
       setStatus('success');
-      setEmail('');
 
-      // Track email signup in Google Analytics
-      if (typeof window !== 'undefined' && (window as any).gtag) {
-        const urlParams = new URLSearchParams(window.location.search);
-        const source = urlParams.get('utm_source') || 'direct';
-        (window as any).gtag('event', 'email_signup', {
-          source: source,
-          page_url: window.location.pathname,
-        });
-      }
+      // Track email capture with analytics utility
+      const pathname = window.location.pathname;
+      let source: 'homepage' | 'nexus-page' | 'global-entry-page' | 'sentri-page' | 'pricing-page' | 'blog' = 'homepage';
+
+      if (pathname.includes('/nexus')) source = 'nexus-page';
+      else if (pathname.includes('/global-entry')) source = 'global-entry-page';
+      else if (pathname.includes('/sentri')) source = 'sentri-page';
+      else if (pathname.includes('/pricing') || pathname.includes('/pro')) source = 'pricing-page';
+      else if (pathname.includes('/blog')) source = 'blog';
+
+      const utmParams = getStoredUTMParams();
+      const referrer = utmParams?.utm_source || document.referrer || 'direct';
+
+      trackEmailCapture(email, source, referrer);
+
+      setEmail('');
     } catch {
       setStatus('error');
     }
