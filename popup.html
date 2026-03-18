@@ -617,6 +617,7 @@
   <div class="tab-bar">
     <button class="tab-item active" data-tab="monitor">Monitor</button>
     <button class="tab-item" data-tab="slots">Slots</button>
+    <button class="tab-item" data-tab="refer">Invite</button>
     <button class="tab-item" data-tab="settings">Settings</button>
   </div>
 
@@ -711,6 +712,111 @@
     </div>
   </div>
 
+  <!-- ─── Refer Tab ───────────────────────────────── -->
+  <div class="tab-content" id="tab-refer">
+
+    <!-- Referral Hero -->
+    <div class="section" style="background:linear-gradient(135deg,#1e3a8a 0%,#1e40af 100%);border-bottom:2px solid #3b82f6;padding:16px">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+        <span style="font-size:22px">🎁</span>
+        <div>
+          <div style="font-weight:700;font-size:14px;color:white">Give 1 Month Free, Get 1 Month Free</div>
+          <div style="font-size:11px;color:rgba(255,255,255,0.8)">Share with friends who need NEXUS/Global Entry</div>
+        </div>
+      </div>
+
+      <!-- How it works -->
+      <div style="display:flex;gap:6px;margin-bottom:12px">
+        <div style="flex:1;background:rgba(255,255,255,0.1);border-radius:6px;padding:8px;text-align:center">
+          <div style="font-size:16px;margin-bottom:2px">📤</div>
+          <div style="font-size:9px;color:rgba(255,255,255,0.8);line-height:1.3">Share your<br>referral link</div>
+        </div>
+        <div style="flex:1;background:rgba(255,255,255,0.1);border-radius:6px;padding:8px;text-align:center">
+          <div style="font-size:16px;margin-bottom:2px">👤</div>
+          <div style="font-size:9px;color:rgba(255,255,255,0.8);line-height:1.3">Friend gets<br>50% off</div>
+        </div>
+        <div style="flex:1;background:rgba(255,255,255,0.1);border-radius:6px;padding:8px;text-align:center">
+          <div style="font-size:16px;margin-bottom:2px">🎉</div>
+          <div style="font-size:9px;color:rgba(255,255,255,0.8);line-height:1.3">You get<br>1 month free</div>
+        </div>
+      </div>
+
+      <!-- Referral Link -->
+      <div style="background:rgba(0,0,0,0.25);border-radius:6px;padding:10px;margin-bottom:10px">
+        <div style="font-size:9px;color:rgba(255,255,255,0.6);margin-bottom:4px;text-transform:uppercase;letter-spacing:0.5px">Your Referral Link</div>
+        <div style="display:flex;gap:6px;align-items:center">
+          <input type="text" id="referralLink" readonly style="flex:1;background:rgba(0,0,0,0.3);border:1px solid rgba(255,255,255,0.2);color:white;padding:7px 8px;border-radius:4px;font-size:10px;font-family:monospace" value="Set email in Settings first">
+          <button class="btn btn-primary" id="copyReferralBtn" style="padding:7px 12px;white-space:nowrap;font-size:11px">Copy</button>
+        </div>
+        <div id="copyFeedback" style="display:none;margin-top:4px;font-size:10px;color:#22c55e">Copied to clipboard!</div>
+      </div>
+
+      <!-- Social Share Buttons -->
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:5px;margin-bottom:10px">
+        <button class="btn" id="shareTwitterBtn" style="background:#1da1f2;border:none;padding:7px 4px;font-size:10px;color:white">
+          Twitter
+        </button>
+        <button class="btn" id="shareFacebookBtn" style="background:#1877f2;border:none;padding:7px 4px;font-size:10px;color:white">
+          Facebook
+        </button>
+        <button class="btn" id="shareWhatsAppBtn" style="background:#25d366;border:none;padding:7px 4px;font-size:10px;color:white">
+          WhatsApp
+        </button>
+        <button class="btn" id="shareEmailBtn" style="background:#6366f1;border:none;padding:7px 4px;font-size:10px;color:white">
+          Email
+        </button>
+      </div>
+
+      <!-- Referral Stats -->
+      <div id="referralStatsBox" style="background:rgba(0,0,0,0.2);border-radius:6px;padding:10px">
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;text-align:center">
+          <div>
+            <div style="font-size:20px;font-weight:700;color:#22c55e" id="referralFreeMonths">0</div>
+            <div style="font-size:9px;color:rgba(255,255,255,0.7)">Free Months<br>Earned</div>
+          </div>
+          <div>
+            <div style="font-size:20px;font-weight:700;color:#60a5fa" id="referralConversions">0</div>
+            <div style="font-size:9px;color:rgba(255,255,255,0.7)">Friends<br>Upgraded</div>
+          </div>
+          <div>
+            <div style="font-size:20px;font-weight:700;color:rgba(255,255,255,0.9)" id="referralClicks">0</div>
+            <div style="font-size:9px;color:rgba(255,255,255,0.7)">Link<br>Clicks</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Earned Credits Banner (shown when user has earned free months) -->
+    <div id="referralCreditBanner" class="section" style="display:none;background:rgba(34,197,94,0.1);border-bottom:1px solid rgba(34,197,94,0.3)">
+      <div style="display:flex;align-items:center;gap:8px">
+        <span style="font-size:18px">🏆</span>
+        <div>
+          <div style="font-size:12px;font-weight:600;color:var(--green)" id="creditBannerText">You've earned 0 free months!</div>
+          <div style="font-size:10px;color:var(--text-muted)">Keep sharing to earn more</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pre-written share messages -->
+    <div class="section">
+      <div class="section-title">Quick Share Messages</div>
+      <div id="shareMessagesList">
+        <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:6px;padding:10px;margin-bottom:6px;cursor:pointer" class="share-message-card" data-message="I found my NEXUS appointment in just 3 days using @NexusAlert instead of waiting months! Check it out:">
+          <div style="font-size:11px;color:var(--text);line-height:1.4">"I found my NEXUS appointment in just 3 days using NEXUS Alert instead of waiting months!"</div>
+          <div style="font-size:9px;color:var(--accent);margin-top:4px">Click to copy with your link</div>
+        </div>
+        <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:6px;padding:10px;margin-bottom:6px;cursor:pointer" class="share-message-card" data-message="Stop refreshing the GOES website manually! This Chrome extension monitors NEXUS/Global Entry appointments 24/7 and alerts you instantly:">
+          <div style="font-size:11px;color:var(--text);line-height:1.4">"Stop refreshing the GOES website manually! This extension monitors appointments 24/7."</div>
+          <div style="font-size:9px;color:var(--accent);margin-top:4px">Click to copy with your link</div>
+        </div>
+        <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:6px;padding:10px;cursor:pointer" class="share-message-card" data-message="Pro tip for anyone waiting for a NEXUS or Global Entry interview: use this alert tool to grab cancellation slots instantly:">
+          <div style="font-size:11px;color:var(--text);line-height:1.4">"Pro tip for anyone waiting for NEXUS or Global Entry: grab cancellation slots instantly."</div>
+          <div style="font-size:9px;color:var(--accent);margin-top:4px">Click to copy with your link</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- ─── Settings Tab ─────────────────────────── -->
   <div class="tab-content" id="tab-settings">
     <div class="section">
@@ -760,26 +866,6 @@
       <div id="premiumPlanCard" style="display:none">
         <div class="tier-badge premium">✓ Premium</div>
         <div style="font-size:11px;color:var(--text-muted);margin-top:6px">2-minute checks active. Email alerts enabled.</div>
-      </div>
-    </div>
-    <div class="section" id="referralSection" style="display:none">
-      <div class="section-title">Refer & Earn</div>
-      <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:6px;padding:12px;margin-bottom:10px">
-        <div style="font-size:11px;color:var(--text-muted);margin-bottom:8px">Share your referral link — earn 1 free month when someone upgrades!</div>
-        <div style="display:flex;gap:6px;align-items:center">
-          <input type="text" id="referralUrl" readonly class="filter-input" style="flex:1;font-size:10px;cursor:pointer" value="Loading...">
-          <button class="btn btn-primary" id="copyReferralBtn" style="padding:6px 12px;font-size:11px;white-space:nowrap">Copy</button>
-        </div>
-      </div>
-      <div id="referralStats" style="font-size:11px;color:var(--text-muted)">
-        <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border)">
-          <span>Referrals sent:</span>
-          <span id="referralClicks" style="color:var(--text);font-weight:600">0</span>
-        </div>
-        <div style="display:flex;justify-content:space-between;padding:6px 0;">
-          <span>Premium conversions:</span>
-          <span id="referralConversions" style="color:var(--accent);font-weight:600">0</span>
-        </div>
       </div>
     </div>
     <!-- Discord Community Section -->
@@ -860,53 +946,6 @@
       </div>
     </div>
 
-    <!-- Referral Section -->
-    <div class="section" id="referralSection" style="background:linear-gradient(135deg,#1e3a8a 0%,#1e40af 100%);border:2px solid #3b82f6;border-radius:8px;margin:16px;padding:16px">
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
-        <span style="font-size:24px">🎁</span>
-        <div>
-          <div style="font-weight:700;font-size:14px">Earn Free Premium Months!</div>
-          <div style="font-size:11px;color:rgba(255,255,255,0.8)">1 month free per friend who upgrades</div>
-        </div>
-      </div>
-
-      <div style="background:rgba(255,255,255,0.1);border-radius:6px;padding:12px;margin-bottom:12px">
-        <div style="font-size:10px;color:rgba(255,255,255,0.7);margin-bottom:6px">YOUR REFERRAL LINK</div>
-        <div style="display:flex;gap:6px;align-items:center">
-          <input type="text" id="referralLink" readonly style="flex:1;background:rgba(0,0,0,0.3);border:1px solid rgba(255,255,255,0.2);color:white;padding:8px;border-radius:4px;font-size:11px;font-family:monospace" value="Loading...">
-          <button class="btn btn-primary" id="copyReferralBtn" style="padding:8px 12px;white-space:nowrap">
-            📋 Copy
-          </button>
-        </div>
-        <div id="copyFeedback" style="display:none;margin-top:6px;font-size:10px;color:#22c55e">✓ Copied to clipboard!</div>
-      </div>
-
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:12px">
-        <button class="btn" id="shareTwitterBtn" style="background:#1da1f2;border:none;padding:8px;font-size:11px">
-          🐦 Twitter
-        </button>
-        <button class="btn" id="shareEmailBtn" style="background:#6366f1;border:none;padding:8px;font-size:11px">
-          ✉️ Email
-        </button>
-      </div>
-
-      <div id="referralStats" style="display:none;background:rgba(0,0,0,0.2);border-radius:6px;padding:10px;text-align:center">
-        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;font-size:11px">
-          <div>
-            <div style="font-size:18px;font-weight:700;color:#22c55e" id="referralCount">0</div>
-            <div style="color:rgba(255,255,255,0.7)">Referrals</div>
-          </div>
-          <div>
-            <div style="font-size:18px;font-weight:700;color:#22c55e" id="freeMonthsEarned">0</div>
-            <div style="color:rgba(255,255,255,0.7)">Free Months</div>
-          </div>
-          <div>
-            <div style="font-size:18px;font-weight:700;color:#22c55e" id="referralClicks">0</div>
-            <div style="color:rgba(255,255,255,0.7)">Clicks</div>
-          </div>
-        </div>
-      </div>
-    </div>
   </div>
 
   <!-- Footer -->

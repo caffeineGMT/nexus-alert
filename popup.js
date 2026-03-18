@@ -15,7 +15,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (errorAge < FIVE_MINUTES) {
       const banner = document.getElementById('errorBanner');
       const message = document.getElementById('errorMessage');
-      message.textContent = '⚠ Could not reach CBP API. Retrying with backoff...';
+      message.textContent = 'Could not reach CBP API. Retrying with backoff...';
       banner.style.display = 'flex';
     }
   }
@@ -35,6 +35,15 @@ document.addEventListener('DOMContentLoaded', async () => {
         sendMessage({
           action: 'trackEvent',
           event: 'settings_opened',
+          data: { source: 'tab_click' }
+        });
+      }
+
+      // Track referral tab open
+      if (tab.dataset.tab === 'refer') {
+        sendMessage({
+          action: 'trackEvent',
+          event: 'referral_tab_opened',
           data: { source: 'tab_click' }
         });
       }
@@ -171,55 +180,27 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
   });
 
-  // ─── Settings: Referral Program ────────────────────────────────
+  // ─── Referral Program ───────────────────────────────────────────
 
-  // Show referral section only if user has email configured
-  if (config.email) {
-    document.getElementById('referralSection').style.display = 'block';
+  initReferralTab(config);
 
-    // Generate referral code from email (base64 encoded, first 8 chars)
-    const referralCode = btoa(config.email).slice(0, 8);
-    const referralUrl = `https://nexus-alert.com?ref=${referralCode}`;
-    document.getElementById('referralUrl').value = referralUrl;
+  // ─── Settings: Discord Community ───────────────────────────────
 
-    // Fetch referral stats
-    fetchReferralStats(config.email);
+  // Show Discord community section only for premium users
+  if (config.tier === 'premium') {
+    document.getElementById('communitySection').style.display = 'block';
 
-    // Copy referral URL to clipboard
-    document.getElementById('copyReferralBtn').addEventListener('click', async () => {
-      const btn = document.getElementById('copyReferralBtn');
-      const urlInput = document.getElementById('referralUrl');
-
-      try {
-        await navigator.clipboard.writeText(urlInput.value);
-        const originalText = btn.textContent;
-        btn.textContent = 'Copied!';
-        btn.style.background = 'var(--green)';
-        setTimeout(() => {
-          btn.textContent = originalText;
-          btn.style.background = '';
-        }, 2000);
-      } catch (err) {
-        // Fallback: select the text
-        urlInput.select();
-        document.execCommand('copy');
-        btn.textContent = 'Copied!';
-      }
-    });
-  }
-
-  async function fetchReferralStats(email) {
-    try {
-      const referralCode = btoa(email).slice(0, 8);
-      const resp = await fetch(`https://api.nexus-alert.com/api/referrals/${encodeURIComponent(referralCode)}`);
-      if (resp.ok) {
-        const data = await resp.json();
-        document.getElementById('referralClicks').textContent = data.clicks || 0;
-        document.getElementById('referralConversions').textContent = data.conversions || 0;
-      }
-    } catch (err) {
-      console.error('[NEXUS Alert] Failed to fetch referral stats:', err);
+    // Check if user is Founding 100 member
+    if (config.licenseKey?.metadata?.discord_member_number && parseInt(config.licenseKey.metadata.discord_member_number) <= 100) {
+      document.getElementById('founding100Badge').style.display = 'block';
     }
+
+    // Join Discord button
+    document.getElementById('joinDiscordBtn').addEventListener('click', () => {
+      const discordInviteUrl = 'https://discord.gg/nexus-alert-insiders';
+      chrome.tabs.create({ url: discordInviteUrl });
+      sendMessage({ action: 'trackEvent', event: 'discord_join_clicked', data: { email: config.email } });
+    });
   }
 
   // Upgrade button
@@ -282,28 +263,6 @@ document.addEventListener('DOMContentLoaded', async () => {
       }, 3000);
     }
   });
-
-  // ─── Settings: Discord Community ───────────────────────────────
-
-  // Show Discord community section only for premium users
-  if (config.tier === 'premium') {
-    document.getElementById('communitySection').style.display = 'block';
-
-    // Check if user is Founding 100 member
-    if (config.licenseKey?.metadata?.discord_member_number && parseInt(config.licenseKey.metadata.discord_member_number) <= 100) {
-      document.getElementById('founding100Badge').style.display = 'block';
-    }
-
-    // Join Discord button
-    document.getElementById('joinDiscordBtn').addEventListener('click', () => {
-      // Open Discord invite link (to be created)
-      const discordInviteUrl = 'https://discord.gg/nexus-alert-insiders';
-      chrome.tabs.create({ url: discordInviteUrl });
-
-      // Track Discord join event
-      sendMessage({ action: 'trackEvent', event: 'discord_join_clicked', data: { email: config.email } });
-    });
-  }
 
   // Restore button
   document.getElementById('restoreBtn').addEventListener('click', async () => {
@@ -370,7 +329,6 @@ document.addEventListener('DOMContentLoaded', async () => {
       const daysSinceInstall = (Date.now() - installDate) / (1000 * 60 * 60 * 24);
       if (daysSinceInstall >= 3) {
         document.getElementById('upgradeBanner').classList.remove('hidden');
-        // Track banner impression
         sendMessage({ action: 'trackEvent', event: 'upgrade_banner_shown', data: { daysSinceInstall: Math.floor(daysSinceInstall) } });
       }
     }
@@ -378,7 +336,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // Banner upgrade button
   document.getElementById('bannerUpgradeBtn').addEventListener('click', () => {
-    // Track banner click event
     sendMessage({ action: 'trackEvent', event: 'upgrade_banner_clicked', data: { source: '3day_persistent' } });
     chrome.tabs.create({ url: 'https://nexusalert.app/pricing?utm_source=extension&utm_medium=banner&utm_campaign=3day_persistent' });
   });
@@ -393,7 +350,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // Modal upgrade button
   document.getElementById('upgradeNowBtn').addEventListener('click', () => {
-    // Track modal click event
     sendMessage({ action: 'trackEvent', event: 'upgrade_modal_clicked', data: { source: 'manual_check' } });
     chrome.tabs.create({ url: 'https://nexusalert.app/pricing?utm_source=extension&utm_medium=modal&utm_campaign=manual_check' });
     document.getElementById('upgradeModal').classList.add('hidden');
@@ -423,7 +379,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     const isPremium = freshStatus.config?.tier === 'premium';
     if (!isPremium) {
       document.getElementById('upgradeModal').classList.remove('hidden');
-      // Track modal impression
       sendMessage({ action: 'trackEvent', event: 'upgrade_modal_shown', data: { trigger: 'manual_check' } });
     }
   });
@@ -470,6 +425,149 @@ document.addEventListener('DOMContentLoaded', async () => {
     URL.revokeObjectURL(url);
   });
 });
+
+// ─── Referral Tab Initialization ──────────────────────────────────
+
+function initReferralTab(config) {
+  const email = config.email;
+  const referralLinkInput = document.getElementById('referralLink');
+  const copyBtn = document.getElementById('copyReferralBtn');
+  const copyFeedback = document.getElementById('copyFeedback');
+
+  if (!email) {
+    referralLinkInput.value = 'Set email in Settings first';
+    referralLinkInput.style.opacity = '0.5';
+    return;
+  }
+
+  // Generate referral code: deterministic hash from email
+  const referralCode = generateReferralCode(email);
+  const shareUrl = `https://nexus-alert.com/?ref=${referralCode}`;
+
+  referralLinkInput.value = shareUrl;
+
+  // Initialize referral on backend (ensures code is registered)
+  fetch('https://api.nexus-alert.com/api/referral/init', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email })
+  }).catch(() => {});
+
+  // Fetch referral stats
+  fetchAndDisplayReferralStats(referralCode);
+
+  // Copy button
+  copyBtn.addEventListener('click', async () => {
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+      copyFeedback.style.display = 'block';
+      copyBtn.textContent = 'Copied!';
+      copyBtn.style.background = 'var(--green)';
+      sendMessage({ action: 'trackEvent', event: 'referral_link_copied', data: { code: referralCode } });
+      setTimeout(() => {
+        copyFeedback.style.display = 'none';
+        copyBtn.textContent = 'Copy';
+        copyBtn.style.background = '';
+      }, 2000);
+    } catch (err) {
+      referralLinkInput.select();
+      document.execCommand('copy');
+      copyBtn.textContent = 'Copied!';
+      setTimeout(() => { copyBtn.textContent = 'Copy'; }, 2000);
+    }
+  });
+
+  // Twitter share
+  document.getElementById('shareTwitterBtn').addEventListener('click', () => {
+    const tweetText = encodeURIComponent(`I found my NEXUS appointment in 3 days with @NexusAlert instead of waiting months! ${shareUrl}`);
+    chrome.tabs.create({ url: `https://twitter.com/intent/tweet?text=${tweetText}` });
+    sendMessage({ action: 'trackEvent', event: 'referral_share_twitter', data: { code: referralCode } });
+  });
+
+  // Facebook share
+  document.getElementById('shareFacebookBtn').addEventListener('click', () => {
+    chrome.tabs.create({ url: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}` });
+    sendMessage({ action: 'trackEvent', event: 'referral_share_facebook', data: { code: referralCode } });
+  });
+
+  // WhatsApp share
+  document.getElementById('shareWhatsAppBtn').addEventListener('click', () => {
+    const msg = encodeURIComponent(`Hey! I've been using this Chrome extension to find NEXUS/Global Entry appointment slots instantly. Way faster than refreshing manually. Check it out: ${shareUrl}`);
+    chrome.tabs.create({ url: `https://wa.me/?text=${msg}` });
+    sendMessage({ action: 'trackEvent', event: 'referral_share_whatsapp', data: { code: referralCode } });
+  });
+
+  // Email share
+  document.getElementById('shareEmailBtn').addEventListener('click', () => {
+    const subject = encodeURIComponent('Check out NEXUS Alert - Find appointments fast!');
+    const body = encodeURIComponent(`Hey!\n\nAre you still waiting for a NEXUS or Global Entry appointment?\n\nI've been using this Chrome extension that alerts me instantly when appointment slots open up. I found mine in just a few days instead of waiting months.\n\nYou'll get 50% off your first month if you use my link:\n${shareUrl}\n\nHighly recommend it!`);
+    chrome.tabs.create({ url: `mailto:?subject=${subject}&body=${body}` });
+    sendMessage({ action: 'trackEvent', event: 'referral_share_email', data: { code: referralCode } });
+  });
+
+  // Quick share message cards
+  document.querySelectorAll('.share-message-card').forEach(card => {
+    card.addEventListener('click', async () => {
+      const message = card.dataset.message + ' ' + shareUrl;
+      try {
+        await navigator.clipboard.writeText(message);
+        const hint = card.querySelector('[style*="accent"]');
+        if (hint) {
+          hint.textContent = 'Copied!';
+          hint.style.color = 'var(--green)';
+          setTimeout(() => {
+            hint.textContent = 'Click to copy with your link';
+            hint.style.color = '';
+          }, 2000);
+        }
+        sendMessage({ action: 'trackEvent', event: 'referral_message_copied', data: { code: referralCode } });
+      } catch (err) {
+        // Fallback: open Twitter with message
+        const tweetText = encodeURIComponent(message);
+        chrome.tabs.create({ url: `https://twitter.com/intent/tweet?text=${tweetText}` });
+      }
+    });
+  });
+}
+
+// Generate a deterministic referral code from email
+function generateReferralCode(email) {
+  let hash = 0;
+  const str = email.toLowerCase().trim();
+  for (let i = 0; i < str.length; i++) {
+    const char = str.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash = hash & hash;
+  }
+  return Math.abs(hash).toString(36).substring(0, 8).toUpperCase();
+}
+
+// Fetch and display referral stats from backend
+async function fetchAndDisplayReferralStats(referralCode) {
+  try {
+    const resp = await fetch(`https://api.nexus-alert.com/api/referrals/${encodeURIComponent(referralCode)}`);
+    if (!resp.ok) return;
+
+    const data = await resp.json();
+    const clicks = data.clicks || 0;
+    const conversions = data.conversions || 0;
+    const freeMonths = data.freeMonthsEarned || conversions;
+
+    document.getElementById('referralClicks').textContent = clicks;
+    document.getElementById('referralConversions').textContent = conversions;
+    document.getElementById('referralFreeMonths').textContent = freeMonths;
+
+    // Show credit banner if user has earned free months
+    if (freeMonths > 0) {
+      const banner = document.getElementById('referralCreditBanner');
+      banner.style.display = 'block';
+      document.getElementById('creditBannerText').textContent =
+        `You've referred ${conversions} friend${conversions !== 1 ? 's' : ''} — ${freeMonths} month${freeMonths !== 1 ? 's' : ''} free earned!`;
+    }
+  } catch (err) {
+    console.error('[NEXUS Alert] Failed to fetch referral stats:', err);
+  }
+}
 
 // ─── Render Live Slots ────────────────────────────────────────────
 
@@ -712,67 +810,3 @@ function sendMessage(msg) {
 function updateConfig(partial) {
   sendMessage({ action: 'updateConfig', config: partial });
 }
-
-// ─── Referral Program ─────────────────────────────────────────────────
-
-async function loadReferralData() {
-  const email = config.email || localStorage.getItem('userEmail');
-  if (!email) {
-    // Show email prompt if not set
-    document.getElementById('referralSection').style.display = 'none';
-    return;
-  }
-
-  try {
-    // Generate referral code from email
-    const code = btoa(email).substring(0, 8).toUpperCase();
-    const shareUrl = `https://nexus-alert.com?ref=${code}`;
-
-    document.getElementById('referralLink').value = shareUrl;
-
-    // Load referral stats from backend
-    const response = await fetch(`https://api.nexus-alert.com/api/referrals/${code}`);
-    if (response.ok) {
-      const stats = await response.json();
-      document.getElementById('referralCount').textContent = stats.conversions || 0;
-      document.getElementById('freeMonthsEarned').textContent = stats.conversions || 0;
-      document.getElementById('referralClicks').textContent = stats.clicks || 0;
-
-      if (stats.conversions > 0 || stats.clicks > 0) {
-        document.getElementById('referralStats').style.display = 'block';
-      }
-    }
-
-    // Set up event listeners
-    document.getElementById('copyReferralBtn').addEventListener('click', async () => {
-      try {
-        await navigator.clipboard.writeText(shareUrl);
-        const feedback = document.getElementById('copyFeedback');
-        feedback.style.display = 'block';
-        setTimeout(() => {
-          feedback.style.display = 'none';
-        }, 2000);
-      } catch (err) {
-        console.error('Copy failed:', err);
-        // Fallback: select text
-        document.getElementById('referralLink').select();
-      }
-    });
-
-    document.getElementById('shareTwitterBtn').addEventListener('click', () => {
-      const tweetText = encodeURIComponent(`I found my NEXUS appointment in 3 days with @NexusAlert 🎉 ${shareUrl}`);
-      window.open(`https://twitter.com/intent/tweet?text=${tweetText}`, '_blank');
-    });
-
-    document.getElementById('shareEmailBtn').addEventListener('click', () => {
-      const subject = encodeURIComponent('Check out NEXUS Alert!');
-      const body = encodeURIComponent(`Hey! Are you still waiting for a NEXUS appointment?\n\nI've been using this Chrome extension that alerts me instantly when slots open up - it's way better than refreshing manually.\n\nCheck it out: ${shareUrl}`);
-      window.open(`mailto:?subject=${subject}&body=${body}`, '_blank');
-    });
-  } catch (err) {
-    console.error('Error loading referral data:', err);
-  }
-}
-
-// Initialize referral section
-loadReferralData();

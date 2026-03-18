@@ -393,9 +393,36 @@ async function handleCheckout(request, env, corsHeaders) {
       allow_promotion_codes: true, // Allow users to enter promo codes at checkout
     };
 
-    // Apply discount if promo code is valid
+    // Apply referral discount: 50% off first month for referred friends
+    if (ref && !discountCoupon) {
+      try {
+        // Create or find the referral coupon (50% off first month)
+        let referralCoupon;
+        try {
+          referralCoupon = await stripe.coupons.retrieve('REFERRAL50');
+        } catch (e) {
+          // Coupon doesn't exist yet, create it
+          referralCoupon = await stripe.coupons.create({
+            id: 'REFERRAL50',
+            percent_off: 50,
+            duration: 'once',
+            name: 'Referral - 50% off first month',
+          });
+        }
+        if (referralCoupon && referralCoupon.valid !== false) {
+          sessionConfig.discounts = [{ coupon: 'REFERRAL50' }];
+          // Cannot use allow_promotion_codes with discounts
+          delete sessionConfig.allow_promotion_codes;
+        }
+      } catch (err) {
+        console.error('Error applying referral discount:', err);
+      }
+    }
+
+    // Apply discount if promo code is valid (overrides referral discount)
     if (discountCoupon) {
       sessionConfig.discounts = [{ coupon: discountCoupon }];
+      delete sessionConfig.allow_promotion_codes;
     }
 
     const session = await stripe.checkout.sessions.create(sessionConfig);
@@ -1653,13 +1680,23 @@ async function handleGetReferralStats(request, env, corsHeaders) {
     const referralData = referralDataStr ? JSON.parse(referralDataStr) : null;
 
     if (!referralData) {
-      // No referrals yet for this code
-      return json({ clicks: 0, conversions: 0 }, 200, corsHeaders);
+      return json({ clicks: 0, conversions: 0, freeMonthsEarned: 0 }, 200, corsHeaders);
     }
 
+    const conversions = Array.isArray(referralData.conversions)
+      ? referralData.conversions.length
+      : (referralData.successfulReferrals || 0);
+    const freeMonths = referralData.freeMonthsEarned || conversions;
+
+    // Get click count (may be tracked separately)
+    const clickCount = referralData.clicks || 0;
+    const separateClicks = await env.NEXUS_ALERTS_KV.get(`referral_clicks:${code}`);
+    const totalClicks = Math.max(clickCount, parseInt(separateClicks || '0'));
+
     return json({
-      clicks: referralData.clicks || 0,
-      conversions: referralData.conversions?.length || 0,
+      clicks: totalClicks,
+      conversions,
+      freeMonthsEarned: freeMonths,
     }, 200, corsHeaders);
   } catch (err) {
     console.error('Referral stats error:', err);
