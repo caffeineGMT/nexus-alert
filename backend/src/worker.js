@@ -97,7 +97,12 @@ export default {
     }
     if (url.pathname === '/api/subscribe' && request.method === 'POST') {
       return await handlePublicSubscribe(request, env, corsHeaders, sentry);
-
+    }
+    if (url.pathname === '/api/webinar-registration' && request.method === 'POST') {
+      return await handleWebinarRegistration(request, env, corsHeaders);
+    }
+    if (url.pathname === '/api/partner-application' && request.method === 'POST') {
+      return await handlePartnerApplication(request, env, corsHeaders);
     }
 
     // Auth check for all other endpoints

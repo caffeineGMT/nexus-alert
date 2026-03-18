@@ -2,12 +2,29 @@
 
 import { Suspense } from 'react';
 import { useEffect } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, usePathname } from 'next/navigation';
+import { storeUTMParams, trackPageView, getUTMParams } from './utils/analytics';
 
 export function ReferralTracker() {
   const searchParams = useSearchParams();
+  const pathname = usePathname();
 
   useEffect(() => {
+    // Store UTM parameters for attribution
+    storeUTMParams();
+
+    // Track page view with UTM parameters
+    const utmParams = getUTMParams();
+    let source: 'homepage' | 'nexus-page' | 'global-entry-page' | 'sentri-page' | 'pricing-page' | 'blog' = 'homepage';
+
+    if (pathname.includes('/nexus')) source = 'nexus-page';
+    else if (pathname.includes('/global-entry')) source = 'global-entry-page';
+    else if (pathname.includes('/sentri')) source = 'sentri-page';
+    else if (pathname.includes('/pricing') || pathname.includes('/pro')) source = 'pricing-page';
+    else if (pathname.includes('/blog')) source = 'blog';
+
+    trackPageView(pathname, source, utmParams || undefined);
+
     // Capture referral code from URL and store in localStorage
     const ref = searchParams.get('ref');
     if (ref) {
@@ -17,7 +34,7 @@ export function ReferralTracker() {
       // Track referral click (increment clicks counter)
       trackReferralClick(ref);
     }
-  }, [searchParams]);
+  }, [searchParams, pathname]);
 
   async function trackReferralClick(code: string) {
     try {
