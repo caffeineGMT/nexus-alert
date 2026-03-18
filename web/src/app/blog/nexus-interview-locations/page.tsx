@@ -99,6 +99,11 @@ export default function NexusInterviewLocations() {
                 Based on data from thousands of appointment searches, here are the NEXUS enrollment centers ranked from fastest to slowest availability. <strong className="text-[#ededed]">Note:</strong> Wait times fluctuate throughout the year, especially during peak travel seasons.
               </p>
 
+              {/* Interactive Map */}
+              <div className="mb-12">
+                <EnrollmentCentersMap />
+              </div>
+
               <div className="space-y-8">
                 {/* #1 Calais */}
                 <div className="bg-[#111] border border-[#222] rounded-lg p-6">
