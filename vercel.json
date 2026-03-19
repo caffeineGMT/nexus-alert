@@ -1,5 +1,8 @@
 {
   "buildCommand": "cd web && npm run build",
   "outputDirectory": "web/out",
-  "installCommand": "cd web && npm install"
+  "installCommand": "cd web && npm install",
+  "git": {
+    "deploymentEnabled": false
+  }
 }
