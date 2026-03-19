@@ -39,7 +39,9 @@ export default withSentryConfig(withNextIntl(nextConfig), {
   widenClientFileUpload: true,
 
   // Hide source maps from generated client bundles
-  hideSourceMaps: true,
+  sourcemaps: {
+    disable: true,
+  },
 
   // Tree-shake Sentry logger and enable Vercel monitors via webpack config
   webpack: {

@@ -62,15 +62,15 @@ Following up on my last email about automating NEXUS appointment monitoring.
 I put together a quick ROI breakdown based on typical firms your size:
 
 **Your Current Cost (estimated):**
-- {{clientVolume}} NEXUS/GE clients per year
+- \{\{clientVolume\}\} NEXUS/GE clients per year
 - 8 hours per client (manual checking)
 - $40/hour paralegal rate
-- **= ${{annualLaborCost}} in labor costs**
+- **= $\{\{annualLaborCost\}\} in labor costs**
 
 **With NEXUS Alert (Business tier):**
 - $199/month = $2,388/year
-- **Net savings: ${{netSavings}}/year**
-- **ROI: {{roi}}%**
+- **Net savings: $\{\{netSavings\}\}/year**
+- **ROI: \{\{roi\}\}%**
 
 Plus the intangibles:
 - Clients book 85% faster → higher satisfaction → more referrals

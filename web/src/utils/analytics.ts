@@ -19,30 +19,22 @@ export const loadFacebookPixel = (pixelId: string) => {
   if (!pixelId || pixelId === 'your-fb-pixel-id-here') return;
 
   // Load Facebook Pixel script
-  !(function (f, b, e, v, n, t, s) {
+  (function (f: any, b: Document, e: string, v: string) {
     if (f.fbq) return;
-    n = f.fbq = function (...args: unknown[]) {
+    const n: any = (f.fbq = function (...args: unknown[]) {
       n.callMethod ? n.callMethod(...args) : n.queue.push(args);
-    } as any;
+    });
     if (!f._fbq) f._fbq = n;
-    (n as any).push = n;
-    (n as any).loaded = true;
-    (n as any).version = '2.0';
-    (n as any).queue = [];
-    t = b.createElement(e) as HTMLScriptElement;
+    n.push = n;
+    n.loaded = true;
+    n.version = '2.0';
+    n.queue = [];
+    const t = b.createElement(e) as HTMLScriptElement;
     t.async = true;
     t.src = v;
-    s = b.getElementsByTagName(e)[0];
+    const s = b.getElementsByTagName(e)[0];
     s.parentNode!.insertBefore(t, s);
-  })(
-    window as any,
-    document,
-    'script',
-    'https://connect.facebook.net/en_US/fbevents.js',
-    null as any,
-    null as any,
-    null as any
-  );
+  })(window, document, 'script', 'https://connect.facebook.net/en_US/fbevents.js');
 
   window.fbq!('init', pixelId);
   window.fbq!('track', 'PageView');

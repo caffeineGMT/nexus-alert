@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useABTest } from './ABTestProvider';
 
 type Status = 'idle' | 'loading' | 'success' | 'error';
 
@@ -33,15 +32,14 @@ const OFFERS = {
 };
 
 export default function OptimizedExitIntent() {
-  const { getVariant, trackConversion } = useABTest();
   const [isVisible, setIsVisible] = useState(false);
   const [email, setEmail] = useState('');
   const [status, setStatus] = useState<Status>('idle');
   const [hasShown, setHasShown] = useState(false);
   const [countdown, setCountdown] = useState(600); // 10 minutes in seconds
 
-  // Get A/B test variant for exit intent offer
-  const offerVariant = getVariant('exit_intent_offer', Object.keys(OFFERS)) as keyof typeof OFFERS;
+  // Use control variant as default
+  const offerVariant = 'control' as keyof typeof OFFERS;
   const offer = OFFERS[offerVariant];
 
   useEffect(() => {
@@ -62,7 +60,12 @@ export default function OptimizedExitIntent() {
         exitTriggered = true;
         setHasShown(true);
         setIsVisible(true);
-        trackConversion('exit_intent_offer', 'popup_shown');
+        // Track popup shown
+        if (typeof window !== 'undefined' && (window as any).plausible) {
+          (window as any).plausible('Exit Intent Shown', {
+            props: { trigger: 'mouse_leave' },
+          });
+        }
       }
     };
 
@@ -71,7 +74,12 @@ export default function OptimizedExitIntent() {
       if (!exitTriggered && !hasShown) {
         setHasShown(true);
         setIsVisible(true);
-        trackConversion('exit_intent_offer', 'popup_shown_timeout');
+        // Track popup shown
+        if (typeof window !== 'undefined' && (window as any).plausible) {
+          (window as any).plausible('Exit Intent Shown', {
+            props: { trigger: 'timeout' },
+          });
+        }
       }
     }, 45000);
 
@@ -81,7 +89,7 @@ export default function OptimizedExitIntent() {
       document.removeEventListener('mouseleave', handleMouseLeave);
       clearTimeout(timeoutId);
     };
-  }, [hasShown, trackConversion]);
+  }, [hasShown]);
 
   // Countdown timer
   useEffect(() => {
@@ -97,18 +105,24 @@ export default function OptimizedExitIntent() {
   useEffect(() => {
     if (status === 'success') {
       localStorage.setItem('exitIntentSubscribed', 'true');
-      trackConversion('exit_intent_offer', 'email_captured');
+      // Track email captured
+      if (typeof window !== 'undefined' && (window as any).plausible) {
+        (window as any).plausible('Exit Intent Email Captured');
+      }
       const timer = setTimeout(() => {
         setIsVisible(false);
       }, 3000);
       return () => clearTimeout(timer);
     }
-  }, [status, trackConversion]);
+  }, [status]);
 
   const handleClose = () => {
     setIsVisible(false);
     localStorage.setItem('exitIntentDismissed', 'true');
-    trackConversion('exit_intent_offer', 'popup_dismissed');
+    // Track popup dismissed
+    if (typeof window !== 'undefined' && (window as any).plausible) {
+      (window as any).plausible('Exit Intent Dismissed');
+    }
   };
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {

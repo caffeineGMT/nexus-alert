@@ -1,6 +1,5 @@
 'use client';
 
-import { useABTest } from './ABTestProvider';
 import { getChromeStoreUrl, shouldOpenInNewTab } from '@/lib/chrome-store';
 
 interface CTAProps {
@@ -14,11 +13,7 @@ export default function ImprovedCTA({
   location = 'unknown',
   size = 'md'
 }: CTAProps) {
-  const { trackConversion } = useABTest();
-
   const handleClick = () => {
-    trackConversion('cta_click', location);
-
     // Track in analytics
     if (typeof window !== 'undefined' && (window as any).plausible) {
       (window as any).plausible('CTA Click', {
@@ -75,8 +70,8 @@ export default function ImprovedCTA({
   };
 
   const config = configs[variant];
-  const href = config.href || getChromeStoreUrl({ source: 'cta', medium: location, campaign: 'install', content: variant });
-  const isExternal = !config.href;
+  const href = ('href' in config && config.href) || getChromeStoreUrl({ source: 'cta', medium: location, campaign: 'install', content: variant });
+  const isExternal = !('href' in config && config.href);
 
   return (
     <a
@@ -94,10 +89,13 @@ export default function ImprovedCTA({
 
 // Floating CTA for bottom-right corner (sticky)
 export function FloatingCTA() {
-  const { trackConversion } = useABTest();
-
   const handleClick = () => {
-    trackConversion('cta_click', 'floating_button');
+    // Track in analytics
+    if (typeof window !== 'undefined' && (window as any).plausible) {
+      (window as any).plausible('CTA Click', {
+        props: { variant: 'floating', location: 'floating_button' },
+      });
+    }
   };
 
   return (

@@ -39,10 +39,7 @@ Sentry.init({
   },
 
   integrations: [
-    Sentry.browserTracingIntegration({
-      // Only trace important routes
-      tracePropagationTargets: ['nexus-alert.com', 'api.nexus-alert.com', /^\//],
-    }),
+    Sentry.browserTracingIntegration(),
     Sentry.replayIntegration({
       // Only record 10% of sessions, but 100% of sessions with errors
       maskAllText: true,

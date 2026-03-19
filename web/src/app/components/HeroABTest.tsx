@@ -71,9 +71,9 @@ const HEADLINE_VARIANTS = {
 };
 
 export default function HeroABTest() {
-  const { getVariant, trackConversion } = useABTest();
-  const variant = getVariant('hero_headline', Object.keys(HEADLINE_VARIANTS)) as keyof typeof HEADLINE_VARIANTS;
-  const content = HEADLINE_VARIANTS[variant];
+  const { heroVariant } = useABTest();
+  const variant = heroVariant as keyof typeof HEADLINE_VARIANTS;
+  const content = HEADLINE_VARIANTS[variant] || HEADLINE_VARIANTS.control;
 
   // Track which variant was shown
   useEffect(() => {
@@ -85,7 +85,12 @@ export default function HeroABTest() {
   }, [variant]);
 
   const handleCTAClick = () => {
-    trackConversion('hero_headline', 'cta_click');
+    // Track CTA click
+    if (typeof window !== 'undefined' && (window as any).plausible) {
+      (window as any).plausible('Hero CTA Click', {
+        props: { variant },
+      });
+    }
   };
 
   return (
