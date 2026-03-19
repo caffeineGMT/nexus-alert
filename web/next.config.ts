@@ -3,6 +3,8 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   output: "export",
   images: { unoptimized: true },
+  // Use basePath only for GitHub Pages preview (not for Vercel production)
+  basePath: process.env.NEXT_PUBLIC_BASE_PATH || '',
   headers: async () => [
     {
       source: '/(.*)',

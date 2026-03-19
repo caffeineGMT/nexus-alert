@@ -1,14 +1,15 @@
 import PricingSection from './components/PricingSection';
 import EmailCaptureForm from "./components/EmailCaptureForm";
-import ActivityFeed from './components/ActivityFeed';
-import UserStats from './components/UserStats';
-import Testimonials from './components/Testimonials';
-import ExitIntentPopup from './components/ExitIntentPopup';
 import TrustBadges from './components/TrustBadges';
 import SuccessMetrics from './components/SuccessMetrics';
-import ReferralTracker from './components/ReferralTracker';
 import { PageWrapper } from './page-wrapper';
-import { Suspense } from 'react';
+import dynamic from 'next/dynamic';
+import { ClientOnlyComponents } from './client-components';
+
+// Dynamic imports for below-fold and interactive components — reduces initial JS bundle
+const ActivityFeed = dynamic(() => import('./components/ActivityFeed'), { ssr: true });
+const UserStats = dynamic(() => import('./components/UserStats'), { ssr: true });
+const Testimonials = dynamic(() => import('./components/Testimonials'), { ssr: true });
 
 export default function Home() {
   // Schema.org structured data for SEO
@@ -96,10 +97,7 @@ export default function Home() {
       type="application/ld+json"
       dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
     />
-    <Suspense fallback={null}>
-      <ReferralTracker />
-    </Suspense>
-    <ExitIntentPopup />
+    <ClientOnlyComponents />
     <div className="min-h-screen bg-[#0a0a0a] text-[#ededed]">
       {/* Skip Navigation */}
       <a

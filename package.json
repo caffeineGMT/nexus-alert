@@ -16,5 +16,8 @@
     "puppeteer": "^24.39.1",
     "sharp": "^0.34.5",
     "vitest": "^1.6.0"
+  },
+  "dependencies": {
+    "@sentry/browser": "^10.44.0"
   }
 }

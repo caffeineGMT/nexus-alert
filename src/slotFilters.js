@@ -20,16 +20,17 @@ export function isSlotInDateRange(slot, config) {
  * Returns true if the slot's time-of-day falls within the configured time range.
  * Both bounds are optional; if neither is set the slot always passes.
  *
- * KNOWN LIMITATION: midnight-crossover ranges (e.g. from=22:00 to=06:00) are NOT
- * supported. The comparison is a simple lexicographic string check on 'HH:MM:SS',
- * which means a slot at 23:30 would be EXCLUDED for a 22:00–06:00 range because
- * '23:30:00' > '06:00:00' fails the upper-bound check. Use a single-day range
- * (e.g. 09:00–17:00) to avoid this.
+ * Supports midnight-crossover ranges (e.g. from=22:00 to=06:00): a slot matches
+ * if its time is >= start OR <= end.
  */
 export function isSlotInTimeRange(slot, config) {
   const { start, end } = config.timeRange ?? {};
   if (!start && !end) return true;
   const time = slot.startTimestamp.split('T')[1]; // 'HH:MM:SS'
+  if (start && end && start > end) {
+    // Midnight-crossover: match if time >= start OR time <= end
+    return time >= start || time <= end;
+  }
   if (start && time < start) return false;
   if (end   && time > end)   return false;
   return true;

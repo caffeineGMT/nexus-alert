@@ -1,5 +1,26 @@
 // NEXUS Alert — Popup Script
 
+// ─── Toast Notification System ──────────────────────────────────────
+function showToast(message, type = 'info', duration = 3000) {
+  const container = document.getElementById('toastContainer');
+  if (!container) return;
+
+  // Remove existing toast
+  const existing = container.querySelector('.toast');
+  if (existing) existing.remove();
+
+  const icons = { success: '✓', error: '✕', info: 'ℹ' };
+  const toast = document.createElement('div');
+  toast.className = `toast ${type}`;
+  toast.innerHTML = `<span class="toast-icon">${icons[type] || icons.info}</span>${message}`;
+  container.appendChild(toast);
+
+  setTimeout(() => {
+    toast.classList.add('hiding');
+    setTimeout(() => toast.remove(), 200);
+  }, duration);
+}
+
 document.addEventListener('DOMContentLoaded', async () => {
   const status = await sendMessage({ action: 'getStatus' });
   const config = status.config || {};
@@ -15,10 +36,40 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (errorAge < FIVE_MINUTES) {
       const banner = document.getElementById('errorBanner');
       const message = document.getElementById('errorMessage');
-      message.textContent = 'Could not reach CBP API. Retrying with backoff...';
+      const failureCount = status.failureCount || 0;
+      if (failureCount >= 3) {
+        message.textContent = 'CBP servers are experiencing issues. We\'ll keep retrying — no action needed from you.';
+      } else {
+        message.textContent = 'Briefly lost connection to CBP. Retrying automatically...';
+      }
       banner.style.display = 'flex';
     }
   }
+
+  // ─── First-Time Welcome Hint ────────────────────────────────────
+
+  chrome.storage.local.get(['installDate', 'welcomeHintDismissed'], (result) => {
+    const installDate = result.installDate;
+    const dismissed = result.welcomeHintDismissed;
+    if (!dismissed && installDate) {
+      const daysSinceInstall = (Date.now() - installDate) / (1000 * 60 * 60 * 24);
+      if (daysSinceInstall < 3) {
+        const slotsSection = document.getElementById('liveSlotsSection');
+        const hint = document.createElement('div');
+        hint.className = 'welcome-hint';
+        hint.innerHTML = `
+          <strong>Welcome!</strong> NEXUS Alert is now monitoring your selected enrollment centers in the background.
+          You'll get a desktop notification the moment an appointment opens up. Most users find their first slot within a few days.
+          <br><button class="hint-dismiss" id="dismissWelcomeHint">Got it</button>
+        `;
+        slotsSection.insertBefore(hint, slotsSection.firstChild);
+        document.getElementById('dismissWelcomeHint').addEventListener('click', () => {
+          hint.remove();
+          chrome.storage.local.set({ welcomeHintDismissed: true });
+        });
+      }
+    }
+  });
 
   // ─── Tab Navigation ─────────────────────────────────────────────
 
@@ -164,7 +215,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     updateConfig({ program: tab.dataset.program });
     document.getElementById('locationSpinner').style.display = 'block';
     setTimeout(() => {
-      renderLocations(locations, tab.dataset.program, config.locations || []);
+      renderLocations(locations, tab.dataset.program, config.locations || [], config.favoriteLocations || []);
       document.getElementById('locationSpinner').style.display = 'none';
     }, 100);
   }
@@ -176,7 +227,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   document.getElementById('locationSpinner').style.display = 'block';
   setTimeout(() => {
-    renderLocations(locations, config.program || 'NEXUS', config.locations || []);
+    renderLocations(locations, config.program || 'NEXUS', config.locations || [], config.favoriteLocations || []);
     document.getElementById('locationSpinner').style.display = 'none';
   }, 100);
 
@@ -329,13 +380,13 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.getElementById('upgradeBtn').addEventListener('click', async () => {
     const email = document.getElementById('upgradeEmail').value.trim();
     if (!email || !email.includes('@')) {
-      alert('Please enter a valid email address');
+      showToast('Please enter a valid email address', 'error');
       return;
     }
     await updateConfig({ email });
     const btn = document.getElementById('upgradeBtn');
     const originalText = btn.textContent;
-    btn.textContent = 'Redirecting...';
+    btn.classList.add('btn-loading');
     btn.disabled = true;
     try {
       // Get referral code from config if user came from a referral link
@@ -378,11 +429,10 @@ document.addEventListener('DOMContentLoaded', async () => {
       }
     } catch (e) {
       console.error('[NEXUS Alert] Upgrade error:', e);
-      btn.textContent = 'Error — try again';
+      showToast('Something went wrong. Please try again.', 'error');
+      btn.classList.remove('btn-loading');
+      btn.textContent = originalText;
       btn.disabled = false;
-      setTimeout(() => {
-        btn.textContent = originalText;
-      }, 3000);
     }
   });
 
@@ -390,12 +440,12 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.getElementById('restoreBtn').addEventListener('click', async () => {
     const email = document.getElementById('upgradeEmail').value.trim();
     if (!email) {
-      alert('Please enter your email address to restore your license');
+      showToast('Enter your email address to restore your license', 'error');
       return;
     }
     const btn = document.getElementById('restoreBtn');
     const originalText = btn.textContent;
-    btn.textContent = 'Checking...';
+    btn.classList.add('btn-loading');
     btn.disabled = true;
     try {
       const resp = await fetch(`https://api.nexus-alert.com/api/license?email=${encodeURIComponent(email)}`);
@@ -407,7 +457,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         document.getElementById('premiumPlanCard').style.display = 'block';
         document.getElementById('communitySection').style.display = 'block';
         document.getElementById('freeIntervalNotice').style.display = 'none';
+        btn.classList.remove('btn-loading');
         btn.textContent = 'Restored!';
+        showToast('License restored! Premium features are now active.', 'success');
         setTimeout(() => {
           btn.textContent = originalText;
           btn.disabled = false;
@@ -417,11 +469,10 @@ document.addEventListener('DOMContentLoaded', async () => {
       }
     } catch (e) {
       console.error('[NEXUS Alert] Restore error:', e);
-      btn.textContent = 'License not found';
+      btn.classList.remove('btn-loading');
+      showToast('No license found for this email. Check the address and try again.', 'error');
+      btn.textContent = originalText;
       btn.disabled = false;
-      setTimeout(() => {
-        btn.textContent = originalText;
-      }, 3000);
     }
   });
 
@@ -754,22 +805,35 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   document.getElementById('checkNowBtn').addEventListener('click', async () => {
     const btn = document.getElementById('checkNowBtn');
-    btn.textContent = 'Checking...';
+    btn.classList.add('btn-loading');
     btn.disabled = true;
-    await sendMessage({ action: 'checkNow' });
-    btn.textContent = 'Check Now';
-    btn.disabled = false;
-    updateLastCheck(new Date().toISOString());
+    try {
+      await sendMessage({ action: 'checkNow' });
+      updateLastCheck(new Date().toISOString());
 
-    const freshStatus = await sendMessage({ action: 'getStatus' });
-    renderLiveSlots(freshStatus.lastFoundSlots || [], freshStatus.locations || {});
-    renderSlotHistory(freshStatus.slotHistory || [], freshStatus.locations || {});
+      const freshStatus = await sendMessage({ action: 'getStatus' });
+      const freshSlots = freshStatus.lastFoundSlots || [];
+      renderLiveSlots(freshSlots, freshStatus.locations || {});
+      renderSlotHistory(freshStatus.slotHistory || [], freshStatus.locations || {});
 
-    // Show upgrade modal for free users after manual check
-    const isPremium = freshStatus.config?.tier === 'premium';
-    if (!isPremium) {
-      document.getElementById('upgradeModal').classList.remove('hidden');
-      sendMessage({ action: 'trackEvent', event: 'upgrade_modal_shown', data: { trigger: 'manual_check' } });
+      if (freshSlots.length > 0) {
+        showToast(`Found ${freshSlots.length} available slot${freshSlots.length > 1 ? 's' : ''}!`, 'success');
+      } else {
+        showToast('No slots right now — we\'ll keep checking automatically.', 'info');
+      }
+
+      // Show upgrade modal for free users after manual check
+      const isPremium = freshStatus.config?.tier === 'premium';
+      if (!isPremium) {
+        document.getElementById('upgradeModal').classList.remove('hidden');
+        sendMessage({ action: 'trackEvent', event: 'upgrade_modal_shown', data: { trigger: 'manual_check' } });
+      }
+    } catch (e) {
+      showToast('Check failed — will retry automatically.', 'error');
+    } finally {
+      btn.classList.remove('btn-loading');
+      btn.textContent = 'Check Now';
+      btn.disabled = false;
     }
   });
 
@@ -787,19 +851,27 @@ document.addEventListener('DOMContentLoaded', async () => {
     await sendMessage({ action: 'clearHistory' });
     renderSlotHistory([], locations);
     updateStats([], locations);
+    showToast('History cleared', 'success');
   });
 
   // ─── Settings: Refresh Locations ────────────────────────────────
 
   document.getElementById('refreshLocationsBtn').addEventListener('click', async () => {
     const btn = document.getElementById('refreshLocationsBtn');
-    btn.textContent = 'Refreshing...';
+    btn.classList.add('btn-loading');
     btn.disabled = true;
-    await sendMessage({ action: 'refreshLocations' });
-    const fresh = await sendMessage({ action: 'getStatus' });
-    renderLocations(fresh.locations || {}, config.program || 'NEXUS', config.locations || []);
-    btn.textContent = 'Refresh Locations';
-    btn.disabled = false;
+    try {
+      await sendMessage({ action: 'refreshLocations' });
+      const fresh = await sendMessage({ action: 'getStatus' });
+      renderLocations(fresh.locations || {}, config.program || 'NEXUS', config.locations || [], config.favoriteLocations || []);
+      showToast('Locations refreshed successfully', 'success');
+    } catch (e) {
+      showToast('Failed to refresh — try again in a moment.', 'error');
+    } finally {
+      btn.classList.remove('btn-loading');
+      btn.textContent = 'Refresh Locations';
+      btn.disabled = false;
+    }
   });
 
   // ─── Settings: Export Data ──────────────────────────────────────
@@ -965,7 +1037,13 @@ function renderLiveSlots(slots, locations) {
   const container = document.getElementById('liveSlotsList');
 
   if (!slots || slots.length === 0) {
-    container.innerHTML = '<div class="empty-state">No slots found yet. Click "Check Now" to scan.</div>';
+    container.innerHTML = `
+      <div class="empty-state-enhanced">
+        <div class="empty-icon">🔍</div>
+        <div class="empty-title">No appointments found yet</div>
+        <div class="empty-description">We're actively scanning CBP enrollment centers for open slots. You'll be notified the moment one appears.</div>
+      </div>
+    `;
     return;
   }
 
@@ -1013,9 +1091,11 @@ function renderLocations(allLocations, program, selectedIds, favoriteIds) {
   // Check if allLocations is empty (no locations loaded yet)
   if (!allLocations || Object.keys(allLocations).length === 0) {
     list.innerHTML = `
-      <div class="empty-state">
-        <p>No locations loaded yet</p>
-        <button class="btn btn-secondary" id="refreshLocationsEmptyBtn" style="margin-top:8px">Refresh Locations</button>
+      <div class="empty-state-enhanced">
+        <div class="empty-icon">📍</div>
+        <div class="empty-title">No locations loaded</div>
+        <div class="empty-description">We couldn't load enrollment centers. This usually means CBP servers are temporarily unavailable.</div>
+        <button class="btn btn-secondary" id="refreshLocationsEmptyBtn" style="margin-top:8px;display:inline-flex">Retry</button>
       </div>
     `;
     // Wire up the button
@@ -1026,7 +1106,7 @@ function renderLocations(allLocations, program, selectedIds, favoriteIds) {
         btn.disabled = true;
         await sendMessage({ action: 'refreshLocations' });
         const fresh = await sendMessage({ action: 'getStatus' });
-        renderLocations(fresh.locations || {}, program, selectedIds);
+        renderLocations(fresh.locations || {}, program, selectedIds, favoriteIds);
         btn.textContent = 'Refresh Locations';
         btn.disabled = false;
       });
@@ -1061,13 +1141,14 @@ function renderLocations(allLocations, program, selectedIds, favoriteIds) {
 
   list.innerHTML = filtered.map(loc => {
     const selected = selectedIds.includes(loc.id);
+    const isFav = (favoriteIds || []).includes(loc.id);
     const statusClass = loc.operational ? 'operational' : 'closed';
     const statusText = loc.operational ? 'Open' : 'Closed';
     return `
       <div class="location-item ${selected ? 'selected' : ''}" data-id="${loc.id}" role="option" aria-selected="${selected}">
         <input type="checkbox" ${selected ? 'checked' : ''} aria-label="Monitor ${loc.name}">
         <div style="flex:1">
-          <div class="location-name">${loc.name}</div>
+          <div class="location-name">${isFav ? '📍 ' : ''}${loc.name}</div>
           <div class="location-meta">${loc.city || ''}, ${loc.state || ''} ${loc.country || ''}</div>
         </div>
         <span class="location-status ${statusClass}" aria-label="Status: ${statusText}">${statusText}</span>
@@ -1101,7 +1182,13 @@ function renderSlotHistory(history, locations) {
   updateStats(history, locations);
 
   if (!history || history.length === 0) {
-    container.innerHTML = '<div class="empty-state">No history yet</div>';
+    container.innerHTML = `
+      <div class="empty-state-enhanced">
+        <div class="empty-icon">📋</div>
+        <div class="empty-title">No history yet</div>
+        <div class="empty-description">Appointment slots you discover will appear here so you can track availability patterns.</div>
+      </div>
+    `;
     return;
   }
 
@@ -1178,7 +1265,7 @@ function updateStatusUI(enabled) {
 function updateLastCheck(isoString) {
   const el = document.getElementById('lastCheck');
   if (!isoString) {
-    el.textContent = 'Never checked';
+    el.textContent = 'First check starting...';
     return;
   }
   const date = new Date(isoString);

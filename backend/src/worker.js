@@ -26,9 +26,8 @@ import {
 const API_BASE = 'https://ttp.cbp.dhs.gov/schedulerapi';
 const SLOTS_URL = `${API_BASE}/slots`;
 
-// Consecutive failure tracking for Slack alerts
-let consecutiveApiFailures = 0;
-let lastApiFailureTime = null;
+// Consecutive failure tracking moved to KV storage for reliability across Worker isolates.
+// Keys: 'cbp_api:consecutive_failures' (count), 'cbp_api:last_failure_time' (timestamp)
 
 // ─── Route Map: O(1) lookup instead of sequential if/else chain ──────────
 // Routes are keyed by "METHOD /path". Handlers receive (request, env, corsHeaders, sentry).
@@ -1376,34 +1375,38 @@ async function fetchSlots(locationId, env) {
   console.log(JSON.stringify({ metric: 'cbp_api_latency_ms', value: duration, locationId }));
 
   if (!resp.ok) {
-    // Track 5xx errors for Slack alerts
+    // Track 5xx errors for Slack alerts (using KV for cross-isolate reliability)
     if (resp.status >= 500) {
       const now = Date.now();
+      const lastFailureTime = parseInt(await env.NEXUS_ALERTS_KV.get('cbp_api:last_failure_time') || '0');
+      let failures = parseInt(await env.NEXUS_ALERTS_KV.get('cbp_api:consecutive_failures') || '0');
 
-      // Increment consecutive failures
-      if (!lastApiFailureTime || (now - lastApiFailureTime) > 5 * 60 * 1000) {
-        consecutiveApiFailures = 1;
+      // Reset if gap > 5 minutes between failures
+      if (!lastFailureTime || (now - lastFailureTime) > 5 * 60 * 1000) {
+        failures = 1;
       } else {
-        consecutiveApiFailures++;
+        failures++;
       }
-      lastApiFailureTime = now;
+      await env.NEXUS_ALERTS_KV.put('cbp_api:consecutive_failures', String(failures));
+      await env.NEXUS_ALERTS_KV.put('cbp_api:last_failure_time', String(now));
 
-      // Alert if failures persist for 5+ minutes (3+ consecutive failures at 2min intervals)
-      if (consecutiveApiFailures >= 3 && env) {
-        await sendSlackAlert(`CBP API returning ${resp.status} errors for ${Math.round((now - (lastApiFailureTime - (consecutiveApiFailures - 1) * 120000)) / 60000)} minutes (${consecutiveApiFailures} consecutive failures)`, env);
+      // Alert if failures persist (3+ consecutive at ~2min intervals)
+      if (failures >= 3 && env) {
+        const durationMin = Math.round((now - lastFailureTime + (failures - 1) * 120000) / 60000);
+        await sendSlackAlert(`CBP API returning ${resp.status} errors for ~${durationMin} minutes (${failures} consecutive failures)`, env);
       }
     } else {
       // Reset on non-5xx errors
-      consecutiveApiFailures = 0;
-      lastApiFailureTime = null;
+      await env.NEXUS_ALERTS_KV.put('cbp_api:consecutive_failures', '0');
+      await env.NEXUS_ALERTS_KV.put('cbp_api:last_failure_time', '0');
     }
 
     throw new Error(`HTTP ${resp.status}`);
   }
 
-  // Success - reset failure tracking
-  consecutiveApiFailures = 0;
-  lastApiFailureTime = null;
+  // Success - reset failure tracking in KV
+  await env.NEXUS_ALERTS_KV.put('cbp_api:consecutive_failures', '0');
+  await env.NEXUS_ALERTS_KV.put('cbp_api:last_failure_time', '0');
 
   return resp.json();
 }
@@ -1420,8 +1423,14 @@ function filterSlots(slots, sub) {
   if (sub.timeRange?.start || sub.timeRange?.end) {
     filtered = filtered.filter(s => {
       const time = s.startTimestamp.split('T')[1];
-      if (sub.timeRange.start && time < sub.timeRange.start) return false;
-      if (sub.timeRange.end && time > sub.timeRange.end) return false;
+      const start = sub.timeRange.start;
+      const end = sub.timeRange.end;
+      if (start && end && start > end) {
+        // Midnight-crossover range (e.g. 22:00 to 06:00): match if time >= start OR time <= end
+        return time >= start || time <= end;
+      }
+      if (start && time < start) return false;
+      if (end && time > end) return false;
       return true;
     });
   }
@@ -1664,143 +1673,9 @@ async function handleGetReferralStats(request, env, corsHeaders) {
   }
 }
 
-async function handleReferralConversion(referralCode, newUserEmail, subscriptionId, env) {
-  try {
-    // Get referral data
-    const referralDataStr = await env.NEXUS_ALERTS_KV.get(`referral:${referralCode}`);
-    let referralData = referralDataStr ? JSON.parse(referralDataStr) : null;
-
-    // Decode referral code to get referrer email
-    let referrerEmail;
-    try {
-      const decoded = atob(referralCode);
-      referrerEmail = decoded;
-    } catch (e) {
-      console.error(`Invalid referral code: ${referralCode}`);
-      return;
-    }
-
-    // Initialize or update referral data
-    if (!referralData) {
-      referralData = {
-        referrerEmail,
-        clicks: 0,
-        conversions: [],
-      };
-    }
-
-    // Add conversion
-    referralData.conversions = referralData.conversions || [];
-    referralData.conversions.push({
-      email: newUserEmail,
-      timestamp: new Date().toISOString(),
-      subscriptionId,
-    });
-
-    // Save updated referral data
-    await env.NEXUS_ALERTS_KV.put(`referral:${referralCode}`, JSON.stringify(referralData));
-
-    console.log(`Referral conversion tracked: ${referrerEmail} referred ${newUserEmail}`);
-
-    // Credit referrer with 1 free month by extending their subscription
-    await creditReferrerSubscription(referrerEmail, env);
-
-    // Send notification email to referrer
-    await sendReferralCreditEmail(referrerEmail, newUserEmail, env);
-  } catch (err) {
-    console.error('Referral conversion error:', err);
-  }
-}
-
-async function creditReferrerSubscription(referrerEmail, env) {
-  try {
-    // Get referrer's license data
-    const licenseDataStr = await env.NEXUS_ALERTS_KV.get(`license:${referrerEmail}`);
-    if (!licenseDataStr) {
-      console.log(`Referrer ${referrerEmail} has no license record, cannot credit`);
-      return;
-    }
-
-    const licenseData = JSON.parse(licenseDataStr);
-    const subscriptionId = licenseData.stripeSubscriptionId;
-
-    if (!subscriptionId) {
-      console.log(`Referrer ${referrerEmail} has no active subscription, cannot credit`);
-      return;
-    }
-
-    // Initialize Stripe
-    const stripe = getStripe(env);
-
-    // Get current subscription
-    const subscription = await stripe.subscriptions.retrieve(subscriptionId);
-
-    // Extend subscription by 1 month (30 days)
-    const currentPeriodEnd = subscription.current_period_end;
-    const newPeriodEnd = currentPeriodEnd + (30 * 24 * 60 * 60); // Add 30 days in seconds
-
-    await stripe.subscriptions.update(subscriptionId, {
-      trial_end: newPeriodEnd,
-      proration_behavior: 'none', // Don't charge for the extension
-    });
-
-    console.log(`Extended subscription for ${referrerEmail} by 1 month`);
-  } catch (err) {
-    console.error(`Failed to credit referrer ${referrerEmail}:`, err);
-  }
-}
-
-async function sendReferralCreditEmail(referrerEmail, newUserEmail, env) {
-  try {
-    // Obfuscate the new user's email for privacy
-    const [username, domain] = newUserEmail.split('@');
-    const obfuscatedEmail = `${username.slice(0, 2)}***@${domain}`;
-
-    const html = `
-      <div style="font-family:-apple-system,sans-serif;max-width:600px;margin:0 auto">
-        <div style="background:#1e3a5f;color:white;padding:20px;border-radius:8px 8px 0 0">
-          <h1 style="margin:0;font-size:20px">🎉 You Earned a Free Month!</h1>
-        </div>
-        <div style="background:#f9f9f9;padding:20px;border:1px solid #e0e0e0;border-top:none;border-radius:0 0 8px 8px">
-          <p style="font-size:16px;margin-bottom:16px">Great news! Someone just upgraded to Premium using your referral link.</p>
-          <div style="background:white;border:1px solid #e0e0e0;border-radius:6px;padding:16px;margin:16px 0">
-            <div style="font-size:14px;color:#666;margin-bottom:4px">New Premium User</div>
-            <div style="font-size:18px;font-weight:600;color:#22c55e">${obfuscatedEmail}</div>
-          </div>
-          <p style="font-size:14px;color:#666">Your subscription has been extended by <strong style="color:#1e3a5f">1 month FREE</strong> as a thank you!</p>
-          <p style="font-size:14px;color:#666;margin-top:16px">Keep sharing your referral link to earn more free months.</p>
-          <a href="https://nexus-alert.com" style="display:inline-block;background:#3b82f6;color:white;padding:12px 24px;border-radius:6px;text-decoration:none;font-weight:600;margin-top:16px">
-            View Dashboard
-          </a>
-        </div>
-      </div>
-    `;
-
-    // Send via Resend API
-    const resp = await fetch('https://api.resend.com/emails', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${env.RESEND_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        from: 'NEXUS Alert <notifications@nexus-alert.com>',
-        to: [referrerEmail],
-        subject: '🎉 You Earned a Free Month of NEXUS Alert Premium!',
-        html,
-      }),
-    });
-
-    if (!resp.ok) {
-      const err = await resp.text();
-      console.error(`Failed to send referral credit email to ${referrerEmail}:`, err);
-    } else {
-      console.log(`Referral credit email sent to ${referrerEmail}`);
-    }
-  } catch (err) {
-    console.error('Referral email error:', err);
-  }
-}
+// NOTE: handleReferralConversion is imported from referrals.js (uses correct KV lookup by referral_code:${code}).
+// The inline duplicate that was here used atob() decoding which was incompatible with the hash-based codes
+// generated by generateReferralCode(). Removed to fix broken referral conversions.
 
 // Initialize referral record for new user
 async function handleInitReferral(request, env, corsHeaders) {
@@ -2189,7 +2064,15 @@ async function handleGetActivity(request, env, corsHeaders) {
       .sort((a, b) => b.timestamp - a.timestamp)
       .slice(0, 10); // Return last 10 activities
 
-    return json({ activities: sorted }
+    return json({ activities: sorted }, 200, {
+      ...corsHeaders,
+      'Cache-Control': 'public, max-age=30, s-maxage=30, stale-while-revalidate=60',
+    });
+  } catch (err) {
+    console.error('Activity fetch error:', err);
+    return json({ error: err.message }, 500, corsHeaders);
+  }
+}
 
 // POST /api/activity - Track events from extension
 async function handlePostActivity(request, env, corsHeaders) {
@@ -2215,18 +2098,10 @@ async function handlePostActivity(request, env, corsHeaders) {
     });
 
     console.log(`Activity event tracked: ${type}`, metadata);
-    
+
     return json({ success: true }, 200, corsHeaders);
   } catch (err) {
     console.error('POST activity error:', err);
-    return json({ error: err.message }, 500, corsHeaders);
-  }
-}, 200, {
-      ...corsHeaders,
-      'Cache-Control': 'public, max-age=30, s-maxage=30, stale-while-revalidate=60',
-    });
-  } catch (err) {
-    console.error('Activity fetch error:', err);
     return json({ error: err.message }, 500, corsHeaders);
   }
 }
@@ -2662,6 +2537,18 @@ function json(data, status = 200, extraHeaders = {}) {
     status,
     headers: {
       'Content-Type': 'application/json',
+      ...extraHeaders,
+    },
+  });
+}
+
+// Cached JSON response for read-heavy endpoints (activity, stats, metrics)
+function cachedJson(data, status = 200, extraHeaders = {}, maxAge = 60) {
+  return new Response(JSON.stringify(data), {
+    status,
+    headers: {
+      'Content-Type': 'application/json',
+      'Cache-Control': `public, max-age=${maxAge}, s-maxage=${maxAge}`,
       ...extraHeaders,
     },
   });
@@ -3152,7 +3039,7 @@ async function handlePublicSubscribe(request, env, corsHeaders, sentry) {
       } catch (ckError) {
         // Log but don't fail the request if ConvertKit fails
         console.error('ConvertKit error:', ckError);
-        sentry.captureException(ckError);
+        sentry?.captureException(ckError);
       }
     }
 
@@ -3161,12 +3048,12 @@ async function handlePublicSubscribe(request, env, corsHeaders, sentry) {
       await sendEmail('welcome', email, env);
     } catch (emailError) {
       console.error('Welcome email error:', emailError);
-      sentry.captureException(emailError);
+      sentry?.captureException(emailError);
     }
 
     return json({ success: true, subscriber: { email, program: subscriber.program } }, 200, corsHeaders);
   } catch (err) {
-    sentry.captureException(err);
+    sentry?.captureException(err);
     console.error('Public subscribe error:', err);
     return json({ error: err.message }, 500, corsHeaders);
   }

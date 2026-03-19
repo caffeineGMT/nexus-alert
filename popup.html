@@ -798,6 +798,137 @@
       margin: 20px auto;
     }
 
+    /* ─── Skeleton Loading ─────────────────────── */
+    @keyframes shimmer {
+      0% { background-position: -200px 0; }
+      100% { background-position: 200px 0; }
+    }
+    .skeleton {
+      background: linear-gradient(90deg, var(--bg-card) 25%, #1e1e1e 50%, var(--bg-card) 75%);
+      background-size: 400px 100%;
+      animation: shimmer 1.5s ease-in-out infinite;
+      border-radius: 4px;
+    }
+    .skeleton-line {
+      height: 12px;
+      margin-bottom: 8px;
+      border-radius: 4px;
+    }
+    .skeleton-line.short { width: 60%; }
+    .skeleton-line.medium { width: 80%; }
+    .skeleton-line.long { width: 95%; }
+    .skeleton-card {
+      padding: 12px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      margin-bottom: 6px;
+    }
+
+    /* ─── Toast Notification ───────────────────── */
+    @keyframes slideUp {
+      from { transform: translateY(100%); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+    @keyframes slideDown {
+      from { transform: translateY(0); opacity: 1; }
+      to { transform: translateY(100%); opacity: 0; }
+    }
+    .toast {
+      position: fixed;
+      bottom: 40px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 16px;
+      font-size: 12px;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+      z-index: 2000;
+      animation: slideUp 0.25s ease-out;
+      max-width: 90%;
+    }
+    .toast.hiding {
+      animation: slideDown 0.2s ease-in forwards;
+    }
+    .toast-icon { font-size: 14px; flex-shrink: 0; }
+    .toast.success { border-color: var(--green); }
+    .toast.error { border-color: var(--red); }
+    .toast.info { border-color: var(--accent); }
+
+    /* ─── First-Time Welcome Banner ─────────────── */
+    .welcome-hint {
+      background: linear-gradient(135deg, rgba(59,130,246,0.1), rgba(34,197,94,0.05));
+      border: 1px solid rgba(59,130,246,0.25);
+      border-radius: 8px;
+      padding: 12px;
+      margin-bottom: 8px;
+      font-size: 11px;
+      line-height: 1.5;
+      color: var(--text);
+    }
+    .welcome-hint strong { color: var(--accent); }
+    .welcome-hint .hint-dismiss {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      font-size: 10px;
+      cursor: pointer;
+      margin-top: 6px;
+      padding: 4px 8px;
+      border-radius: 4px;
+      transition: 0.15s;
+    }
+    .welcome-hint .hint-dismiss:hover { color: var(--text); background: rgba(255,255,255,0.05); }
+
+    /* ─── Improved Empty States ──────────────────── */
+    .empty-state-enhanced {
+      text-align: center;
+      padding: 24px 16px;
+      color: var(--text-muted);
+    }
+    .empty-state-enhanced .empty-icon {
+      font-size: 28px;
+      margin-bottom: 8px;
+      opacity: 0.6;
+    }
+    .empty-state-enhanced .empty-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 4px;
+    }
+    .empty-state-enhanced .empty-description {
+      font-size: 11px;
+      line-height: 1.5;
+      margin-bottom: 10px;
+    }
+
+    /* ─── Button Loading State ──────────────────── */
+    .btn-loading {
+      position: relative;
+      color: transparent !important;
+      pointer-events: none;
+    }
+    .btn-loading::after {
+      content: '';
+      position: absolute;
+      width: 14px;
+      height: 14px;
+      top: 50%;
+      left: 50%;
+      margin-top: -7px;
+      margin-left: -7px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin 0.5s linear infinite;
+    }
+
     /* ─── Premium / Tier Badges ───────────────── */
     .tier-badge {
       display: inline-block;
@@ -1018,7 +1149,7 @@
       <span class="status-dot active" id="statusDot" aria-hidden="true"></span>
       <span id="statusText">Monitoring</span>
     </div>
-    <span class="last-check" id="lastCheck" aria-label="Last check time">Checking...</span>
+    <span class="last-check" id="lastCheck" aria-label="Last check time">Starting up...</span>
   </div>
 
   <!-- Error Banner -->
@@ -1055,7 +1186,11 @@
     <div class="section" id="liveSlotsSection">
       <h2 class="section-title" id="live-slots-heading">Live Available Slots</h2>
       <div id="liveSlotsList" role="region" aria-labelledby="live-slots-heading" aria-live="polite">
-        <div class="empty-state">No slots found yet. Click "Check Now" to scan.</div>
+        <div class="empty-state-enhanced">
+          <div class="empty-icon">🔍</div>
+          <div class="empty-title">No appointments found yet</div>
+          <div class="empty-description">We're actively scanning CBP enrollment centers for open slots. You'll be notified the moment one appears.</div>
+        </div>
       </div>
     </div>
 
@@ -1074,7 +1209,11 @@
       <h2 class="section-title" id="locations-heading">Enrollment Centers</h2>
       <div class="location-list" id="locationList" role="group" aria-labelledby="locations-heading">
         <div class="spinner" id="locationSpinner" role="status" aria-label="Loading locations"><span class="sr-only">Loading locations...</span></div>
-        <div class="empty-state">Loading locations...</div>
+        <div id="locationSkeletons">
+          <div class="skeleton-card"><div class="skeleton skeleton-line long"></div><div class="skeleton skeleton-line short"></div></div>
+          <div class="skeleton-card"><div class="skeleton skeleton-line long"></div><div class="skeleton skeleton-line short"></div></div>
+          <div class="skeleton-card"><div class="skeleton skeleton-line medium"></div><div class="skeleton skeleton-line short"></div></div>
+        </div>
       </div>
     </div>
 
@@ -1136,7 +1275,11 @@
         <button class="clear-history-btn" id="clearHistoryBtn" aria-label="Clear slot history">Clear</button>
       </div>
       <div class="history-list" id="historyList" role="log" aria-labelledby="history-heading" aria-live="polite">
-        <div class="empty-state">No history yet</div>
+        <div class="empty-state-enhanced">
+          <div class="empty-icon">📋</div>
+          <div class="empty-title">No history yet</div>
+          <div class="empty-description">Appointment slots you discover will appear here so you can track patterns over time.</div>
+        </div>
       </div>
     </div>
   </div>
@@ -1495,18 +1638,21 @@
     NEXUS Alert v2.0 — Not affiliated with CBP/DHS
   </footer>
 
+  <!-- Toast Container -->
+  <div id="toastContainer" aria-live="polite" aria-atomic="true"></div>
+
   <!-- Upgrade Modal -->
   <div id="upgradeModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="upgradeModalTitle">
     <div class="modal-content">
-      <h3 id="upgradeModalTitle">Premium Checks Every 2 Minutes</h3>
-      <p>Slots fill in less than 5 minutes on average. Get notified first with premium checks.</p>
+      <h3 id="upgradeModalTitle">Don't Miss Your Next Slot</h3>
+      <p>Appointment slots often fill within minutes. Premium checks every 2 minutes so you're always first in line.</p>
       <div class="stat-highlight" role="figure" aria-label="Performance comparison">
         <strong>87% faster</strong> slot discovery<br>
-        Premium: 4.2 days avg &bull; Free: 12.1 days avg
+        Premium users book in 4.2 days vs. 12.1 on Free
       </div>
       <div class="modal-actions">
-        <button class="btn btn-primary" id="upgradeNowBtn" style="flex:2">Upgrade Now</button>
-        <button class="btn btn-secondary" id="dismissModalBtn" style="flex:1">Maybe Later</button>
+        <button class="btn btn-primary" id="upgradeNowBtn" style="flex:2">Get Premium →</button>
+        <button class="btn btn-secondary" id="dismissModalBtn" style="flex:1">Not Now</button>
       </div>
     </div>
   </div>

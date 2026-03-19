@@ -144,7 +144,7 @@ async function checkAllLocations() {
   if (config.tier !== 'premium') {
     if (lastCheckedAt && Date.now() - lastCheckedAt < 30 * 60 * 1000) {
       console.log('[NEXUS Alert] Free tier: skipping check, < 30min since last');
-      return;
+      return { skipped: true, reason: 'rate_limited', nextCheckIn: Math.ceil((30 * 60 * 1000 - (Date.now() - lastCheckedAt)) / 60000) };
     }
   }
 
