@@ -1,6 +1,7 @@
 // NEXUS Alert — Popup Script
 
 import { initSentry, captureError, setUser } from './src/sentry.js';
+import OnboardingManager, { FeatureTooltips } from './popup-onboarding.js';
 
 // Initialize error tracking for popup UI
 initSentry();

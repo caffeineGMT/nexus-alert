@@ -39,6 +39,18 @@
     <span id="errorMessage"></span>
   </div>
 
+  <!-- Snooze Banner -->
+  <div id="snoozeBanner" class="snooze-banner" style="display:none" role="alert" aria-live="polite">
+    <div style="display:flex;align-items:center;gap:8px;flex:1">
+      <span style="font-size:18px">⏸️</span>
+      <div>
+        <div style="font-weight:600;font-size:12px;margin-bottom:2px">Notifications Snoozed</div>
+        <div style="font-size:10px;color:rgba(255,255,255,0.7)" id="snoozeMessage">Resuming in 45 minutes</div>
+      </div>
+    </div>
+    <button class="snooze-banner-cta" id="unsnoozeBtn" aria-label="Resume notifications now">Resume Now</button>
+  </div>
+
   <!-- Upgrade Banner -->
   <div id="upgradeBanner" class="upgrade-banner hidden" role="complementary" aria-label="Upgrade promotion">
     <div class="upgrade-banner-text">

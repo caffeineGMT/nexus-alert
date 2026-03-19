@@ -38,7 +38,14 @@ const PUBLIC_ROUTES = {
   'GET /api/unsubscribe': (req, env) => handleSignedUnsubscribe(req, env),
   'POST /api/waitlist': (req, env, cors) => handleWaitlist(req, env, cors),
   'POST /api/lead-magnet': (req, env, cors) => handleLeadMagnet(req, env, cors),
-  'POST /api/checkout': (req, env, cors) => handleCheckout(req, env, cors),
+  'POST /api/checkout': async (req, env, cors) => {
+    // Apply rate limiting to checkout endpoint (10 req/min per IP)
+    const rateLimitResult = await rateLimit(req, env, '/api/checkout');
+    if (rateLimitResult && rateLimitResult.status === 429) {
+      return rateLimitResult;
+    }
+    return handleCheckout(req, env, cors);
+  },
   'POST /api/switch-to-annual': (req, env, cors) => handleSwitchToAnnual(req, env, cors),
   'POST /api/webhook': (req, env, cors) => handleStripeWebhook(req, env, cors),
   'GET /api/license': (req, env, cors) => handleGetLicense(req, env, cors),
@@ -52,7 +59,14 @@ const PUBLIC_ROUTES = {
   'GET /api/email-analytics': (req, env, cors) => handleEmailAnalytics(req, env, cors),
   'POST /api/webhooks/resend': (req, env, cors) => handleResendWebhook(req, env, cors),
   'POST /api/webhooks/convertkit': (req, env, cors) => handleConvertKitWebhookEndpoint(req, env, cors),
-  'POST /api/subscribe': (req, env, cors, sentry) => handlePublicSubscribe(req, env, cors, sentry),
+  'POST /api/subscribe': async (req, env, cors, sentry) => {
+    // Apply rate limiting to subscribe endpoint (10 req/min per IP)
+    const rateLimitResult = await rateLimit(req, env, '/api/subscribe');
+    if (rateLimitResult && rateLimitResult.status === 429) {
+      return rateLimitResult;
+    }
+    return handlePublicSubscribe(req, env, cors, sentry);
+  },
   'POST /api/webinar-registration': (req, env, cors) => handleWebinarRegistration(req, env, cors),
   'POST /api/partner-application': (req, env, cors) => handlePartnerApplication(req, env, cors),
   'POST /api/exit-survey': (req, env, cors) => handleExitSurvey(req, env, cors),

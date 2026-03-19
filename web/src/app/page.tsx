@@ -7,6 +7,7 @@ import dynamic from 'next/dynamic';
 import { ClientOnlyComponents } from './client-components';
 import LanguageSwitcher from './components/LanguageSwitcher';
 import { getChromeStoreUrl, getInstallButtonText, shouldOpenInNewTab } from '@/lib/chrome-store';
+import FooterLinks from './components/FooterLinks';
 
 // Dynamic imports for below-fold and interactive components — reduces initial JS bundle
 const ActivityFeed = dynamic(() => import('./components/ActivityFeed'), { ssr: true });
@@ -390,9 +391,9 @@ export default function Home() {
           </div>
           <div className="mt-6 sm:mt-8 text-center">
             <a
-              href="https://chrome.google.com/webstore/detail/nexus-alert/EXTENSION_ID"
-              target="_blank"
-              rel="noopener noreferrer"
+              href={getChromeStoreUrl({ source: 'homepage', medium: 'comparison', campaign: 'install', content: 'comparison_cta' })}
+              target={shouldOpenInNewTab() ? "_blank" : undefined}
+              rel={shouldOpenInNewTab() ? "noopener noreferrer" : undefined}
               className="inline-flex items-center justify-center px-6 sm:px-8 py-3 sm:py-3.5 rounded-xl bg-[#3b82f6] text-white font-semibold text-sm sm:text-base hover:bg-[#2563eb] transition touch-manipulation"
             >
               Try NEXUS Alert Free
@@ -496,11 +497,10 @@ export default function Home() {
             Install NEXUS Alert and let it watch for openings while you live
             your life. Completely free, no account needed.
           </p>
-          {/* TODO: replace EXTENSION_ID after Chrome Web Store publishing */}
           <a
-            href="https://chrome.google.com/webstore/detail/nexus-alert/EXTENSION_ID"
-            target="_blank"
-            rel="noopener noreferrer"
+            href={getChromeStoreUrl({ source: 'homepage', medium: 'cta', campaign: 'install', content: 'final_cta' })}
+            target={shouldOpenInNewTab() ? "_blank" : undefined}
+            rel={shouldOpenInNewTab() ? "noopener noreferrer" : undefined}
             className="inline-flex items-center justify-center px-8 py-4 rounded-xl bg-[#3b82f6] text-white font-semibold text-lg hover:bg-[#2563eb] transition"
           >
             <ChromeLogoSVG />
@@ -516,38 +516,7 @@ export default function Home() {
         <p>
           NEXUS Alert is free and open source. Not affiliated with CBP or DHS.
         </p>
-        <div className="mt-3 space-x-4">
-          <a
-            href="/how-it-works"
-            className="text-[#888] hover:text-[#3b82f6] transition"
-          >
-            How It Works
-          </a>
-          <a
-            href="/blog"
-            className="text-[#888] hover:text-[#3b82f6] transition"
-          >
-            Blog
-          </a>
-          <a
-            href="/privacy"
-            className="text-[#888] hover:text-[#3b82f6] transition"
-          >
-            Privacy Policy
-          </a>
-          <a
-            href="/terms"
-            className="text-[#888] hover:text-[#3b82f6] transition"
-          >
-            Terms of Service
-          </a>
-          <a
-            href="https://github.com/caffeineGMT/nexus-alert"
-            className="text-[#888] hover:text-[#3b82f6] transition"
-          >
-            GitHub
-          </a>
-        </div>
+        <FooterLinks />
       </footer>
     </div>
     </>
