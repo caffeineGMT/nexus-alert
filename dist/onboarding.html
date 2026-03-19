@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NEXUS Alert — Welcome</title>
+  <link rel="stylesheet" href="onboarding.css">
+</head>
+<body>
+  <div class="container" role="main">
+    <header class="header">
+      <h1>Welcome to NEXUS Alert</h1>
+      <p class="subtitle">Let's set up your appointment monitoring in 3 quick steps</p>
+    </header>
+    <div id="step-announcement" class="sr-only" aria-live="polite" aria-atomic="true">Step 1 of 3</div>
+    <nav class="step-indicator" aria-label="Setup progress">
+      <div class="step-dot active" role="img" aria-label="Step 1: current"></div>
+      <div class="step-dot" role="img" aria-label="Step 2"></div>
+      <div class="step-dot" role="img" aria-label="Step 3"></div>
+    </nav>
+    <div id="step-1" class="step active" role="region" aria-label="Step 1: Welcome">
+      <div class="step-content">
+        <h2 style="font-size: 20px; margin-bottom: 16px;">Monitor NEXUS, Global Entry & SENTRI Slots</h2>
+        <p>NEXUS Alert automatically checks for available appointment slots at CBP enrollment centers and notifies you instantly when slots open up.</p>
+        <p>This extension runs in the background and checks the official CBP scheduler API every few minutes. You'll get desktop notifications with sound alerts when new slots are found.</p>
+        <p><strong>How it works:</strong></p>
+        <ul style="color: var(--text-muted); margin-left: 20px; margin-bottom: 16px;">
+          <li>Select your program (NEXUS, Global Entry, or SENTRI)</li>
+          <li>Choose which enrollment centers to monitor</li>
+          <li>Get instant notifications when slots become available</li>
+          <li>Book your appointment before it's gone!</li>
+        </ul>
+      </div>
+      <div class="button-group">
+        <button class="btn btn-primary" onclick="showStep(2)">Get Started</button>
+      </div>
+    </div>
+    <div id="step-2" class="step" role="region" aria-label="Step 2: Choose program and locations">
+      <div class="step-content">
+        <h2 style="font-size: 20px; margin-bottom: 16px;">Choose Your Program & Locations</h2>
+        <p>Select the program you're applying for and the enrollment centers you want to monitor.</p>
+        <div class="settings-group">
+          <label class="settings-label" id="onboard-program-label">Program</label>
+          <div class="program-tabs" role="radiogroup" aria-labelledby="onboard-program-label">
+            <button class="program-tab active" data-program="NEXUS" role="radio" aria-checked="true">NEXUS</button>
+            <button class="program-tab" data-program="Global Entry" role="radio" aria-checked="false">Global Entry</button>
+            <button class="program-tab" data-program="SENTRI" role="radio" aria-checked="false">SENTRI</button>
+          </div>
+        </div>
+        <div class="settings-group">
+          <label class="settings-label" id="onboard-locations-label">Enrollment Centers</label>
+          <div class="location-list" id="locationList" role="listbox" aria-labelledby="onboard-locations-label" aria-multiselectable="true">
+            <div class="loading-state" role="status">Loading locations...</div>
+          </div>
+        </div>
+      </div>
+      <div class="button-group">
+        <button class="btn btn-secondary" onclick="showStep(1)">Back</button>
+        <button class="btn btn-primary" onclick="showStep(3)" id="step2NextBtn">Next</button>
+      </div>
+    </div>
+    <div id="step-3" class="step" role="region" aria-label="Step 3: Configure notifications">
+      <div class="step-content">
+        <h2 style="font-size: 20px; margin-bottom: 16px;">Configure Notifications</h2>
+        <p>Customize how you want to be notified when new slots are found.</p>
+        <div class="settings-group">
+          <div class="checkbox-group">
+            <input type="checkbox" id="soundToggle" checked aria-label="Enable sound alerts when new slots are found">
+            <label for="soundToggle">Play sound alert when new slots are found</label>
+          </div>
+        </div>
+        <div class="settings-group">
+          <label class="settings-label" for="emailInput">Email (Optional)</label>
+          <input type="email" class="email-input" id="emailInput" placeholder="your@email.com" aria-describedby="emailHelp">
+          <p id="emailHelp" style="font-size: 12px; color: var(--text-muted); margin-top: 8px;">Enter your email to receive email notifications. Leave empty to use only desktop notifications.</p>
+        </div>
+        <div class="settings-group">
+          <button class="btn btn-secondary" style="width: 100%;" id="testNotificationBtn" aria-label="Send a test notification">Test Notification</button>
+        </div>
+      </div>
+      <div class="button-group">
+        <button class="btn btn-secondary" onclick="showStep(2)">Back</button>
+        <button class="btn btn-primary" id="finishBtn">Finish Setup</button>
+      </div>
+    </div>
+  </div>
+  <script src="onboarding.js"></script>
+</body>
+</html>

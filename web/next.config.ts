@@ -1,14 +1,14 @@
 import type { NextConfig } from "next";
 import { withSentryConfig } from "@sentry/nextjs";
+import createNextIntlPlugin from 'next-intl/plugin';
+
+const withNextIntl = createNextIntlPlugin('./src/i18n.ts');
 
 const nextConfig: NextConfig = {
   output: "export",
   images: { unoptimized: true },
   // Use basePath only for GitHub Pages preview (not for Vercel production)
   basePath: process.env.NEXT_PUBLIC_BASE_PATH || '',
-  experimental: {
-    instrumentationHook: true,
-  },
   headers: async () => [
     {
       source: '/(.*)',
@@ -29,7 +29,7 @@ const nextConfig: NextConfig = {
   ],
 };
 
-export default withSentryConfig(nextConfig, {
+export default withSentryConfig(withNextIntl(nextConfig), {
   // Sentry webpack plugin options
   silent: true,
   org: "nexus-alert",
@@ -38,13 +38,15 @@ export default withSentryConfig(nextConfig, {
   // Upload source maps during build
   widenClientFileUpload: true,
 
-  // Automatically tree-shake Sentry logger statements to reduce bundle size
-  disableLogger: true,
-
   // Hide source maps from generated client bundles
   hideSourceMaps: true,
 
-  // Automatically instrument Next.js data fetching functions for performance monitoring
-  automaticVercelMonitors: true,
+  // Tree-shake Sentry logger and enable Vercel monitors via webpack config
+  webpack: {
+    treeshake: {
+      removeDebugLogging: true,
+    },
+    automaticVercelMonitors: true,
+  },
 });
 

@@ -1,0 +1,174 @@
+{
+  "nav": {
+    "brand": "NEXUS Alert",
+    "installFree": "Installer Gratuitement",
+    "skipToMain": "Passer au contenu principal"
+  },
+  "hero": {
+    "badge": "Extension Chrome Gratuite",
+    "title": "Suivi Automatisé des",
+    "titleHighlight": "Rendez-vous NEXUS",
+    "titleEnd": "— Trouvez des Créneaux en Jours, Pas en Mois",
+    "description": "Le traqueur de rendez-vous NEXUS #1 et chercheur de créneaux Global Entry. Notre extension Chrome surveille les annulations d'entrevues 24h/24, 7j/7 et envoie des alertes instantanées lorsque des rendez-vous s'ouvrent dans vos centres d'inscription préférés.",
+    "cta": "Ajouter à Chrome — Gratuit",
+    "compatibility": "Fonctionne sur Chrome, Edge et Brave"
+  },
+  "problem": {
+    "heading": "Les créneaux de rendez-vous disparaissent en quelques minutes",
+    "description": "Les créneaux NEXUS et Global Entry sont libérés lorsque quelqu'un annule. Ils apparaissent aléatoirement et sont réservés presque instantanément. Actualiser le site web encore et encore est épuisant — et vous en manquez quand même la plupart.",
+    "cards": {
+      "fast": {
+        "title": "Les créneaux disparaissent vite",
+        "description": "Les rendez-vous annulés sont pris en quelques minutes. Si vous ne regardez pas au bon moment, vous le perdez."
+      },
+      "manual": {
+        "title": "La vérification manuelle est pénible",
+        "description": "Il n'y a pas de système de notification officiel. Vous devez continuer à actualiser le site GOES vous-même, en espérant avoir de la chance."
+      },
+      "wait": {
+        "title": "Les temps d'attente sont de plusieurs mois",
+        "description": "Le prochain créneau disponible pourrait être dans 3 à 6 mois. Mais les annulations créent des ouvertures beaucoup plus tôt — si vous les attrapez."
+      }
+    }
+  },
+  "howItWorks": {
+    "heading": "Comment fonctionne NEXUS Alert",
+    "steps": {
+      "pick": {
+        "title": "Choisissez vos emplacements",
+        "description": "Sélectionnez les centres d'inscription que vous souhaitez surveiller. Choisissez NEXUS, Global Entry ou SENTRI."
+      },
+      "set": {
+        "title": "Définissez vos préférences",
+        "description": "Filtrez par plage de dates et heure de la journée. Définissez la fréquence de vérification — toutes les 1, 3, 5 ou 10 minutes."
+      },
+      "notify": {
+        "title": "Recevez des notifications instantanées",
+        "description": "Lorsqu'un créneau s'ouvre, vous recevez une notification de bureau avec une alerte sonore. Un clic vous amène directement à la réservation."
+      }
+    }
+  },
+  "features": {
+    "heading": "Tout ce dont vous avez besoin",
+    "subheading": "Conçu pour vous assurer de ne jamais manquer une autre ouverture.",
+    "list": {
+      "monitoring": {
+        "title": "Surveillance en temps réel",
+        "description": "Vérifie les nouveaux créneaux aussi souvent que toutes les minutes, fonctionnant silencieusement en arrière-plan pendant que vous travaillez."
+      },
+      "sound": {
+        "title": "Alertes sonores",
+        "description": "Entendez un son au moment où un créneau apparaît. Pas besoin de regarder — écoutez simplement la notification."
+      },
+      "multiLocation": {
+        "title": "Suivi multi-emplacements",
+        "description": "Surveillez plusieurs centres d'inscription à la fois. Augmente vos chances de trouver une ouverture rapidement."
+      },
+      "filters": {
+        "title": "Filtres intelligents",
+        "description": "Recevez uniquement des alertes pour les créneaux qui correspondent à votre emploi du temps. Filtrez par plage de dates et heure de la journée."
+      },
+      "history": {
+        "title": "Historique des créneaux",
+        "description": "Consultez un journal de chaque créneau qui s'est ouvert récemment. Vous aide à apprendre les meilleurs moments pour vérifier."
+      },
+      "privacy": {
+        "title": "Confidentialité d'abord",
+        "description": "Fonctionne localement sur votre ordinateur. Aucun suivi, aucune collecte de données, aucun compte requis."
+      }
+    }
+  },
+  "pricing": {
+    "heading": "Tarification simple et transparente",
+    "subheading": "Commencez gratuitement, passez à la version supérieure quand vous avez besoin de plus de puissance",
+    "free": {
+      "name": "Gratuit",
+      "price": "0 $",
+      "period": "pour toujours",
+      "description": "Parfait pour une surveillance occasionnelle",
+      "cta": "Commencer",
+      "features": [
+        "Surveillez jusqu'à 3 emplacements",
+        "Vérifiez toutes les 5-10 minutes",
+        "Notifications de bureau",
+        "Historique des créneaux",
+        "Aucune carte de crédit requise"
+      ]
+    },
+    "pro": {
+      "name": "Pro",
+      "price": "4,99 $",
+      "period": "par mois",
+      "description": "Pour les chasseurs sérieux de créneaux",
+      "cta": "Passer à Pro",
+      "badge": "Populaire",
+      "features": [
+        "Emplacements illimités",
+        "Vérifiez toutes les minutes",
+        "Notifications prioritaires",
+        "Filtres avancés (date, heure)",
+        "Analytique des créneaux",
+        "Alertes par e-mail",
+        "Annulez à tout moment"
+      ]
+    }
+  },
+  "faq": {
+    "heading": "Questions Fréquemment Posées",
+    "questions": {
+      "howWork": {
+        "question": "Comment fonctionne NEXUS Alert ?",
+        "answer": "NEXUS Alert est une extension Chrome qui vérifie automatiquement le site Web GOES de CBP pour les annulations de rendez-vous. Lorsqu'un créneau s'ouvre dans l'un de vos emplacements préférés, vous recevez une notification instantanée."
+      },
+      "free": {
+        "question": "Est-ce vraiment gratuit ?",
+        "answer": "Oui ! La version gratuite inclut toutes les fonctionnalités principales : surveillance jusqu'à 3 emplacements avec des vérifications toutes les 5-10 minutes. Passez à Pro pour des vérifications plus rapides et des emplacements illimités."
+      },
+      "safe": {
+        "question": "Est-ce sûr à utiliser ?",
+        "answer": "Absolument. NEXUS Alert fonctionne localement sur votre ordinateur et ne collecte ni ne stocke aucune donnée personnelle. Nous ne demandons jamais vos identifiants de connexion GOES."
+      },
+      "programs": {
+        "question": "Quels programmes sont pris en charge ?",
+        "answer": "NEXUS Alert fonctionne avec les systèmes de rendez-vous NEXUS, Global Entry et SENTRI."
+      },
+      "cancel": {
+        "question": "Puis-je annuler mon abonnement Pro ?",
+        "answer": "Oui, vous pouvez annuler à tout moment. Si vous annulez, vous conserverez les fonctionnalités Pro jusqu'à la fin de votre période de facturation."
+      },
+      "browsers": {
+        "question": "Quels navigateurs sont pris en charge ?",
+        "answer": "NEXUS Alert fonctionne sur Chrome, Microsoft Edge et le navigateur Brave."
+      }
+    }
+  },
+  "cta": {
+    "heading": "Prêt à trouver votre rendez-vous ?",
+    "description": "Rejoignez des milliers d'utilisateurs qui ont déjà réservé leurs rendez-vous NEXUS ou Global Entry plus rapidement.",
+    "button": "Installer l'Extension Chrome Gratuite"
+  },
+  "footer": {
+    "disclaimer": "NEXUS Alert n'est pas affilié au Service des douanes et de la protection des frontières des États-Unis (CBP) ou au Département de la sécurité intérieure (DHS).",
+    "links": {
+      "howItWorks": "Comment ça Fonctionne",
+      "pricing": "Tarification",
+      "help": "Centre d'Aide",
+      "privacy": "Confidentialité",
+      "terms": "Conditions"
+    }
+  },
+  "common": {
+    "loading": "Chargement...",
+    "error": "Quelque chose s'est mal passé",
+    "retry": "Réessayer",
+    "close": "Fermer",
+    "save": "Enregistrer",
+    "cancel": "Annuler",
+    "continue": "Continuer",
+    "back": "Retour",
+    "next": "Suivant",
+    "submit": "Soumettre",
+    "email": "E-mail",
+    "password": "Mot de passe"
+  }
+}

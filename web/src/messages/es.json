@@ -1,0 +1,174 @@
+{
+  "nav": {
+    "brand": "NEXUS Alert",
+    "installFree": "Instalar Gratis",
+    "skipToMain": "Saltar al contenido principal"
+  },
+  "hero": {
+    "badge": "Extensión Gratuita para Chrome",
+    "title": "Rastreador Automatizado de",
+    "titleHighlight": "Citas NEXUS",
+    "titleEnd": "— Encuentra Espacios en Días, No Meses",
+    "description": "El rastreador de citas NEXUS #1 y buscador de espacios Global Entry. Nuestra extensión de Chrome monitorea cancelaciones de entrevistas 24/7 y envía alertas instantáneas cuando se abren citas en tus centros de inscripción preferidos.",
+    "cta": "Agregar a Chrome — Gratis",
+    "compatibility": "Funciona en Chrome, Edge y Brave"
+  },
+  "problem": {
+    "heading": "Los espacios de citas desaparecen en minutos",
+    "description": "Los espacios de NEXUS y Global Entry se liberan cuando alguien cancela. Aparecen aleatoriamente y se reservan casi al instante. Refrescar el sitio web una y otra vez es agotador — y aún así pierdes la mayoría.",
+    "cards": {
+      "fast": {
+        "title": "Los espacios se agotan rápido",
+        "description": "Las citas canceladas se reservan en minutos. Si no estás mirando en el momento exacto, lo pierdes."
+      },
+      "manual": {
+        "title": "La verificación manual es dolorosa",
+        "description": "No hay sistema oficial de notificaciones. Tienes que seguir refrescando el sitio GOES tú mismo, esperando tener suerte."
+      },
+      "wait": {
+        "title": "Los tiempos de espera son meses",
+        "description": "El próximo espacio disponible podría estar a 3-6 meses. Pero las cancelaciones crean aperturas mucho antes — si las encuentras."
+      }
+    }
+  },
+  "howItWorks": {
+    "heading": "Cómo funciona NEXUS Alert",
+    "steps": {
+      "pick": {
+        "title": "Elige tus ubicaciones",
+        "description": "Selecciona qué centros de inscripción quieres monitorear. Elige NEXUS, Global Entry o SENTRI."
+      },
+      "set": {
+        "title": "Configura tus preferencias",
+        "description": "Filtra por rango de fechas y hora del día. Establece con qué frecuencia verificar — cada 1, 3, 5 o 10 minutos."
+      },
+      "notify": {
+        "title": "Recibe notificaciones al instante",
+        "description": "Cuando se abre un espacio, recibes una notificación de escritorio con alerta sonora. Un clic te lleva directamente a reservar."
+      }
+    }
+  },
+  "features": {
+    "heading": "Todo lo que necesitas",
+    "subheading": "Diseñado para asegurarte de que nunca pierdas otra apertura.",
+    "list": {
+      "monitoring": {
+        "title": "Monitoreo en tiempo real",
+        "description": "Verifica nuevos espacios tan seguido como cada minuto, funcionando silenciosamente en segundo plano mientras trabajas."
+      },
+      "sound": {
+        "title": "Alertas de sonido",
+        "description": "Escucha un sonido en el momento en que aparece un espacio. No necesitas estar mirando — solo escucha la notificación."
+      },
+      "multiLocation": {
+        "title": "Seguimiento de múltiples ubicaciones",
+        "description": "Monitorea varios centros de inscripción a la vez. Aumenta tus posibilidades de encontrar una apertura rápidamente."
+      },
+      "filters": {
+        "title": "Filtros inteligentes",
+        "description": "Solo recibe alertas para espacios que coincidan con tu horario. Filtra por rango de fechas y hora del día."
+      },
+      "history": {
+        "title": "Historial de espacios",
+        "description": "Ve un registro de cada espacio que se ha abierto recientemente. Te ayuda a aprender los mejores momentos para verificar."
+      },
+      "privacy": {
+        "title": "Privacidad primero",
+        "description": "Se ejecuta localmente en tu computadora. Sin rastreo, sin recopilación de datos, sin cuenta requerida."
+      }
+    }
+  },
+  "pricing": {
+    "heading": "Precios simples y transparentes",
+    "subheading": "Comienza gratis, actualiza cuando necesites más poder",
+    "free": {
+      "name": "Gratis",
+      "price": "$0",
+      "period": "para siempre",
+      "description": "Perfecto para monitoreo casual",
+      "cta": "Comenzar",
+      "features": [
+        "Monitorea hasta 3 ubicaciones",
+        "Verifica cada 5-10 minutos",
+        "Notificaciones de escritorio",
+        "Historial de espacios",
+        "No se requiere tarjeta de crédito"
+      ]
+    },
+    "pro": {
+      "name": "Pro",
+      "price": "$4.99",
+      "period": "por mes",
+      "description": "Para cazadores serios de espacios",
+      "cta": "Actualizar a Pro",
+      "badge": "Popular",
+      "features": [
+        "Ubicaciones ilimitadas",
+        "Verifica cada 1 minuto",
+        "Notificaciones prioritarias",
+        "Filtros avanzados (fecha, hora)",
+        "Analíticas de espacios",
+        "Alertas por correo electrónico",
+        "Cancela cuando quieras"
+      ]
+    }
+  },
+  "faq": {
+    "heading": "Preguntas Frecuentes",
+    "questions": {
+      "howWork": {
+        "question": "¿Cómo funciona NEXUS Alert?",
+        "answer": "NEXUS Alert es una extensión de Chrome que verifica automáticamente el sitio web GOES de CBP para cancelaciones de citas. Cuando se abre un espacio en una de tus ubicaciones preferidas, recibes una notificación instantánea."
+      },
+      "free": {
+        "question": "¿Es realmente gratis?",
+        "answer": "¡Sí! La versión gratuita incluye todas las funciones principales: monitoreo de hasta 3 ubicaciones con verificaciones cada 5-10 minutos. Actualiza a Pro para verificaciones más rápidas y ubicaciones ilimitadas."
+      },
+      "safe": {
+        "question": "¿Es seguro de usar?",
+        "answer": "Absolutamente. NEXUS Alert se ejecuta localmente en tu computadora y no recopila ni almacena ningún dato personal. Nunca pedimos tus credenciales de inicio de sesión de GOES."
+      },
+      "programs": {
+        "question": "¿Qué programas admite?",
+        "answer": "NEXUS Alert funciona con los sistemas de citas NEXUS, Global Entry y SENTRI."
+      },
+      "cancel": {
+        "question": "¿Puedo cancelar mi suscripción Pro?",
+        "answer": "Sí, puedes cancelar en cualquier momento. Si cancelas, mantendrás las funciones Pro hasta el final de tu período de facturación."
+      },
+      "browsers": {
+        "question": "¿Qué navegadores son compatibles?",
+        "answer": "NEXUS Alert funciona en Chrome, Microsoft Edge y el navegador Brave."
+      }
+    }
+  },
+  "cta": {
+    "heading": "¿Listo para encontrar tu cita?",
+    "description": "Únete a miles de usuarios que ya han reservado sus citas NEXUS o Global Entry más rápido.",
+    "button": "Instalar Extensión Gratuita para Chrome"
+  },
+  "footer": {
+    "disclaimer": "NEXUS Alert no está afiliado con la Oficina de Aduanas y Protección Fronteriza de EE. UU. (CBP) ni con el Departamento de Seguridad Nacional (DHS).",
+    "links": {
+      "howItWorks": "Cómo Funciona",
+      "pricing": "Precios",
+      "help": "Centro de Ayuda",
+      "privacy": "Privacidad",
+      "terms": "Términos"
+    }
+  },
+  "common": {
+    "loading": "Cargando...",
+    "error": "Algo salió mal",
+    "retry": "Intentar de nuevo",
+    "close": "Cerrar",
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "continue": "Continuar",
+    "back": "Atrás",
+    "next": "Siguiente",
+    "submit": "Enviar",
+    "email": "Correo electrónico",
+    "password": "Contraseña"
+  }
+}

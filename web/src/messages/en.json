@@ -1,0 +1,174 @@
+{
+  "nav": {
+    "brand": "NEXUS Alert",
+    "installFree": "Install Free",
+    "skipToMain": "Skip to main content"
+  },
+  "hero": {
+    "badge": "Free Chrome Extension",
+    "title": "Automated",
+    "titleHighlight": "NEXUS Appointment Tracker",
+    "titleEnd": "— Find Slots in Days, Not Months",
+    "description": "The #1 NEXUS appointment tracker and Global Entry slot finder. Our Chrome extension monitors interview cancellations 24/7 and sends instant alerts when appointments open up at your preferred enrollment centers.",
+    "cta": "Add to Chrome — Free",
+    "compatibility": "Works on Chrome, Edge, and Brave"
+  },
+  "problem": {
+    "heading": "Appointment slots disappear in minutes",
+    "description": "NEXUS and Global Entry slots are released when someone cancels. They show up randomly and get booked almost instantly. Refreshing the website over and over is exhausting — and you still miss most of them.",
+    "cards": {
+      "fast": {
+        "title": "Slots vanish fast",
+        "description": "Cancelled appointments get snapped up within minutes. If you're not looking at the exact right moment, you lose it."
+      },
+      "manual": {
+        "title": "Manual checking is painful",
+        "description": "There's no official notification system. You have to keep refreshing the GOES website yourself, hoping to get lucky."
+      },
+      "wait": {
+        "title": "Wait times are months",
+        "description": "The next available slot might be 3-6 months away. But cancellations create openings much sooner — if you catch them."
+      }
+    }
+  },
+  "howItWorks": {
+    "heading": "How NEXUS Alert works",
+    "steps": {
+      "pick": {
+        "title": "Pick your locations",
+        "description": "Select which enrollment centers you want to monitor. Choose NEXUS, Global Entry, or SENTRI."
+      },
+      "set": {
+        "title": "Set your preferences",
+        "description": "Filter by date range and time of day. Set how often to check — every 1, 3, 5, or 10 minutes."
+      },
+      "notify": {
+        "title": "Get notified instantly",
+        "description": "When a slot opens, you get a desktop notification with a sound alert. One click takes you straight to booking."
+      }
+    }
+  },
+  "features": {
+    "heading": "Everything you need",
+    "subheading": "Built to make sure you never miss another opening.",
+    "list": {
+      "monitoring": {
+        "title": "Real-time monitoring",
+        "description": "Checks for new slots as often as every minute, running silently in the background while you work."
+      },
+      "sound": {
+        "title": "Sound alerts",
+        "description": "Hear a chime the moment a slot appears. No need to keep watching — just listen for the notification."
+      },
+      "multiLocation": {
+        "title": "Multi-location tracking",
+        "description": "Monitor multiple enrollment centers at once. Increases your chances of finding an opening quickly."
+      },
+      "filters": {
+        "title": "Smart filters",
+        "description": "Only get alerts for slots that match your schedule. Filter by date range and time of day."
+      },
+      "history": {
+        "title": "Slot history",
+        "description": "See a log of every slot that's opened recently. Helps you learn the best times to check."
+      },
+      "privacy": {
+        "title": "Privacy-first",
+        "description": "Runs locally on your computer. No tracking, no data collection, no account required."
+      }
+    }
+  },
+  "pricing": {
+    "heading": "Simple, transparent pricing",
+    "subheading": "Start free, upgrade when you need more power",
+    "free": {
+      "name": "Free",
+      "price": "$0",
+      "period": "forever",
+      "description": "Perfect for casual monitoring",
+      "cta": "Get Started",
+      "features": [
+        "Monitor up to 3 locations",
+        "Check every 5-10 minutes",
+        "Desktop notifications",
+        "Slot history",
+        "No credit card required"
+      ]
+    },
+    "pro": {
+      "name": "Pro",
+      "price": "$4.99",
+      "period": "per month",
+      "description": "For serious slot hunters",
+      "cta": "Upgrade to Pro",
+      "badge": "Popular",
+      "features": [
+        "Unlimited locations",
+        "Check every 1 minute",
+        "Priority notifications",
+        "Advanced filters (date, time)",
+        "Slot analytics",
+        "Email alerts",
+        "Cancel anytime"
+      ]
+    }
+  },
+  "faq": {
+    "heading": "Frequently Asked Questions",
+    "questions": {
+      "howWork": {
+        "question": "How does NEXUS Alert work?",
+        "answer": "NEXUS Alert is a Chrome extension that automatically checks the CBP GOES website for appointment cancellations. When a slot opens at one of your preferred locations, you get an instant notification."
+      },
+      "free": {
+        "question": "Is it really free?",
+        "answer": "Yes! The free version includes all core features: monitoring up to 3 locations with checks every 5-10 minutes. Upgrade to Pro for faster checks and unlimited locations."
+      },
+      "safe": {
+        "question": "Is it safe to use?",
+        "answer": "Absolutely. NEXUS Alert runs locally on your computer and doesn't collect or store any personal data. We never ask for your GOES login credentials."
+      },
+      "programs": {
+        "question": "Which programs does it support?",
+        "answer": "NEXUS Alert works with NEXUS, Global Entry, and SENTRI appointment systems."
+      },
+      "cancel": {
+        "question": "Can I cancel my Pro subscription?",
+        "answer": "Yes, you can cancel anytime. If you cancel, you'll keep Pro features until the end of your billing period."
+      },
+      "browsers": {
+        "question": "Which browsers are supported?",
+        "answer": "NEXUS Alert works on Chrome, Microsoft Edge, and Brave browser."
+      }
+    }
+  },
+  "cta": {
+    "heading": "Ready to find your appointment?",
+    "description": "Join thousands of users who have already booked their NEXUS or Global Entry appointments faster.",
+    "button": "Install Free Chrome Extension"
+  },
+  "footer": {
+    "disclaimer": "NEXUS Alert is not affiliated with U.S. Customs and Border Protection (CBP) or the Department of Homeland Security (DHS).",
+    "links": {
+      "howItWorks": "How it Works",
+      "pricing": "Pricing",
+      "help": "Help Center",
+      "privacy": "Privacy",
+      "terms": "Terms"
+    }
+  },
+  "common": {
+    "loading": "Loading...",
+    "error": "Something went wrong",
+    "retry": "Try again",
+    "close": "Close",
+    "save": "Save",
+    "cancel": "Cancel",
+    "continue": "Continue",
+    "back": "Back",
+    "next": "Next",
+    "submit": "Submit",
+    "email": "Email",
+    "password": "Password"
+  }
+}

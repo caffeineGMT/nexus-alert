@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+ <meta charset="UTF-8">
+ <meta name="viewport" content="width=device-width, initial-scale=1.0">
+ <title>NEXUS Alert</title>
+ <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+ <a href="#tab-monitor" class="skip-link">Skip to main content</a>
+ <header class="header" role="banner">
+ <h1><span aria-hidden="true">🔔</span> <span data-i18n="appTitle">NEXUS Alert</span></h1>
+ <label class="toggle-switch" aria-label="Enable monitoring">
+  <input type="checkbox" id="enableToggle" checked aria-label="Enable appointment monitoring">
+  <span class="toggle-slider" role="presentation"></span>
+ </label>
+ </header>
+ <div class="status-bar" role="status" aria-live="polite" aria-label="Monitoring status">
+ <div class="status-left">
+  <span class="status-dot active" id="statusDot" aria-hidden="true"></span>
+  <span id="statusText">Monitoring</span>
+ </div>
+ <span class="last-check" id="lastCheck" aria-label="Last check time">Starting up...</span>
+ </div>
+ <div id="errorBanner" class="error-banner" style="display:none" role="alert" aria-live="assertive">
+ <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+  <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+  <line x1="12" y1="9" x2="12" y2="13"/>
+  <line x1="12" y1="17" x2="12.01" y2="17"/>
+ </svg>
+ <span id="errorMessage"></span>
+ </div>
+ <div id="upgradeBanner" class="upgrade-banner hidden" role="complementary" aria-label="Upgrade promotion">
+ <div class="upgrade-banner-text">
+  You've been monitoring for 3+ days. Upgrade to 2-min checks to find slots 87% faster.
+ </div>
+ <button class="upgrade-banner-cta" id="bannerUpgradeBtn" aria-label="Upgrade to premium">Upgrade</button>
+ <button class="upgrade-banner-dismiss" id="bannerDismissBtn" aria-label="Dismiss upgrade banner">&times;</button>
+ </div>
+ <div class="tab-bar" role="tablist" aria-label="Main navigation">
+ <button class="tab-item active" data-tab="monitor" role="tab" aria-selected="true" aria-controls="tab-monitor" id="tab-btn-monitor">Monitor</button>
+ <button class="tab-item" data-tab="slots" role="tab" aria-selected="false" aria-controls="tab-slots" id="tab-btn-slots">Slots</button>
+ <button class="tab-item" data-tab="refer" role="tab" aria-selected="false" aria-controls="tab-refer" id="tab-btn-refer">Invite</button>
+ <button class="tab-item" data-tab="settings" role="tab" aria-selected="false" aria-controls="tab-settings" id="tab-btn-settings">Settings</button>
+ </div>
+ <div class="tab-content active" id="tab-monitor" role="tabpanel" aria-labelledby="tab-btn-monitor">
+ <div class="section" id="liveSlotsSection">
+  <h2 class="section-title" id="live-slots-heading">Live Available Slots</h2>
+  <div id="liveSlotsList" role="region" aria-labelledby="live-slots-heading" aria-live="polite">
+  <div class="empty-state-enhanced">
+  <div class="empty-icon">🔍</div>
+  <div class="empty-title">No appointments found yet</div>
+  <div class="empty-description">We're actively scanning CBP enrollment centers for open slots. You'll be notified the moment one appears.</div>
+  </div>
+  </div>
+ </div>
+ <div class="section">
+  <h2 class="section-title" id="program-heading">Program</h2>
+  <div class="program-tabs" role="radiogroup" aria-labelledby="program-heading">
+  <button class="program-tab active" data-program="NEXUS" role="radio" aria-checked="true">NEXUS</button>
+  <button class="program-tab" data-program="Global Entry" role="radio" aria-checked="false">Global Entry</button>
+  <button class="program-tab" data-program="SENTRI" role="radio" aria-checked="false">SENTRI</button>
+  </div>
+ </div>
+ <div class="section">
+  <h2 class="section-title" id="locations-heading">Enrollment Centers</h2>
+  <div class="location-list" id="locationList" role="group" aria-labelledby="locations-heading">
+  <div class="spinner" id="locationSpinner" role="status" aria-label="Loading locations"><span class="sr-only">Loading locations...</span></div>
+  <div id="locationSkeletons">
+  <div class="skeleton-card"><div class="skeleton skeleton-line long"></div><div class="skeleton skeleton-line short"></div></div>
+  <div class="skeleton-card"><div class="skeleton skeleton-line long"></div><div class="skeleton skeleton-line short"></div></div>
+  <div class="skeleton-card"><div class="skeleton skeleton-line medium"></div><div class="skeleton skeleton-line short"></div></div>
+  </div>
+  </div>
+ </div>
+ <div class="section">
+  <fieldset style="border:none;padding:0;margin:0">
+  <legend class="section-title">Filters</legend>
+  <div class="filter-row">
+  <div class="filter-group">
+  <label class="filter-label" for="dateFrom">Date from</label>
+  <input type="date" class="filter-input" id="dateFrom" aria-label="Filter start date">
+  </div>
+  <div class="filter-group">
+  <label class="filter-label" for="dateTo">Date to</label>
+  <input type="date" class="filter-input" id="dateTo" aria-label="Filter end date">
+  </div>
+  </div>
+  <div class="filter-row">
+  <div class="filter-group">
+  <label class="filter-label" for="timeFrom">Time from</label>
+  <input type="time" class="filter-input" id="timeFrom" aria-label="Filter start time">
+  </div>
+  <div class="filter-group">
+  <label class="filter-label" for="timeTo">Time to</label>
+  <input type="time" class="filter-input" id="timeTo" aria-label="Filter end time">
+  </div>
+  </div>
+  </fieldset>
+ </div>
+ <div class="actions" role="group" aria-label="Quick actions">
+  <button class="btn btn-primary" id="checkNowBtn">Check Now</button>
+  <button class="btn btn-secondary" id="openSiteBtn">Open GOES</button>
+ </div>
+ </div>
+ <div class="tab-content" id="tab-slots" role="tabpanel" aria-labelledby="tab-btn-slots" hidden>
+ <div class="section">
+  <div class="stats-row" role="group" aria-label="Slot statistics">
+  <div class="stat-card" role="figure" aria-label="Total slots seen">
+  <div class="stat-value" id="statTotal" aria-live="polite">0</div>
+  <div class="stat-label">Slots Seen</div>
+  </div>
+  <div class="stat-card" role="figure" aria-label="Slots found today">
+  <div class="stat-value" id="statToday" aria-live="polite">0</div>
+  <div class="stat-label">Today</div>
+  </div>
+  <div class="stat-card" role="figure" aria-label="Locations monitored">
+  <div class="stat-value" id="statLocations" aria-live="polite">0</div>
+  <div class="stat-label">Locations</div>
+  </div>
+  </div>
+ </div>
+ <div class="section">
+  <div class="history-header">
+  <h2 class="section-title" style="margin-bottom:0" id="history-heading">Slot History</h2>
+  <button class="clear-history-btn" id="clearHistoryBtn" aria-label="Clear slot history">Clear</button>
+  </div>
+  <div class="history-list" id="historyList" role="log" aria-labelledby="history-heading" aria-live="polite">
+  <div class="empty-state-enhanced">
+  <div class="empty-icon">📋</div>
+  <div class="empty-title">No history yet</div>
+  <div class="empty-description">Appointment slots you discover will appear here so you can track patterns over time.</div>
+  </div>
+  </div>
+ </div>
+ </div>
+ <div class="tab-content" id="tab-refer" role="tabpanel" aria-labelledby="tab-btn-refer" hidden>
+ <div class="section" style="background:linear-gradient(135deg,#1e3a8a 0%,#1e40af 100%);border-bottom:2px solid #3b82f6;padding:16px">
+  <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+  <span style="font-size:22px">🎁</span>
+  <div>
+  <div style="font-weight:700;font-size:14px;color:white">Give 1 Month Free, Get 1 Month Free</div>
+  <div style="font-size:11px;color:rgba(255,255,255,0.8)">Share with friends who need NEXUS/Global Entry</div>
+  </div>
+  </div>
+  <div style="display:flex;gap:6px;margin-bottom:12px">
+  <div style="flex:1;background:rgba(255,255,255,0.1);border-radius:6px;padding:8px;text-align:center">
+  <div style="font-size:16px;margin-bottom:2px">📤</div>
+  <div style="font-size:9px;color:rgba(255,255,255,0.8);line-height:1.3">Share your<br>referral link</div>
+  </div>
+  <div style="flex:1;background:rgba(255,255,255,0.1);border-radius:6px;padding:8px;text-align:center">
+  <div style="font-size:16px;margin-bottom:2px">👤</div>
+  <div style="font-size:9px;color:rgba(255,255,255,0.8);line-height:1.3">Friend gets<br>50% off</div>
+  </div>
+  <div style="flex:1;background:rgba(255,255,255,0.1);border-radius:6px;padding:8px;text-align:center">
+  <div style="font-size:16px;margin-bottom:2px">🎉</div>
+  <div style="font-size:9px;color:rgba(255,255,255,0.8);line-height:1.3">You get<br>1 month free</div>
+  </div>
+  </div>
+  <div style="background:rgba(0,0,0,0.25);border-radius:6px;padding:10px;margin-bottom:10px">
+  <div style="font-size:9px;color:rgba(255,255,255,0.6);margin-bottom:4px;text-transform:uppercase;letter-spacing:0.5px">Your Referral Link</div>
+  <div style="display:flex;gap:6px;align-items:center">
+  <input type="text" id="referralLink" readonly aria-label="Your referral link" style="flex:1;background:rgba(0,0,0,0.3);border:1px solid rgba(255,255,255,0.2);color:white;padding:7px 8px;border-radius:4px;font-size:10px;font-family:monospace" value="Set email in Settings first">
+  <button class="btn btn-primary" id="copyReferralBtn" aria-label="Copy referral link to clipboard" style="padding:7px 12px;white-space:nowrap;font-size:11px">Copy</button>
+  </div>
+  <div id="copyFeedback" style="display:none;margin-top:4px;font-size:10px;color:#22c55e">Copied to clipboard!</div>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:5px;margin-bottom:10px" role="group" aria-label="Share on social media">
+  <button class="btn" id="shareTwitterBtn" aria-label="Share on Twitter" style="background:#1da1f2;border:none;padding:7px 4px;font-size:10px;color:white">
+  Twitter
+  </button>
+  <button class="btn" id="shareFacebookBtn" aria-label="Share on Facebook" style="background:#1877f2;border:none;padding:7px 4px;font-size:10px;color:white">
+  Facebook
+  </button>
+  <button class="btn" id="shareWhatsAppBtn" aria-label="Share on WhatsApp" style="background:#25d366;border:none;padding:7px 4px;font-size:10px;color:white">
+  WhatsApp
+  </button>
+  <button class="btn" id="shareEmailBtn" aria-label="Share via email" style="background:#6366f1;border:none;padding:7px 4px;font-size:10px;color:white">
+  Email
+  </button>
+  </div>
+  <div id="referralStatsBox" style="background:rgba(0,0,0,0.2);border-radius:6px;padding:10px">
+  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;text-align:center">
+  <div>
+  <div style="font-size:20px;font-weight:700;color:#22c55e" id="referralFreeMonths">0</div>
+  <div style="font-size:9px;color:rgba(255,255,255,0.7)">Free Months<br>Earned</div>
+  </div>
+  <div>
+  <div style="font-size:20px;font-weight:700;color:#60a5fa" id="referralConversions">0</div>
+  <div style="font-size:9px;color:rgba(255,255,255,0.7)">Friends<br>Upgraded</div>
+  </div>
+  <div>
+  <div style="font-size:20px;font-weight:700;color:rgba(255,255,255,0.9)" id="referralClicks">0</div>
+  <div style="font-size:9px;color:rgba(255,255,255,0.7)">Link<br>Clicks</div>
+  </div>
+  </div>
+  </div>
+ </div>
+ <div id="referralCreditBanner" class="section" style="display:none;background:rgba(34,197,94,0.1);border-bottom:1px solid rgba(34,197,94,0.3)">
+  <div style="display:flex;align-items:center;gap:8px">
+  <span style="font-size:18px">🏆</span>
+  <div>
+  <div style="font-size:12px;font-weight:600;color:var(--green)" id="creditBannerText">You've earned 0 free months!</div>
+  <div style="font-size:10px;color:var(--text-muted)">Keep sharing to earn more</div>
+  </div>
+  </div>
+ </div>
+ <div class="section">
+  <div class="section-title">Quick Share Messages</div>
+  <div id="shareMessagesList">
+  <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:6px;padding:10px;margin-bottom:6px;cursor:pointer" class="share-message-card" data-message="I found my NEXUS appointment in just 3 days using @NexusAlert instead of waiting months! Check it out:">
+  <div style="font-size:11px;color:var(--text);line-height:1.4">"I found my NEXUS appointment in just 3 days using NEXUS Alert instead of waiting months!"</div>
+  <div style="font-size:9px;color:var(--accent);margin-top:4px">Click to copy with your link</div>
+  </div>
+  <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:6px;padding:10px;margin-bottom:6px;cursor:pointer" class="share-message-card" data-message="Stop refreshing the GOES website manually! This Chrome extension monitors NEXUS/Global Entry appointments 24/7 and alerts you instantly:">
+  <div style="font-size:11px;color:var(--text);line-height:1.4">"Stop refreshing the GOES website manually! This extension monitors appointments 24/7."</div>
+  <div style="font-size:9px;color:var(--accent);margin-top:4px">Click to copy with your link</div>
+  </div>
+  <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:6px;padding:10px;cursor:pointer" class="share-message-card" data-message="Pro tip for anyone waiting for a NEXUS or Global Entry interview: use this alert tool to grab cancellation slots instantly:">
+  <div style="font-size:11px;color:var(--text);line-height:1.4">"Pro tip for anyone waiting for NEXUS or Global Entry: grab cancellation slots instantly."</div>
+  <div style="font-size:9px;color:var(--accent);margin-top:4px">Click to copy with your link</div>
+  </div>
+  </div>
+ </div>
+ </div>
+ <div class="tab-content" id="tab-settings" role="tabpanel" aria-labelledby="tab-btn-settings" hidden>
+ <div class="section">
+  <h2 class="section-title" id="interval-heading">Check Interval</h2>
+  <div class="interval-options" role="radiogroup" aria-labelledby="interval-heading">
+  <button class="interval-btn" data-interval="1" role="radio" aria-checked="false" aria-label="Check every 1 minute">1 min</button>
+  <button class="interval-btn active" data-interval="3" role="radio" aria-checked="true" aria-label="Check every 3 minutes">3 min</button>
+  <button class="interval-btn" data-interval="5" role="radio" aria-checked="false" aria-label="Check every 5 minutes">5 min</button>
+  <button class="interval-btn" data-interval="10" role="radio" aria-checked="false" aria-label="Check every 10 minutes">10 min</button>
+  </div>
+  <div id="freeIntervalNotice" style="display:none;font-size:10px;color:var(--yellow);margin-top:6px">Free plan: actual check interval is 30 min regardless of selection. Upgrade to unlock.</div>
+ </div>
+ <div class="section" id="premiumSection">
+  <div class="section-title">Plan</div>
+  <div id="freePlanCard" style="display:none">
+  <div class="tier-badge free">Free Plan</div>
+  <div class="tier-notice">Free plan checks every 30 min. <br>Upgrade for 2-min checks + email alerts.</div>
+  <ul class="benefit-list">
+  <li>✓ Check every 2 minutes</li>
+  <li>✓ Email notifications</li>
+  <li>✓ SMS alerts (coming soon)</li>
+  </ul>
+  <div style="display:flex;gap:6px;margin-bottom:10px;background:var(--bg-input);border-radius:6px;padding:4px">
+  <button class="billing-toggle-btn active" data-plan="monthly" style="flex:1;padding:6px;border:none;border-radius:4px;font-size:11px;font-weight:600;cursor:pointer;transition:0.15s;background:var(--accent);color:white">
+  Monthly
+  </button>
+  <button class="billing-toggle-btn" data-plan="annual" style="flex:1;padding:6px;border:none;border-radius:4px;font-size:11px;font-weight:600;cursor:pointer;transition:0.15s;background:transparent;color:var(--text-muted);position:relative">
+  Annual
+  <span style="font-size:9px;background:var(--green);color:#000;padding:1px 4px;border-radius:3px;margin-left:3px;font-weight:700">-16%</span>
+  </button>
+  </div>
+  <div style="background:rgba(234,179,8,0.12);border:1px solid rgba(234,179,8,0.3);border-radius:6px;padding:8px;margin-bottom:10px">
+  <p style="font-size:10px;color:var(--yellow);text-align:center;line-height:1.4">
+  🔥 Limited time: Annual at launch price<br>Lock in $49.99/yr before it rises to $59.99<br>
+  <strong style="color:var(--green);font-size:11px">Save $10/year — Just $4.16/mo</strong>
+  </p>
+  </div>
+  <input type="email" id="upgradeEmail" placeholder="your@email.com" class="filter-input" style="margin-bottom:8px" aria-label="Email address for upgrade">
+  <button class="btn btn-primary" id="upgradeBtn" style="width:100%" aria-label="Upgrade to premium plan">Upgrade — $4.99/mo</button>
+  <button class="btn btn-secondary" id="restoreBtn" style="width:100%;margin-top:6px" aria-label="Restore existing license">Restore License</button>
+  </div>
+  <div id="premiumPlanCard" style="display:none">
+  <div class="tier-badge premium">✓ Premium</div>
+  <div style="font-size:11px;color:var(--text-muted);margin-top:6px">2-minute checks active. Email alerts enabled.</div>
+  </div>
+ </div>
+ <div class="section" id="communitySection" style="display:none">
+  <div class="section-title">Join Insiders Community</div>
+  <div style="background:linear-gradient(135deg,rgba(88,101,242,0.1),rgba(88,101,242,0.05));border:1px solid rgba(88,101,242,0.3);border-radius:8px;padding:12px">
+  <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+  <svg style="width:20px;height:20px;fill:#5865F2" viewBox="0 0 71 55" aria-hidden="true">
+  <path d="M60.1045 4.8978C55.5792 2.8214 50.7265 1.2916 45.6527 0.41542C45.5603 0.39851 45.468 0.440769 45.4204 0.525289C44.7963 1.6353 44.105 3.0834 43.6209 4.2216C38.1637 3.4046 32.7345 3.4046 27.3892 4.2216C26.905 3.0581 26.1886 1.6353 25.5617 0.525289C25.5141 0.443589 25.4218 0.40133 25.3294 0.41542C20.2584 1.2888 15.4057 2.8186 10.8776 4.8978C10.8384 4.9147 10.8048 4.9429 10.7825 4.9795C1.57795 18.7309 -0.943561 32.1443 0.293408 45.3914C0.299005 45.4562 0.335386 45.5182 0.385761 45.5576C6.45866 50.0174 12.3413 52.7249 18.1147 54.5195C18.2071 54.5477 18.305 54.5139 18.3638 54.4378C19.7295 52.5728 20.9469 50.6063 21.9907 48.5383C22.0523 48.4172 21.9935 48.2735 21.8676 48.2256C19.9366 47.4931 18.0979 46.6 16.3292 45.5858C16.1893 45.5041 16.1781 45.304 16.3068 45.2082C16.679 44.9293 17.0513 44.6391 17.4067 44.3461C17.471 44.2926 17.5606 44.2813 17.6362 44.3151C29.2558 49.6202 41.8354 49.6202 53.3179 44.3151C53.3935 44.2785 53.4831 44.2898 53.5502 44.3433C53.9057 44.6363 54.2779 44.9293 54.6529 45.2082C54.7816 45.304 54.7732 45.5041 54.6333 45.5858C52.8646 46.6197 51.0259 47.4931 49.0921 48.2228C48.9662 48.2707 48.9102 48.4172 48.9718 48.5383C50.038 50.6034 51.2554 52.5699 52.5959 54.435C52.6519 54.5139 52.7526 54.5477 52.845 54.5195C58.6464 52.7249 64.529 50.0174 70.6019 45.5576C70.6551 45.5182 70.6887 45.459 70.6943 45.3942C72.1747 30.0791 68.2147 16.7757 60.1968 4.9823C60.1772 4.9429 60.1437 4.9147 60.1045 4.8978ZM23.7259 37.3253C20.2276 37.3253 17.3451 34.1136 17.3451 30.1693C17.3451 26.225 20.1717 23.0133 23.7259 23.0133C27.308 23.0133 30.1626 26.2532 30.1066 30.1693C30.1066 34.1136 27.28 37.3253 23.7259 37.3253ZM47.3178 37.3253C43.8196 37.3253 40.9371 34.1136 40.9371 30.1693C40.9371 26.225 43.7636 23.0133 47.3178 23.0133C50.9 23.0133 53.7545 26.2532 53.6986 30.1693C53.6986 34.1136 50.9 37.3253 47.3178 37.3253Z"/>
+  </svg>
+  <span style="font-weight:700;font-size:13px">NEXUS Alert Insiders</span>
+  </div>
+  <div style="font-size:11px;color:var(--text-muted);margin-bottom:10px;line-height:1.4">
+  Exclusive Discord for premium users. Get early features, tips, and direct founder access.
+  </div>
+  <ul style="font-size:10px;color:var(--text);margin-bottom:10px;padding-left:14px;line-height:1.6">
+  <li>First access to beta features</li>
+  <li>Appointment tips from travelers</li>
+  <li>Direct feedback to founder</li>
+  <li>Celebrate booking wins</li>
+  </ul>
+  <button class="btn btn-primary" id="joinDiscordBtn" style="width:100%;background:#5865F2;border:none">
+  Join Discord Community →
+  </button>
+  <div id="founding100Badge" style="display:none;margin-top:8px;text-align:center;font-size:10px;color:var(--yellow)">
+  🏆 You're Founding 100 — Lifetime 20% discount!
+  </div>
+  </div>
+ </div>
+ <div class="section" id="premiumStatsSection">
+  <div class="section-title">Premium Performance</div>
+  <div class="premium-stats-card">
+  <div class="stat-title">Average Time to Find Slot</div>
+  <div class="stat-comparison">
+  <div>
+  <div class="value premium-value">4.2</div>
+  <div class="label">days (Premium)</div>
+  </div>
+  <div>
+  <div class="value free-value">12.1</div>
+  <div class="label">days (Free)</div>
+  </div>
+  </div>
+  </div>
+  <p style="font-size:10px;color:var(--text-muted);line-height:1.4;">
+  Premium users find slots <strong style="color:var(--green)">87% faster</strong> on average due to 2-minute check intervals vs. 30-minute intervals on the free plan.
+  </p>
+ </div>
+ <div class="section">
+  <h2 class="section-title">Notifications</h2>
+  <div class="toggle-row">
+  <div>
+  <div class="toggle-label" id="desktop-notif-label">Desktop Notifications</div>
+  <div class="toggle-description">Show Chrome notifications for new slots</div>
+  </div>
+  <label class="toggle-switch" aria-labelledby="desktop-notif-label">
+  <input type="checkbox" id="desktopNotifToggle" checked aria-label="Enable desktop notifications">
+  <span class="toggle-slider" role="presentation"></span>
+  </label>
+  </div>
+  <div class="toggle-row">
+  <div>
+  <div class="toggle-label" id="badge-label">Badge Count</div>
+  <div class="toggle-description">Show slot count on extension icon</div>
+  </div>
+  <label class="toggle-switch" aria-labelledby="badge-label">
+  <input type="checkbox" id="badgeToggle" checked aria-label="Enable badge count">
+  <span class="toggle-slider" role="presentation"></span>
+  </label>
+  </div>
+  <div class="toggle-row">
+  <div>
+  <div class="toggle-label" id="autoopen-label">Auto-open Booking</div>
+  <div class="toggle-description">Open GOES website when slots found</div>
+  </div>
+  <label class="toggle-switch" aria-labelledby="autoopen-label">
+  <input type="checkbox" id="autoOpenToggle" aria-label="Enable auto-open booking page">
+  <span class="toggle-slider" role="presentation"></span>
+  </label>
+  </div>
+  <div style="margin-top: 10px">
+  <div class="toggle-label" id="notif-freq-label">Notification Frequency</div>
+  <div class="toggle-description" style="margin-bottom:6px">How often to re-notify about the same slot</div>
+  <div class="interval-options" role="radiogroup" aria-labelledby="notif-freq-label">
+  <button class="interval-btn notif-freq-btn" data-freq="once" role="radio" aria-checked="false" aria-label="Notify once per slot">Once</button>
+  <button class="interval-btn notif-freq-btn active" data-freq="30" role="radio" aria-checked="true" aria-label="Notify every 30 minutes">30 min</button>
+  <button class="interval-btn notif-freq-btn" data-freq="60" role="radio" aria-checked="false" aria-label="Notify every hour">1 hr</button>
+  <button class="interval-btn notif-freq-btn" data-freq="always" role="radio" aria-checked="false" aria-label="Notify every check">Always</button>
+  </div>
+  </div>
+  <div style="margin-top: 10px">
+  <div class="toggle-row" style="border:none;padding-bottom:4px">
+  <div>
+  <div class="toggle-label" id="quiet-hours-label">Quiet Hours</div>
+  <div class="toggle-description">Pause notifications during these hours</div>
+  </div>
+  <label class="toggle-switch" aria-labelledby="quiet-hours-label">
+  <input type="checkbox" id="quietHoursToggle" aria-label="Enable quiet hours">
+  <span class="toggle-slider" role="presentation"></span>
+  </label>
+  </div>
+  <div class="quiet-hours-row" id="quietHoursRange" style="display:none">
+  <input type="time" class="filter-input" id="quietFrom" value="22:00" aria-label="Quiet hours start time">
+  <span class="quiet-hours-dash">to</span>
+  <input type="time" class="filter-input" id="quietTo" value="07:00" aria-label="Quiet hours end time">
+  </div>
+  </div>
+ </div>
+ <div class="section">
+  <h2 class="section-title">Sound</h2>
+  <div class="toggle-row">
+  <div>
+  <div class="toggle-label" id="sound-label">Sound Alert</div>
+  <div class="toggle-description">Play a chime when new slots appear</div>
+  </div>
+  <label class="toggle-switch" aria-labelledby="sound-label">
+  <input type="checkbox" id="soundToggle" checked aria-label="Enable sound alerts">
+  <span class="toggle-slider" role="presentation"></span>
+  </label>
+  </div>
+  <div id="soundPrefsPanel">
+  <div style="margin-top:8px">
+  <div class="toggle-label">Alert Sound</div>
+  <div class="sound-type-options" role="radiogroup" aria-label="Select alert sound" style="margin-top:4px">
+  <button class="sound-type-btn active" data-sound="chime" role="radio" aria-checked="true">🔔 Chime</button>
+  <button class="sound-type-btn" data-sound="bell" role="radio" aria-checked="false">🛎️ Bell</button>
+  <button class="sound-type-btn" data-sound="urgent" role="radio" aria-checked="false">🚨 Urgent</button>
+  <button class="sound-type-btn" data-sound="subtle" role="radio" aria-checked="false">💤 Subtle</button>
+  </div>
+  </div>
+  <div style="margin-top:8px">
+  <div class="toggle-label">Volume</div>
+  <div class="volume-row">
+  <span style="font-size:12px;color:var(--text-muted)">🔈</span>
+  <input type="range" class="volume-slider" id="volumeSlider" min="0" max="100" value="70" aria-label="Alert volume">
+  <span class="volume-label" id="volumeLabel">70%</span>
+  <span style="font-size:12px;color:var(--text-muted)">🔊</span>
+  </div>
+  </div>
+  <button class="test-sound-btn" id="testSoundBtn" style="margin-top:6px;width:100%">▶ Test Sound</button>
+  </div>
+ </div>
+ <div class="section">
+  <h2 class="section-title">Preferred Locations</h2>
+  <div class="toggle-description" style="margin-bottom:8px">Pin your favorite locations for quick access. Pinned locations appear first in the main view.</div>
+  <div class="region-chips" id="regionChips">
+  <button class="region-chip" data-region="US-West" aria-label="Select US West locations">US West</button>
+  <button class="region-chip" data-region="US-East" aria-label="Select US East locations">US East</button>
+  <button class="region-chip" data-region="US-South" aria-label="Select US South locations">US South</button>
+  <button class="region-chip" data-region="Canada" aria-label="Select Canada locations">Canada</button>
+  </div>
+  <input type="text" class="location-search-input" id="favLocationSearch" placeholder="Search locations to pin..." aria-label="Search for locations to add as favorites">
+  <div class="location-dropdown" id="favLocationDropdown"></div>
+  <div class="fav-locations-list" id="favLocationsList">
+  <div class="empty-state" style="font-size:11px;padding:10px">No pinned locations yet. Search above to add favorites.</div>
+  </div>
+ </div>
+ <div class="section">
+  <div class="section-title">Data</div>
+  <div style="display:flex;gap:8px">
+  <button class="btn btn-secondary" id="refreshLocationsBtn" style="flex:1">Refresh Locations</button>
+  <button class="btn btn-secondary" id="exportDataBtn" style="flex:1">Export Data</button>
+  </div>
+ </div>
+ </div>
+ <footer class="footer" role="contentinfo">
+ NEXUS Alert v2.0 — Not affiliated with CBP/DHS
+ </footer>
+ <div id="toastContainer" aria-live="polite" aria-atomic="true"></div>
+ <div id="upgradeModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="upgradeModalTitle">
+ <div class="modal-content">
+  <h3 id="upgradeModalTitle">Don't Miss Your Next Slot</h3>
+  <p>Appointment slots often fill within minutes. Premium checks every 2 minutes so you're always first in line.</p>
+  <div class="stat-highlight" role="figure" aria-label="Performance comparison">
+  <strong>87% faster</strong> slot discovery<br>
+  Premium users book in 4.2 days vs. 12.1 on Free
+  </div>
+  <div class="modal-actions">
+  <button class="btn btn-primary" id="upgradeNowBtn" style="flex:2">Get Premium →</button>
+  <button class="btn btn-secondary" id="dismissModalBtn" style="flex:1">Not Now</button>
+  </div>
+ </div>
+ </div>
+ <script src="popup.js"></script>
+</body>
+</html>

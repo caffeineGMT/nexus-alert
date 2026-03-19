@@ -1,0 +1,446 @@
+/* ═══════════════════════════════════════════════════════════════════════
+   NEXUS Alert — Onboarding & Tutorial Styles
+   ═══════════════════════════════════════════════════════════════════════ */
+
+:root {
+  --onboarding-overlay: rgba(0, 0, 0, 0.85);
+  --onboarding-bg: #1a1a1a;
+  --onboarding-border: #3b82f6;
+  --onboarding-text: #e8e8e8;
+  --onboarding-accent: #3b82f6;
+  --onboarding-success: #22c55e;
+  --spotlight-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.85);
+}
+
+/* ─── Tutorial Overlay ─────────────────────────────────────────────── */
+.tutorial-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: var(--onboarding-overlay);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fadeIn 0.3s ease-in;
+}
+
+.tutorial-overlay.hidden {
+  display: none;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* ─── Tutorial Card ────────────────────────────────────────────────── */
+.tutorial-card {
+  background: var(--onboarding-bg);
+  border: 2px solid var(--onboarding-border);
+  border-radius: 12px;
+  padding: 24px;
+  max-width: 340px;
+  width: 90%;
+  box-shadow: 0 8px 32px rgba(59, 130, 246, 0.3);
+  animation: slideUp 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  position: relative;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.tutorial-card h2 {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--onboarding-text);
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.tutorial-card h2 .emoji {
+  font-size: 24px;
+}
+
+.tutorial-card p {
+  color: #b8b8b8;
+  font-size: 14px;
+  line-height: 1.6;
+  margin-bottom: 20px;
+}
+
+.tutorial-card ul {
+  list-style: none;
+  margin: 16px 0;
+  padding: 0;
+}
+
+.tutorial-card li {
+  padding: 10px 12px;
+  margin-bottom: 8px;
+  background: rgba(59, 130, 246, 0.1);
+  border-left: 3px solid var(--onboarding-accent);
+  border-radius: 4px;
+  font-size: 13px;
+  color: var(--onboarding-text);
+}
+
+.tutorial-card li strong {
+  color: var(--onboarding-accent);
+  font-weight: 600;
+}
+
+/* ─── Tutorial Progress ────────────────────────────────────────────── */
+.tutorial-progress {
+  display: flex;
+  gap: 6px;
+  margin: 20px 0 16px;
+  justify-content: center;
+}
+
+.progress-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #333;
+  transition: all 0.3s ease;
+}
+
+.progress-dot.active {
+  background: var(--onboarding-accent);
+  width: 24px;
+  border-radius: 4px;
+}
+
+.progress-dot.completed {
+  background: var(--onboarding-success);
+}
+
+/* ─── Tutorial Actions ──────────────────────────────────────────────── */
+.tutorial-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 20px;
+}
+
+.tutorial-actions button {
+  flex: 1;
+  padding: 12px 16px;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-primary-tutorial {
+  background: var(--onboarding-accent);
+  color: white;
+}
+
+.btn-primary-tutorial:hover {
+  background: #2563eb;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+}
+
+.btn-secondary-tutorial {
+  background: #2a2a2a;
+  color: #b8b8b8;
+}
+
+.btn-secondary-tutorial:hover {
+  background: #333;
+  color: var(--onboarding-text);
+}
+
+.btn-skip {
+  background: transparent;
+  color: #888;
+  border: 1px solid #333;
+  font-size: 12px;
+  padding: 8px 12px;
+  margin-top: 12px;
+  width: 100%;
+}
+
+.btn-skip:hover {
+  color: var(--onboarding-text);
+  border-color: #555;
+}
+
+/* ─── Tooltip System ────────────────────────────────────────────────── */
+.tooltip-highlight {
+  position: relative;
+  z-index: 10000;
+  box-shadow: var(--spotlight-shadow);
+  border-radius: 8px;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    box-shadow: var(--spotlight-shadow), 0 0 0 0 rgba(59, 130, 246, 0.7);
+  }
+  50% {
+    box-shadow: var(--spotlight-shadow), 0 0 0 8px rgba(59, 130, 246, 0);
+  }
+}
+
+.tooltip-popup {
+  position: absolute;
+  background: var(--onboarding-bg);
+  border: 2px solid var(--onboarding-accent);
+  border-radius: 8px;
+  padding: 12px 16px;
+  min-width: 200px;
+  max-width: 280px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+  z-index: 10001;
+  animation: tooltipFadeIn 0.3s ease;
+}
+
+@keyframes tooltipFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.tooltip-popup::before {
+  content: '';
+  position: absolute;
+  width: 0;
+  height: 0;
+  border-style: solid;
+}
+
+.tooltip-popup.bottom::before {
+  top: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  border-width: 0 8px 10px 8px;
+  border-color: transparent transparent var(--onboarding-accent) transparent;
+}
+
+.tooltip-popup.top::before {
+  bottom: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  border-width: 10px 8px 0 8px;
+  border-color: var(--onboarding-accent) transparent transparent transparent;
+}
+
+.tooltip-content {
+  color: var(--onboarding-text);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.tooltip-content strong {
+  color: var(--onboarding-accent);
+  display: block;
+  margin-bottom: 4px;
+  font-size: 14px;
+}
+
+.tooltip-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.tooltip-actions button {
+  flex: 1;
+  padding: 6px 12px;
+  border: none;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+/* ─── Quick Start Banner ────────────────────────────────────────────── */
+.quick-start-banner {
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(59, 130, 246, 0.05));
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  border-radius: 8px;
+  padding: 12px;
+  margin: 12px 16px;
+  animation: slideDown 0.4s ease;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.quick-start-banner h3 {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--onboarding-accent);
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.quick-start-banner p {
+  font-size: 12px;
+  color: #b8b8b8;
+  margin-bottom: 12px;
+  line-height: 1.5;
+}
+
+.quick-start-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.quick-start-actions button {
+  flex: 1;
+  padding: 8px 12px;
+  border: none;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-sample-search {
+  background: var(--onboarding-accent);
+  color: white;
+}
+
+.btn-sample-search:hover {
+  background: #2563eb;
+  transform: translateY(-1px);
+}
+
+.btn-dismiss-banner {
+  background: transparent;
+  color: #888;
+  border: 1px solid #333;
+}
+
+.btn-dismiss-banner:hover {
+  color: var(--onboarding-text);
+  border-color: #555;
+}
+
+.banner-close {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: transparent;
+  border: none;
+  color: #666;
+  font-size: 18px;
+  cursor: pointer;
+  padding: 4px;
+  line-height: 1;
+}
+
+.banner-close:hover {
+  color: var(--onboarding-text);
+}
+
+/* ─── Sample Search Highlight ───────────────────────────────────────── */
+.sample-search-active {
+  animation: sampleGlow 1.5s ease-in-out;
+}
+
+@keyframes sampleGlow {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(34, 197, 94, 0);
+  }
+  50% {
+    box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.4);
+  }
+}
+
+/* ─── Mobile Responsive ──────────────────────────────────────────────── */
+@media (max-width: 400px) {
+  .tutorial-card {
+    padding: 20px;
+    max-width: 300px;
+  }
+
+  .tutorial-card h2 {
+    font-size: 16px;
+  }
+
+  .tutorial-card p {
+    font-size: 13px;
+  }
+
+  .tutorial-card li {
+    font-size: 12px;
+    padding: 8px 10px;
+  }
+
+  .tooltip-popup {
+    max-width: 240px;
+    padding: 10px 12px;
+  }
+
+  .quick-start-banner {
+    margin: 10px 12px;
+    padding: 10px;
+  }
+}
+
+/* ─── Accessibility ──────────────────────────────────────────────────── */
+.tutorial-overlay:focus,
+.tutorial-card:focus,
+.tooltip-popup:focus {
+  outline: 2px solid var(--onboarding-accent);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tutorial-card,
+  .tooltip-popup,
+  .quick-start-banner,
+  .tooltip-highlight {
+    animation: none;
+  }
+}
+
+/* Screen reader only content */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}

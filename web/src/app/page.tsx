@@ -5,6 +5,7 @@ import SuccessMetrics from './components/SuccessMetrics';
 import { PageWrapper } from './page-wrapper';
 import dynamic from 'next/dynamic';
 import { ClientOnlyComponents } from './client-components';
+import LanguageSwitcher from './components/LanguageSwitcher';
 
 // Dynamic imports for below-fold and interactive components — reduces initial JS bundle
 const ActivityFeed = dynamic(() => import('./components/ActivityFeed'), { ssr: true });
@@ -109,17 +110,20 @@ export default function Home() {
 
       {/* Nav */}
       <nav className="fixed top-0 w-full z-50 border-b border-[#222] bg-[#0a0a0a]/80 backdrop-blur-md" aria-label="Main navigation">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between gap-3">
           <span className="text-base sm:text-lg font-bold tracking-tight">NEXUS Alert</span>
-          {/* TODO: replace EXTENSION_ID after Chrome Web Store publishing */}
-          <a
-            href="https://chrome.google.com/webstore/detail/nexus-alert/EXTENSION_ID"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="px-3 sm:px-4 py-2 rounded-lg bg-[#3b82f6] text-white text-xs sm:text-sm font-semibold hover:bg-[#2563eb] transition touch-manipulation"
-          >
-            Install Free
-          </a>
+          <div className="flex items-center gap-2 sm:gap-3">
+            <LanguageSwitcher />
+            {/* TODO: replace EXTENSION_ID after Chrome Web Store publishing */}
+            <a
+              href="https://chrome.google.com/webstore/detail/nexus-alert/EXTENSION_ID"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="px-3 sm:px-4 py-2 rounded-lg bg-[#3b82f6] text-white text-xs sm:text-sm font-semibold hover:bg-[#2563eb] transition touch-manipulation"
+            >
+              Install Free
+            </a>
+          </div>
         </div>
       </nav>
 
