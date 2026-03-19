@@ -153,6 +153,27 @@ function deferOnboarding() {
   }
 }
 
+// Load enhanced location search UX
+function deferLocationSearchUX() {
+  if ('requestIdleCallback' in window) {
+    requestIdleCallback(() => {
+      loadModule('locationSearch', './popup-location-search.js').then(mod => {
+        if (mod && mod.initLocationSearchUX) {
+          mod.initLocationSearchUX();
+        }
+      });
+    }, { timeout: 1000 });
+  } else {
+    setTimeout(() => {
+      loadModule('locationSearch', './popup-location-search.js').then(mod => {
+        if (mod && mod.initLocationSearchUX) {
+          mod.initLocationSearchUX();
+        }
+      });
+    }, 600);
+  }
+}
+
 // ─── Toast System (Critical - Keep Inline) ──────────────────────
 function showToast(message, type = 'info', duration = 3000) {
   const container = document.getElementById('toastContainer');
@@ -357,6 +378,7 @@ async function init() {
     deferI18n();
     deferAnalytics();
     deferOnboarding();
+    deferLocationSearchUX();
 
     // Measure performance
     measurePerformance();
