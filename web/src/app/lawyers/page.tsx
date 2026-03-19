@@ -511,10 +511,10 @@ function FAQSection() {
     },
     {
       q: 'Can clients see their own monitoring status?',
-      a: 'Yes! The Business tier includes a client portal. Each client gets a unique login to see their monitoring status, slot history, and alerts — without accessing other clients' data. Reduces "any updates?" emails significantly.',
+      a: "Yes! The Business tier includes a client portal. Each client gets a unique login to see their monitoring status, slot history, and alerts — without accessing other clients' data. Reduces \"any updates?\" emails significantly.",
     },
     {
-      q: 'What's included in white-label branding?',
+      q: "What's included in white-label branding?",
       a: 'Enterprise tier includes custom domain (e.g., appointments.yourfirm.com), your logo and colors, removal of NEXUS Alert branding, and custom email sender. Present the tool as your proprietary technology.',
     },
     {
