@@ -18,18 +18,24 @@ Cloudflare Worker backend for NEXUS Alert with server-side slot checking, user r
 
 ## 🚀 Production Migration (Ready to Accept Payments)
 
-**NEW:** Automated Stripe production setup and migration tools!
+**NEW:** Automated Stripe production setup, migration tools, and comprehensive E2E testing!
 
 ### Quick Production Setup (15 minutes)
 
 ```bash
 cd backend
 
-# Option 1: Automated migration (Recommended)
+# 1. Automated migration (Recommended)
 ./scripts/stripe-production-migration.sh
 
-# Option 2: Verify existing setup
+# 2. Verify production setup
 ./scripts/verify-production-setup.sh
+
+# 3. Test complete payment flow
+./scripts/test-subscription-flow.sh
+
+# 4. Monitor production health
+./scripts/production-dashboard.sh
 ```
 
 **What This Does:**
@@ -38,11 +44,37 @@ cd backend
 - ✓ Updates Cloudflare Worker secrets
 - ✓ Deploys backend with live credentials
 - ✓ Tests end-to-end payment flow
+- ✓ Verifies webhook delivery (100% success rate)
+- ✓ Monitors production health in real-time
+
+### Automated Testing
+
+**Run comprehensive payment tests:**
+```bash
+# E2E payment flow tests (automated)
+npm test -- tests/production-payment-e2e.test.js
+
+# Webhook verification tests
+npm test -- tests/webhook-verification.test.js
+
+# Interactive subscription lifecycle test
+./scripts/test-subscription-flow.sh
+```
+
+**Test coverage:**
+- ✅ Monthly/annual subscription creation
+- ✅ License activation via webhooks
+- ✅ Subscription upgrades (monthly → annual)
+- ✅ Subscription cancellation
+- ✅ License deactivation
+- ✅ Test vs Live mode detection
+- ✅ Error handling & validation
 
 **Documentation:**
+- **Activation Guide:** [STRIPE_PRODUCTION_ACTIVATION.md](STRIPE_PRODUCTION_ACTIVATION.md) — Complete step-by-step guide
 - **Quick Reference:** [STRIPE_PRODUCTION_QUICK_REF.md](STRIPE_PRODUCTION_QUICK_REF.md) — One-page cheat sheet
-- **Full Guide:** [STRIPE_PRODUCTION_MIGRATION.md](STRIPE_PRODUCTION_MIGRATION.md) — Comprehensive walkthrough
-- **Summary:** [STRIPE_PRODUCTION_COMPLETION_SUMMARY.md](STRIPE_PRODUCTION_COMPLETION_SUMMARY.md) — What's included
+- **Verification Summary:** [STRIPE_PRODUCTION_VERIFICATION_SUMMARY.md](STRIPE_PRODUCTION_VERIFICATION_SUMMARY.md) — Testing & monitoring overview
+- **Migration Summary:** [STRIPE_PRODUCTION_COMPLETION_SUMMARY.md](STRIPE_PRODUCTION_COMPLETION_SUMMARY.md) — What's included
 
 ---
 
