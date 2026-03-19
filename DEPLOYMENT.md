@@ -1,89 +1,78 @@
-# Staging & Production Deployment Workflow
+# Deployment Workflow
 
 ## Overview
-This project uses a **two-tier deployment strategy**:
-- **GitHub Pages** = Staging/Preview environment
-- **Vercel** = Production environment (manual trigger only)
+**GitHub is the staging environment. All production deployments are manual.**
 
-## Workflow
+This project uses a **manual deployment strategy** where:
+- **GitHub** = Code staging (no auto-deployment)
+- **Production** = Manually deployed by Michael when ready
 
-```
-Code Changes → Build Passes → Push to GitHub → GitHub Pages Auto-Deploy → Preview & Test → Manual Vercel Deploy
-```
+## Engineer Workflow
 
-### 1. Staging (GitHub Pages) - Automatic
-- **Trigger**: Every push to `main` branch
-- **URL**: https://caffeinegmt.github.io/nexus-alert/
-- **Purpose**: Preview changes before production
-- **Process**: Fully automated via GitHub Actions
+### 1. Write Code
+Make your changes to the codebase
 
-### 2. Production (Vercel) - Manual
-- **Trigger**: Manual deployment by Michael
-- **URL**: https://nexus-alert.vercel.app (or custom domain)
-- **Purpose**: Live production site
-- **Process**: Manual trigger only - never auto-deployed
-
-## GitHub Pages Setup
-
-The GitHub Actions workflow (`.github/workflows/deploy-github-pages.yml`) automatically:
-1. Builds the Next.js app with `basePath: /nexus-alert`
-2. Exports static files to `out/` directory
-3. Deploys to GitHub Pages
-4. Available at: https://caffeinegmt.github.io/nexus-alert/
-
-### First-Time Setup (One-Time Only)
-1. Go to: https://github.com/caffeineGMT/nexus-alert/settings/pages
-2. Under "Build and deployment":
-   - **Source**: Select "GitHub Actions"
-3. Save
-
-## Development Workflow
-
-### For Every Change:
-```bash
-# 1. Make your changes
-npm run dev  # Test locally at http://localhost:3000
-
-# 2. Commit and push
-git add -A
-git commit -m "Your feature description"
-git push origin main
-
-# 3. GitHub Actions auto-builds and deploys to staging
-# Check workflow: https://github.com/caffeineGMT/nexus-alert/actions
-
-# 4. Preview at: https://caffeinegmt.github.io/nexus-alert/
-
-# 5. If staging looks good, manually deploy to Vercel production
-```
-
-### Testing Staging Build Locally
+### 2. Verify Build
+Run `npm run build` to verify **ZERO errors**:
 ```bash
 cd web
-NEXT_PUBLIC_BASE_PATH=/nexus-alert npm run build
-npx serve out  # Preview at http://localhost:3000/nexus-alert
+npm run build
 ```
 
-## Environment Variables
+### 3. Fix Errors
+If build fails, fix all errors and repeat step 2
 
-- **Local Development**: No `NEXT_PUBLIC_BASE_PATH` (runs at `/`)
-- **GitHub Pages**: `NEXT_PUBLIC_BASE_PATH=/nexus-alert` (set in workflow)
-- **Vercel Production**: No `NEXT_PUBLIC_BASE_PATH` (runs at `/`)
+### 4. Commit and Push to GitHub
+```bash
+git add -A
+git commit -m "descriptive message"
+git push origin main
+```
+
+**That's it!** Code is now in GitHub (staging). Production deployment is handled manually by Michael.
+
+## Production Deployment (Manual Only)
+
+Production deployment is done manually by Michael. This includes:
+- Vercel deployments
+- Cloudflare Workers (backend)
+- Any other hosting platforms
+
+### DO NOT:
+- ❌ Deploy to Vercel
+- ❌ Run `vercel`, `vercel deploy`, or any Vercel CLI commands
+- ❌ Run `npm run build` for deployment purposes (only for verification)
+- ❌ Auto-deploy to any hosting platform
+
+### DO:
+- ✅ Push to GitHub (staging)
+- ✅ Run `npm run build` to verify zero errors
+- ✅ Commit descriptive messages
+- ✅ Let Michael handle production deployments
+
+## Local Development
+
+### Development Server
+```bash
+cd web
+npm run dev  # http://localhost:3000
+```
+
+### Test Production Build Locally
+```bash
+cd web
+npm run build
+npx serve out  # http://localhost:3000
+```
 
 ## Deployment Status
 
-Check deployment status:
-- **Staging**: https://github.com/caffeineGMT/nexus-alert/actions
-- **Production**: Vercel dashboard (manual deployments only)
-
-## Rollback
-
-- **GitHub Pages**: Revert the commit and push
-- **Vercel**: Use Vercel dashboard to rollback to previous deployment
+- **Staging**: Check GitHub repository
+- **Production**: Ask Michael for deployment status
 
 ## Notes
 
-- GitHub Pages serves from the `main` branch via GitHub Actions
-- Production Vercel deployments are **never** automatic - always manual
-- The `basePath` is only used for GitHub Pages staging, not for production
-- The `.nojekyll` file prevents GitHub Pages from processing files with Jekyll
+- No automatic deployments anywhere
+- GitHub is for code staging only
+- All production deployments require manual trigger by Michael
+- This ensures full control over what goes live and when

@@ -2,6 +2,10 @@
 // Polls CBP's public scheduler API for available appointment slots
 
 import { isSlotInDateRange, isSlotInTimeRange, isDuplicate, pruneOldSlots } from './src/slotFilters.js';
+import { initSentry, captureError, setUser } from './src/sentry.js';
+
+// Initialize error tracking
+initSentry();
 
 const API_BASE = 'https://ttp.cbp.dhs.gov/schedulerapi';
 const SLOTS_ENDPOINT = `${API_BASE}/slots`;
@@ -125,6 +129,7 @@ async function fetchAndCacheLocations() {
     return allLocations;
   } catch (err) {
     console.error('[NEXUS Alert] Failed to fetch locations:', err);
+    captureError(err, { context: 'fetchAndCacheLocations' });
     await chrome.storage.local.set({
       lastError: 'Unable to connect to CBP servers. This is usually temporary — we\'ll retry automatically.',
       lastErrorTime: Date.now()
@@ -209,6 +214,16 @@ async function checkAllLocations() {
     // Error occurred: increment failure count and store error
     const { failureCount = 0 } = await chrome.storage.local.get('failureCount');
     const newCount = failureCount + 1;
+
+    // Only report to Sentry after 3 consecutive failures (reduces noise)
+    if (newCount >= 3) {
+      captureError(err, {
+        context: 'checkAllLocations',
+        failureCount: newCount,
+        locations: config.locations,
+      });
+    }
+
     await chrome.storage.local.set({
       lastError: errorMessage || err.message || 'Could not reach CBP API. Check your connection.',
       lastErrorTime: Date.now(),

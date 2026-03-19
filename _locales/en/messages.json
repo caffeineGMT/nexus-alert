@@ -1,0 +1,248 @@
+{
+  "extName": {
+    "message": "NEXUS Alert - Appointment Slot Finder for NEXUS, Global Entry & SENTRI"
+  },
+  "extDescription": {
+    "message": "NEXUS appointment finder & Global Entry appointment alert. Get instant notifications when NEXUS, Global Entry & SENTRI slots open."
+  },
+  "appTitle": {
+    "message": "NEXUS Alert"
+  },
+  "upgradeToPro": {
+    "message": "Upgrade to Pro"
+  },
+  "statusActive": {
+    "message": "Status: Active"
+  },
+  "statusPaused": {
+    "message": "Status: Paused"
+  },
+  "statusChecking": {
+    "message": "Checking..."
+  },
+  "nextCheckIn": {
+    "message": "Next check in"
+  },
+  "minutes": {
+    "message": "minutes"
+  },
+  "minute": {
+    "message": "minute"
+  },
+  "pauseMonitoring": {
+    "message": "Pause Monitoring"
+  },
+  "resumeMonitoring": {
+    "message": "Resume Monitoring"
+  },
+  "errorBannerCBP": {
+    "message": "CBP servers are experiencing issues. We'll keep retrying — no action needed from you."
+  },
+  "errorBannerGeneric": {
+    "message": "Connection issue detected. Retrying automatically..."
+  },
+  "dismissError": {
+    "message": "Dismiss"
+  },
+  "locationsTitle": {
+    "message": "Locations"
+  },
+  "addLocation": {
+    "message": "+ Add Location"
+  },
+  "noLocationsAdded": {
+    "message": "No locations added yet"
+  },
+  "clickToAddFirst": {
+    "message": "Click \"+ Add Location\" to start monitoring"
+  },
+  "enableLocation": {
+    "message": "Enable location"
+  },
+  "disableLocation": {
+    "message": "Disable location"
+  },
+  "removeLocation": {
+    "message": "Remove location"
+  },
+  "configurationTitle": {
+    "message": "Configuration"
+  },
+  "checkFrequency": {
+    "message": "Check Frequency"
+  },
+  "every5Minutes": {
+    "message": "Every 5 minutes"
+  },
+  "every10Minutes": {
+    "message": "Every 10 minutes"
+  },
+  "every15Minutes": {
+    "message": "Every 15 minutes"
+  },
+  "every30Minutes": {
+    "message": "Every 30 minutes"
+  },
+  "every1Hour": {
+    "message": "Every 1 hour"
+  },
+  "soundAlerts": {
+    "message": "Sound Alerts"
+  },
+  "on": {
+    "message": "On"
+  },
+  "off": {
+    "message": "Off"
+  },
+  "preferredProgram": {
+    "message": "Preferred Program"
+  },
+  "allPrograms": {
+    "message": "All Programs"
+  },
+  "nexusOnly": {
+    "message": "NEXUS Only"
+  },
+  "globalEntryOnly": {
+    "message": "Global Entry Only"
+  },
+  "sentriOnly": {
+    "message": "SENTRI Only"
+  },
+  "dateRange": {
+    "message": "Date Range"
+  },
+  "anyDate": {
+    "message": "Any date"
+  },
+  "next30Days": {
+    "message": "Next 30 days"
+  },
+  "next60Days": {
+    "message": "Next 60 days"
+  },
+  "next90Days": {
+    "message": "Next 90 days"
+  },
+  "customDateRange": {
+    "message": "Custom range"
+  },
+  "startDate": {
+    "message": "Start Date"
+  },
+  "endDate": {
+    "message": "End Date"
+  },
+  "timeOfDay": {
+    "message": "Time of Day"
+  },
+  "anyTime": {
+    "message": "Any time"
+  },
+  "morningOnly": {
+    "message": "Morning only (6am-12pm)"
+  },
+  "afternoonOnly": {
+    "message": "Afternoon only (12pm-6pm)"
+  },
+  "eveningOnly": {
+    "message": "Evening only (6pm-10pm)"
+  },
+  "recentSlotsFound": {
+    "message": "Recent Slots Found"
+  },
+  "noSlotsYet": {
+    "message": "No slots found yet"
+  },
+  "keepMonitoring": {
+    "message": "Keep monitoring — we'll notify you when appointments open up!"
+  },
+  "slotAvailableAt": {
+    "message": "Slot available at"
+  },
+  "bookNow": {
+    "message": "Book Now"
+  },
+  "justNow": {
+    "message": "just now"
+  },
+  "minutesAgo": {
+    "message": "min ago"
+  },
+  "hoursAgo": {
+    "message": "hr ago"
+  },
+  "daysAgo": {
+    "message": "d ago"
+  },
+  "footerNeedHelp": {
+    "message": "Need help?"
+  },
+  "visitHelpCenter": {
+    "message": "Visit Help Center"
+  },
+  "modalAddLocationTitle": {
+    "message": "Add Location"
+  },
+  "modalSearchPlaceholder": {
+    "message": "Search locations..."
+  },
+  "modalNoResults": {
+    "message": "No matching locations"
+  },
+  "modalCancel": {
+    "message": "Cancel"
+  },
+  "modalAddSelected": {
+    "message": "Add Selected"
+  },
+  "toastLocationAdded": {
+    "message": "Location added successfully"
+  },
+  "toastLocationRemoved": {
+    "message": "Location removed"
+  },
+  "toastLocationEnabled": {
+    "message": "Location enabled"
+  },
+  "toastLocationDisabled": {
+    "message": "Location disabled"
+  },
+  "toastMonitoringPaused": {
+    "message": "Monitoring paused"
+  },
+  "toastMonitoringResumed": {
+    "message": "Monitoring resumed"
+  },
+  "toastConfigSaved": {
+    "message": "Settings saved"
+  },
+  "toastErrorSaving": {
+    "message": "Error saving settings"
+  },
+  "toastPleaseSelectLocation": {
+    "message": "Please select at least one location"
+  },
+  "errorInvalidDateRange": {
+    "message": "End date must be after start date"
+  },
+  "proFeatureLabel": {
+    "message": "PRO"
+  },
+  "proFeatureTooltip": {
+    "message": "Upgrade to Pro for this feature"
+  },
+  "statsChecksPerformed": {
+    "message": "checks performed"
+  },
+  "statsSlotsFound": {
+    "message": "slots found"
+  },
+  "statsLastCheck": {
+    "message": "Last check"
+  },
+  "statsNever": {
+    "message": "Never"
+  }
+}

@@ -1101,6 +1101,7 @@ async function checkAllSubscribers(env, sentry) {
   let totalNotifs = 0;
   for (const sub of subscribers) {
     const newSlots = [];
+    sub.notifiedSlots = sub.notifiedSlots || {};
 
     for (const locId of sub.locations) {
       const slots = slotsByLocation[locId] || [];

@@ -1,0 +1,248 @@
+{
+  "extName": {
+    "message": "NEXUS Alert - Buscador de Citas para NEXUS, Global Entry y SENTRI"
+  },
+  "extDescription": {
+    "message": "Buscador de citas NEXUS y alertas de Global Entry. Recibe notificaciones instantáneas cuando se abran espacios para NEXUS, Global Entry y SENTRI."
+  },
+  "appTitle": {
+    "message": "NEXUS Alert"
+  },
+  "upgradeToPro": {
+    "message": "Actualizar a Pro"
+  },
+  "statusActive": {
+    "message": "Estado: Activo"
+  },
+  "statusPaused": {
+    "message": "Estado: Pausado"
+  },
+  "statusChecking": {
+    "message": "Verificando..."
+  },
+  "nextCheckIn": {
+    "message": "Próxima verificación en"
+  },
+  "minutes": {
+    "message": "minutos"
+  },
+  "minute": {
+    "message": "minuto"
+  },
+  "pauseMonitoring": {
+    "message": "Pausar Monitoreo"
+  },
+  "resumeMonitoring": {
+    "message": "Reanudar Monitoreo"
+  },
+  "errorBannerCBP": {
+    "message": "Los servidores de CBP están experimentando problemas. Seguiremos intentando — no necesitas hacer nada."
+  },
+  "errorBannerGeneric": {
+    "message": "Problema de conexión detectado. Reintentando automáticamente..."
+  },
+  "dismissError": {
+    "message": "Descartar"
+  },
+  "locationsTitle": {
+    "message": "Ubicaciones"
+  },
+  "addLocation": {
+    "message": "+ Agregar Ubicación"
+  },
+  "noLocationsAdded": {
+    "message": "No se han agregado ubicaciones aún"
+  },
+  "clickToAddFirst": {
+    "message": "Haz clic en \"+ Agregar Ubicación\" para comenzar el monitoreo"
+  },
+  "enableLocation": {
+    "message": "Habilitar ubicación"
+  },
+  "disableLocation": {
+    "message": "Deshabilitar ubicación"
+  },
+  "removeLocation": {
+    "message": "Eliminar ubicación"
+  },
+  "configurationTitle": {
+    "message": "Configuración"
+  },
+  "checkFrequency": {
+    "message": "Frecuencia de Verificación"
+  },
+  "every5Minutes": {
+    "message": "Cada 5 minutos"
+  },
+  "every10Minutes": {
+    "message": "Cada 10 minutos"
+  },
+  "every15Minutes": {
+    "message": "Cada 15 minutos"
+  },
+  "every30Minutes": {
+    "message": "Cada 30 minutos"
+  },
+  "every1Hour": {
+    "message": "Cada 1 hora"
+  },
+  "soundAlerts": {
+    "message": "Alertas de Sonido"
+  },
+  "on": {
+    "message": "Activado"
+  },
+  "off": {
+    "message": "Desactivado"
+  },
+  "preferredProgram": {
+    "message": "Programa Preferido"
+  },
+  "allPrograms": {
+    "message": "Todos los Programas"
+  },
+  "nexusOnly": {
+    "message": "Solo NEXUS"
+  },
+  "globalEntryOnly": {
+    "message": "Solo Global Entry"
+  },
+  "sentriOnly": {
+    "message": "Solo SENTRI"
+  },
+  "dateRange": {
+    "message": "Rango de Fechas"
+  },
+  "anyDate": {
+    "message": "Cualquier fecha"
+  },
+  "next30Days": {
+    "message": "Próximos 30 días"
+  },
+  "next60Days": {
+    "message": "Próximos 60 días"
+  },
+  "next90Days": {
+    "message": "Próximos 90 días"
+  },
+  "customDateRange": {
+    "message": "Rango personalizado"
+  },
+  "startDate": {
+    "message": "Fecha de Inicio"
+  },
+  "endDate": {
+    "message": "Fecha de Fin"
+  },
+  "timeOfDay": {
+    "message": "Hora del Día"
+  },
+  "anyTime": {
+    "message": "Cualquier hora"
+  },
+  "morningOnly": {
+    "message": "Solo mañana (6am-12pm)"
+  },
+  "afternoonOnly": {
+    "message": "Solo tarde (12pm-6pm)"
+  },
+  "eveningOnly": {
+    "message": "Solo noche (6pm-10pm)"
+  },
+  "recentSlotsFound": {
+    "message": "Espacios Encontrados Recientemente"
+  },
+  "noSlotsYet": {
+    "message": "No se han encontrado espacios aún"
+  },
+  "keepMonitoring": {
+    "message": "¡Sigue monitoreando — te notificaremos cuando se abran citas!"
+  },
+  "slotAvailableAt": {
+    "message": "Espacio disponible en"
+  },
+  "bookNow": {
+    "message": "Reservar Ahora"
+  },
+  "justNow": {
+    "message": "justo ahora"
+  },
+  "minutesAgo": {
+    "message": "min atrás"
+  },
+  "hoursAgo": {
+    "message": "hr atrás"
+  },
+  "daysAgo": {
+    "message": "d atrás"
+  },
+  "footerNeedHelp": {
+    "message": "¿Necesitas ayuda?"
+  },
+  "visitHelpCenter": {
+    "message": "Visitar Centro de Ayuda"
+  },
+  "modalAddLocationTitle": {
+    "message": "Agregar Ubicación"
+  },
+  "modalSearchPlaceholder": {
+    "message": "Buscar ubicaciones..."
+  },
+  "modalNoResults": {
+    "message": "No hay ubicaciones coincidentes"
+  },
+  "modalCancel": {
+    "message": "Cancelar"
+  },
+  "modalAddSelected": {
+    "message": "Agregar Seleccionadas"
+  },
+  "toastLocationAdded": {
+    "message": "Ubicación agregada exitosamente"
+  },
+  "toastLocationRemoved": {
+    "message": "Ubicación eliminada"
+  },
+  "toastLocationEnabled": {
+    "message": "Ubicación habilitada"
+  },
+  "toastLocationDisabled": {
+    "message": "Ubicación deshabilitada"
+  },
+  "toastMonitoringPaused": {
+    "message": "Monitoreo pausado"
+  },
+  "toastMonitoringResumed": {
+    "message": "Monitoreo reanudado"
+  },
+  "toastConfigSaved": {
+    "message": "Configuración guardada"
+  },
+  "toastErrorSaving": {
+    "message": "Error al guardar configuración"
+  },
+  "toastPleaseSelectLocation": {
+    "message": "Por favor selecciona al menos una ubicación"
+  },
+  "errorInvalidDateRange": {
+    "message": "La fecha de fin debe ser posterior a la fecha de inicio"
+  },
+  "proFeatureLabel": {
+    "message": "PRO"
+  },
+  "proFeatureTooltip": {
+    "message": "Actualiza a Pro para esta función"
+  },
+  "statsChecksPerformed": {
+    "message": "verificaciones realizadas"
+  },
+  "statsSlotsFound": {
+    "message": "espacios encontrados"
+  },
+  "statsLastCheck": {
+    "message": "Última verificación"
+  },
+  "statsNever": {
+    "message": "Nunca"
+  }
+}
