@@ -1164,18 +1164,18 @@
   </div>
 
   <!-- Footer -->
-  <div class="footer">
+  <footer class="footer" role="contentinfo">
     NEXUS Alert v2.0 — Not affiliated with CBP/DHS
-  </div>
+  </footer>
 
   <!-- Upgrade Modal -->
-  <div id="upgradeModal" class="modal hidden">
+  <div id="upgradeModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="upgradeModalTitle">
     <div class="modal-content">
-      <h3>Premium Checks Every 2 Minutes</h3>
+      <h3 id="upgradeModalTitle">Premium Checks Every 2 Minutes</h3>
       <p>Slots fill in less than 5 minutes on average. Get notified first with premium checks.</p>
-      <div class="stat-highlight">
+      <div class="stat-highlight" role="figure" aria-label="Performance comparison">
         <strong>87% faster</strong> slot discovery<br>
-        Premium: 4.2 days avg • Free: 12.1 days avg
+        Premium: 4.2 days avg &bull; Free: 12.1 days avg
       </div>
       <div class="modal-actions">
         <button class="btn btn-primary" id="upgradeNowBtn" style="flex:2">Upgrade Now</button>
