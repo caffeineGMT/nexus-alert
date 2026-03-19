@@ -28,11 +28,28 @@ function showStep(stepNumber) {
     } else {
       dot.classList.remove('active');
     }
+    // Update ARIA labels for step indicator
+    const stepLabel = `Step ${index + 1}${index + 1 === stepNumber ? ': current' : index + 1 < stepNumber ? ': completed' : ''}`;
+    dot.setAttribute('aria-label', stepLabel);
   });
 
   // Show target step
-  document.getElementById(`step-${stepNumber}`).classList.add('active');
+  const targetStep = document.getElementById(`step-${stepNumber}`);
+  targetStep.classList.add('active');
   currentStep = stepNumber;
+
+  // Announce step change to screen readers
+  const announcement = document.getElementById('step-announcement');
+  if (announcement) {
+    announcement.textContent = `Step ${stepNumber} of 3`;
+  }
+
+  // Focus the heading of the new step
+  const heading = targetStep.querySelector('h2');
+  if (heading) {
+    heading.setAttribute('tabindex', '-1');
+    heading.focus();
+  }
 
   // Load locations when entering step 2
   if (stepNumber === 2 && Object.keys(allLocations).length === 0) {
@@ -48,14 +65,38 @@ document.addEventListener('DOMContentLoaded', () => {
   programTabs.forEach(tab => {
     tab.addEventListener('click', () => {
       // Update active state
-      programTabs.forEach(t => t.classList.remove('active'));
+      programTabs.forEach(t => {
+        t.classList.remove('active');
+        t.setAttribute('aria-checked', 'false');
+      });
       tab.classList.add('active');
+      tab.setAttribute('aria-checked', 'true');
 
       // Update selected program
       selectedProgram = tab.dataset.program;
 
       // Reload locations for new program
       renderLocations();
+    });
+
+    // Keyboard navigation for program radio group
+    tab.addEventListener('keydown', (e) => {
+      const tabs = Array.from(programTabs);
+      const index = tabs.indexOf(tab);
+      let newIndex;
+
+      if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+        e.preventDefault();
+        newIndex = (index + 1) % tabs.length;
+      } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+        e.preventDefault();
+        newIndex = (index - 1 + tabs.length) % tabs.length;
+      }
+
+      if (newIndex !== undefined) {
+        tabs[newIndex].focus();
+        tabs[newIndex].click();
+      }
     });
   });
 });
@@ -139,8 +180,8 @@ function renderLocations() {
     const locationMeta = [loc.city, loc.state, loc.country].filter(Boolean).join(', ');
 
     return `
-      <div class="location-item ${selected ? 'selected' : ''}" data-id="${loc.id}">
-        <input type="checkbox" ${selected ? 'checked' : ''}>
+      <div class="location-item ${selected ? 'selected' : ''}" data-id="${loc.id}" role="option" aria-selected="${selected}">
+        <input type="checkbox" ${selected ? 'checked' : ''} aria-label="Monitor ${loc.name}">
         <div class="location-details">
           <div class="location-name">${loc.name}</div>
           <div class="location-meta">${locationMeta}</div>

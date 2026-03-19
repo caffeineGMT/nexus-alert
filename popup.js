@@ -906,12 +906,15 @@ function updateStats(history, locations) {
 function updateStatusUI(enabled) {
   const dot = document.getElementById('statusDot');
   const text = document.getElementById('statusText');
+  const statusBar = dot.closest('.status-bar');
   if (enabled) {
     dot.className = 'status-dot active';
     text.textContent = 'Monitoring';
+    statusBar.setAttribute('aria-label', 'Status: Monitoring active');
   } else {
     dot.className = 'status-dot inactive';
     text.textContent = 'Paused';
+    statusBar.setAttribute('aria-label', 'Status: Monitoring paused');
   }
 }
 
