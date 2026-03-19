@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Geist } from "next/font/google";
-import Script from "next/script";
 import "./globals.css";
+import CookieConsentBanner from "./components/CookieConsent";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -86,10 +86,6 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const crispWebsiteId = process.env.NEXT_PUBLIC_CRISP_WEBSITE_ID;
-  const fbPixelId = process.env.NEXT_PUBLIC_FB_PIXEL_ID;
-  const googleAdsId = process.env.NEXT_PUBLIC_GOOGLE_ADS_ID;
-
   return (
     <html lang="en" className="dark" style={{ scrollBehavior: 'smooth' }}>
       <head>
@@ -109,83 +105,8 @@ export default function RootLayout({
       <body className={`${geistSans.variable} antialiased`}>
         {children}
 
-        {/* Facebook Pixel */}
-        {fbPixelId && fbPixelId !== 'your-fb-pixel-id-here' && (
-          <Script id="facebook-pixel" strategy="afterInteractive">
-            {`
-              !function(f,b,e,v,n,t,s)
-              {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
-              n.callMethod.apply(n,arguments):n.queue.push(arguments)};
-              if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
-              n.queue=[];t=b.createElement(e);t.async=!0;
-              t.src=v;s=b.getElementsByTagName(e)[0];
-              s.parentNode.insertBefore(t,s)}(window, document,'script',
-              'https://connect.facebook.net/en_US/fbevents.js');
-              fbq('init', '${fbPixelId}');
-              fbq('track', 'PageView');
-            `}
-          </Script>
-        )}
-        {fbPixelId && fbPixelId !== 'your-fb-pixel-id-here' && (
-          <noscript>
-            <img
-              height="1"
-              width="1"
-              style={{ display: 'none' }}
-              src={`https://www.facebook.com/tr?id=${fbPixelId}&ev=PageView&noscript=1`}
-              alt=""
-            />
-          </noscript>
-        )}
-
-        {/* Google Ads Conversion Tracking */}
-        {googleAdsId && googleAdsId !== 'your-google-ads-id-here' && (
-          <>
-            <Script
-              src={`https://www.googletagmanager.com/gtag/js?id=${googleAdsId}`}
-              strategy="afterInteractive"
-            />
-            <Script id="google-ads" strategy="afterInteractive">
-              {`
-                window.dataLayer = window.dataLayer || [];
-                function gtag(){dataLayer.push(arguments);}
-                gtag('js', new Date());
-                gtag('config', '${googleAdsId}');
-              `}
-            </Script>
-          </>
-        )}
-
-        {/* Plausible Analytics */}
-        <Script
-          defer
-          data-domain="nexus-alert.com"
-          src="https://plausible.io/js/script.js"
-          strategy="afterInteractive"
-        />
-
-        {/* Crisp Live Chat Widget */}
-        {crispWebsiteId && crispWebsiteId !== 'your-crisp-website-id-here' && (
-          <Script id="crisp-chat" strategy="lazyOnload">
-            {`
-              window.$crisp=[];
-              window.CRISP_WEBSITE_ID="${crispWebsiteId}";
-              (function(){
-                var d=document;
-                var s=d.createElement("script");
-                s.src="https://client.crisp.chat/l.js";
-                s.async=1;
-                d.getElementsByTagName("head")[0].appendChild(s);
-              })();
-              // Hide on /help routes — check once after Crisp loads
-              window.CRISP_READY_TRIGGER = function() {
-                if (window.location.pathname.indexOf('/help') !== -1) {
-                  window.$crisp.push(['do', 'chat:hide']);
-                }
-              };
-            `}
-          </Script>
-        )}
+        {/* Cookie Consent Banner - Analytics only load after user consent */}
+        <CookieConsentBanner />
       </body>
     </html>
   );

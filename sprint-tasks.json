@@ -1,0 +1,189 @@
+[
+  {
+    "id": "TASK-001",
+    "title": "Fix Turbopack Build Failure - CRITICAL BLOCKER",
+    "priority": "P0",
+    "status": "pending",
+    "description": "\n      Build fails with Turbopack panic on server-reference-manifest.json.\n      Root cause: /api/testimonials/submit/route.ts conflicts with build process.\n\n      SOLUTION:\n      1. Remove /web/src/app/api/testimonials/submit/route.ts\n      2. Migrate endpoint to Cloudflare Worker (/backend/src/worker.js)\n      3. Update testimonial form to POST to worker endpoint\n      4. Verify build passes: cd web && npm run build\n\n      ACCEPTANCE CRITERIA:\n      - npm run build completes with 0 errors\n      - No Turbopack panics\n      - Testimonial submission still works via worker endpoint\n    ",
+    "files": [
+      "/web/src/app/api/testimonials/submit/route.ts",
+      "/backend/src/worker.js",
+      "/web/src/app/components/TestimonialForm.tsx"
+    ],
+    "estimate": "2 hours",
+    "assignedTo": "Engineer-A",
+    "blockedBy": [],
+    "blocks": [
+      "TASK-005"
+    ],
+    "impact": "CRITICAL - Cannot deploy without this fix"
+  },
+  {
+    "id": "TASK-002",
+    "title": "Replace EXTENSION_ID Placeholder - Chrome Web Store Blocker",
+    "priority": "P0",
+    "status": "pending",
+    "description": "\n      All CTA buttons have placeholder text \"EXTENSION_ID\" instead of real Chrome Web Store ID.\n      Blocks product launch.\n\n      SOLUTION:\n      1. Get Chrome Web Store extension ID after publishing\n      2. Create env var NEXT_PUBLIC_CWS_EXTENSION_ID in .env.local\n      3. Replace 15 instances across 10 files with process.env.NEXT_PUBLIC_CWS_EXTENSION_ID\n      4. Add fallback for dev mode\n\n      FILES TO UPDATE:\n      - /web/src/app/page.tsx (3 instances)\n      - /web/src/app/global-entry/page.tsx (3 instances)\n      - /web/src/app/sentri/page.tsx (3 instances)\n      - /web/src/app/nexus/page.tsx (3 instances)\n      - /web/src/app/ph/page.tsx (2 instances)\n      - /web/src/app/components/PricingSection.tsx (1 instance)\n\n      ACCEPTANCE CRITERIA:\n      - All \"Install Extension\" buttons work\n      - Links point to real Chrome Web Store listing\n      - No TODO comments remain\n    ",
+    "files": [
+      "/web/src/app/page.tsx",
+      "/web/src/app/global-entry/page.tsx",
+      "/web/src/app/sentri/page.tsx",
+      "/web/src/app/nexus/page.tsx",
+      "/web/src/app/ph/page.tsx",
+      "/web/src/app/components/PricingSection.tsx",
+      "/web/.env.local"
+    ],
+    "estimate": "1 hour",
+    "assignedTo": "Engineer-B",
+    "blockedBy": [
+      "Chrome Web Store listing published"
+    ],
+    "blocks": [],
+    "impact": "CRITICAL - Blocks revenue launch"
+  },
+  {
+    "id": "TASK-003",
+    "title": "Fix Next.js Config Warnings - Production Quality",
+    "priority": "P0",
+    "status": "pending",
+    "description": "\n      Multiple Next.js warnings degrading production quality:\n      1. \"headers\" ignored with output: export\n      2. middleware.ts deprecated → use proxy.ts\n      3. Multiple lockfiles warning\n      4. experimentalInstrumentationHook deprecated\n\n      SOLUTION:\n      1. Remove headers config (doesn't work with static export)\n      2. Add Cloudflare Workers headers instead\n      3. Rename middleware.ts to proxy.ts\n      4. Add turbopack.root config\n      5. Remove deprecated experimental flags\n\n      ACCEPTANCE CRITERIA:\n      - npm run build shows 0 warnings\n      - Security headers applied via Cloudflare\n      - Clean build output\n    ",
+    "files": [
+      "/web/next.config.ts",
+      "/web/src/middleware.ts",
+      "/web/src/proxy.ts",
+      "/backend/src/worker.js"
+    ],
+    "estimate": "1 hour",
+    "assignedTo": "Engineer-C",
+    "blockedBy": [],
+    "blocks": [],
+    "impact": "HIGH - Improves production stability"
+  },
+  {
+    "id": "TASK-004",
+    "title": "Add Loading & Not-Found States - UX Polish",
+    "priority": "P1",
+    "status": "pending",
+    "description": "\n      Missing loading states and 404 pages = poor UX during navigation.\n\n      CREATE FILES:\n      1. /web/src/app/loading.tsx (global loading spinner)\n      2. /web/src/app/not-found.tsx (branded 404 page)\n      3. /web/src/app/blog/loading.tsx (blog loading)\n      4. /web/src/app/blog/[slug]/not-found.tsx (article not found)\n\n      DESIGN:\n      - Match NEXUS Alert dark theme (#0a0a0a bg, #3b82f6 accent)\n      - Smooth spinner animation\n      - Clear messaging\n      - CTA to return home\n\n      ACCEPTANCE CRITERIA:\n      - Navigation shows loading state\n      - Invalid URLs show branded 404\n      - No blank screens\n    ",
+    "files": [
+      "/web/src/app/loading.tsx",
+      "/web/src/app/not-found.tsx",
+      "/web/src/app/blog/loading.tsx",
+      "/web/src/app/blog/[slug]/not-found.tsx"
+    ],
+    "estimate": "1.5 hours",
+    "assignedTo": "Engineer-D",
+    "blockedBy": [],
+    "blocks": [],
+    "impact": "HIGH - Improves perceived performance"
+  },
+  {
+    "id": "TASK-005",
+    "title": "Complete Testimonial Submission Flow - Social Proof",
+    "priority": "P1",
+    "status": "pending",
+    "description": "\n      Testimonials currently console.log() only - no persistence, no user feedback.\n\n      IMPLEMENTATION:\n      1. Create /backend/src/testimonials.js endpoint\n      2. Add Cloudflare D1 table for testimonials\n      3. Store submission data (name, email, story, program, wait time)\n      4. Send confirmation email via Resend\n      5. Generate Premium reward code\n      6. Add success toast to form component\n      7. Create admin view for testimonial moderation\n\n      ACCEPTANCE CRITERIA:\n      - Submissions stored in D1\n      - User receives confirmation email\n      - Premium code delivered\n      - Toast notification shows success\n      - No data loss\n    ",
+    "files": [
+      "/backend/src/worker.js",
+      "/backend/src/testimonials.js",
+      "/backend/wrangler.toml",
+      "/web/src/app/components/TestimonialForm.tsx"
+    ],
+    "estimate": "3 hours",
+    "assignedTo": "Engineer-A",
+    "blockedBy": [
+      "TASK-001"
+    ],
+    "blocks": [],
+    "impact": "HIGH - Increases conversions via social proof"
+  },
+  {
+    "id": "TASK-006",
+    "title": "Add PWA Manifest - Mobile UX",
+    "priority": "P1",
+    "status": "pending",
+    "description": "\n      No PWA manifest = cannot \"Add to Home Screen\" on mobile.\n\n      CREATE:\n      1. /web/public/manifest.json with app metadata\n      2. Generate 192x192 and 512x512 icons\n      3. Add manifest link to layout.tsx\n      4. Add theme-color meta tags\n      5. Test on iOS Safari and Android Chrome\n\n      OPTIONAL:\n      - Add service worker for offline support\n      - Cache static assets\n\n      ACCEPTANCE CRITERIA:\n      - \"Add to Home Screen\" prompt appears on mobile\n      - App installs successfully\n      - Icon and name display correctly\n      - Lighthouse PWA score > 80\n    ",
+    "files": [
+      "/web/public/manifest.json",
+      "/web/public/icon-192.png",
+      "/web/public/icon-512.png",
+      "/web/src/app/layout.tsx"
+    ],
+    "estimate": "2 hours",
+    "assignedTo": "Engineer-B",
+    "blockedBy": [],
+    "blocks": [],
+    "impact": "HIGH - Improves mobile retention"
+  },
+  {
+    "id": "TASK-007",
+    "title": "Bundle Size Reduction & Code Splitting - Performance",
+    "priority": "P2",
+    "status": "pending",
+    "description": "\n      Large bundle size slows initial load. Target: <150KB gzipped.\n\n      OPTIMIZATIONS:\n      1. Install @next/bundle-analyzer\n      2. Analyze bundle composition\n      3. Lazy load PricingSection, FAQ, Testimonials\n      4. Replace Recharts (200KB) with lightweight chart library\n      5. Tree-shake unused next-intl locales\n      6. Enable SWC minification\n      7. Remove duplicate dependencies\n\n      TARGETS:\n      - Initial JS bundle: < 150KB gzipped\n      - Lighthouse Performance: > 90\n      - First Contentful Paint: < 1.2s\n      - Largest Contentful Paint: < 2.5s\n\n      ACCEPTANCE CRITERIA:\n      - Bundle size reduced by 40%+\n      - Lighthouse score improved\n      - No regressions\n    ",
+    "files": [
+      "/web/next.config.ts",
+      "/web/src/app/page.tsx",
+      "/web/src/app/components/PricingSection.tsx",
+      "/web/package.json"
+    ],
+    "estimate": "4 hours",
+    "assignedTo": "Engineer-C",
+    "blockedBy": [],
+    "blocks": [],
+    "impact": "MEDIUM - Improves conversion via speed"
+  },
+  {
+    "id": "TASK-008",
+    "title": "Add Performance Monitoring - Analytics",
+    "priority": "P2",
+    "status": "pending",
+    "description": "\n      No visibility into Core Web Vitals or performance regressions.\n\n      IMPLEMENTATION:\n      1. Install @vercel/analytics and @vercel/speed-insights\n      2. Add to layout.tsx\n      3. Track custom metrics (CLS, LCP, FID, TTFB)\n      4. Create performance dashboard\n      5. Set up alerts for regressions\n\n      METRICS TO TRACK:\n      - Largest Contentful Paint (LCP)\n      - Cumulative Layout Shift (CLS)\n      - First Input Delay (FID)\n      - Time to First Byte (TTFB)\n      - Route change performance\n\n      ACCEPTANCE CRITERIA:\n      - Real User Monitoring (RUM) active\n      - Dashboard shows Core Web Vitals\n      - Alerts configured for p95 regressions\n    ",
+    "files": [
+      "/web/package.json",
+      "/web/src/app/layout.tsx",
+      "/web/src/lib/analytics.ts"
+    ],
+    "estimate": "2 hours",
+    "assignedTo": "Engineer-D",
+    "blockedBy": [],
+    "blocks": [],
+    "impact": "MEDIUM - Prevents performance regressions"
+  },
+  {
+    "id": "TASK-009",
+    "title": "WCAG 2.1 AA Compliance - Accessibility",
+    "priority": "P2",
+    "status": "pending",
+    "description": "\n      Accessibility issues found during audit.\n\n      FIXES:\n      1. Add skip-to-content links on all pages (not just homepage)\n      2. Fix table semantics: <th scope=\"row\"> for row headers\n      3. Add ARIA live regions for form validation errors\n      4. Run color contrast audit (target: 4.5:1 minimum)\n      5. Add focus indicators on all interactive elements\n      6. Add aria-label or aria-hidden to decorative SVGs\n      7. Test keyboard navigation flow\n      8. Run axe-core automated tests\n\n      ACCEPTANCE CRITERIA:\n      - 0 critical axe-core violations\n      - Lighthouse Accessibility score > 95\n      - Full keyboard navigation support\n      - Screen reader testing passes\n    ",
+    "files": [
+      "/web/src/app/page.tsx",
+      "/web/src/app/components/PricingSection.tsx",
+      "/web/src/app/global-entry/page.tsx",
+      "/web/src/styles/globals.css"
+    ],
+    "estimate": "3 hours",
+    "assignedTo": "Engineer-A",
+    "blockedBy": [],
+    "blocks": [],
+    "impact": "MEDIUM - Legal compliance, inclusive design"
+  },
+  {
+    "id": "TASK-010",
+    "title": "Comprehensive Test Coverage - Quality",
+    "priority": "P2",
+    "status": "pending",
+    "description": "\n      Test coverage < 5%. Target: 60%+.\n\n      ADD TESTS:\n      1. Extension E2E:\n         - tests/popup.test.js (UI interactions)\n         - tests/notifications.test.js (notification flow)\n         - tests/slot-filtering.test.js (date/time filtering)\n\n      2. Landing page unit tests:\n         - web/src/app/__tests__/page.test.tsx\n         - web/src/app/components/__tests__/PricingSection.test.tsx\n\n      3. Backend integration:\n         - backend/tests/testimonials.test.js\n         - backend/tests/stripe-webhooks.test.js\n\n      4. Accessibility:\n         - web/src/__tests__/accessibility.test.ts (axe-core)\n\n      ACCEPTANCE CRITERIA:\n      - 60%+ code coverage\n      - All critical paths tested\n      - CI/CD integration\n      - Tests pass on every commit\n    ",
+    "files": [
+      "/tests/popup.test.js",
+      "/tests/notifications.test.js",
+      "/web/src/app/__tests__/page.test.tsx",
+      "/backend/tests/testimonials.test.js"
+    ],
+    "estimate": "6 hours",
+    "assignedTo": "Engineer-B",
+    "blockedBy": [],
+    "blocks": [],
+    "impact": "MEDIUM - Prevents regressions"
+  }
+]

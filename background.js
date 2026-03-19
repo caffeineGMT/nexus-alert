@@ -34,6 +34,24 @@ const DEFAULT_CONFIG = {
   tier: 'free',
   email: '',
   lastCheckedAt: null,
+  // ─── New: Snooze Settings ────────────────────────────────
+  snoozeUntil: null, // ISO timestamp or null
+  snoozeAutoResume: true,
+  // ─── New: Smart Throttling Settings ──────────────────────
+  dailyNotificationCap: 50, // Max notifications per day (free: 50, premium: unlimited)
+  burstProtection: true, // Prevent notification spam
+  burstMaxNotifs: 5, // Max 5 notifications
+  burstWindowMinutes: 10, // Within 10 minutes
+  perLocationCooldown: 5, // Minutes between notifications for same location
+  respectOsQuietHours: true, // Auto-detect OS Do Not Disturb (where possible)
+  // ─── Notification Analytics ──────────────────────────────
+  notificationStats: {
+    totalSent: 0,
+    lastResetDate: null,
+    dailyCount: 0,
+    burstHistory: [], // Array of timestamps for burst detection
+    locationLastNotified: {}, // { locationId: timestamp }
+  },
 };
 
 // ─── Initialization ────────────────────────────────────────────────
@@ -298,6 +316,122 @@ function isInQuietHours(config) {
   return currentMinutes >= startMinutes || currentMinutes < endMinutes;
 }
 
+// ─── OS Do Not Disturb Detection ────────────────────────────────────
+
+async function isOsInQuietMode() {
+  // Chrome extension APIs don't expose OS DND status directly
+  // Best effort: check notification permission state (some OSes revoke when DND active)
+  try {
+    const permission = await chrome.permissions.contains({ permissions: ['notifications'] });
+    if (!permission) return true; // Notifications blocked = treat as DND
+
+    // Platform-specific heuristics
+    const platformInfo = await chrome.runtime.getPlatformInfo();
+    const os = platformInfo.os;
+
+    // On macOS: Check if screen is locked (heuristic via idle state)
+    if (os === 'mac') {
+      const idleState = await chrome.idle.queryState(60); // Check if idle for 60s
+      if (idleState === 'locked') return true;
+    }
+
+    return false;
+  } catch (err) {
+    console.warn('[NEXUS Alert] Could not detect OS quiet mode:', err);
+    return false;
+  }
+}
+
+// ─── Snooze Check ────────────────────────────────────────────────────
+
+function isSnoozed(config) {
+  if (!config.snoozeUntil) return false;
+  const snoozeEnd = new Date(config.snoozeUntil).getTime();
+  const now = Date.now();
+
+  if (now >= snoozeEnd) {
+    // Snooze period ended - auto-clear if enabled
+    if (config.snoozeAutoResume) {
+      return false; // Will be cleared by caller
+    }
+  }
+
+  return now < snoozeEnd;
+}
+
+// ─── Smart Notification Throttling ──────────────────────────────────
+
+async function shouldThrottle(config, locationId) {
+  const stats = config.notificationStats || DEFAULT_CONFIG.notificationStats;
+  const now = Date.now();
+
+  // 1. Daily cap check (reset at midnight local time)
+  const today = new Date().toDateString();
+  if (stats.lastResetDate !== today) {
+    // Reset daily counter
+    stats.lastResetDate = today;
+    stats.dailyCount = 0;
+  }
+
+  const dailyCap = config.tier === 'premium' ? Infinity : (config.dailyNotificationCap || 50);
+  if (stats.dailyCount >= dailyCap) {
+    console.log(`[NEXUS Alert] Daily notification cap reached (${dailyCap})`);
+    return { throttled: true, reason: 'daily_cap', cap: dailyCap };
+  }
+
+  // 2. Burst protection (prevent notification spam)
+  if (config.burstProtection) {
+    const burstWindow = (config.burstWindowMinutes || 10) * 60 * 1000;
+    const burstMax = config.burstMaxNotifs || 5;
+
+    // Clean old entries from burst history
+    stats.burstHistory = (stats.burstHistory || []).filter(t => now - t < burstWindow);
+
+    if (stats.burstHistory.length >= burstMax) {
+      console.log(`[NEXUS Alert] Burst protection active: ${burstMax} notifs in ${config.burstWindowMinutes}min`);
+      return { throttled: true, reason: 'burst_protection', burst: stats.burstHistory.length };
+    }
+  }
+
+  // 3. Per-location cooldown (don't spam same location)
+  if (locationId && config.perLocationCooldown) {
+    stats.locationLastNotified = stats.locationLastNotified || {};
+    const lastNotified = stats.locationLastNotified[locationId];
+    const cooldownMs = config.perLocationCooldown * 60 * 1000;
+
+    if (lastNotified && now - lastNotified < cooldownMs) {
+      const remainingMin = Math.ceil((cooldownMs - (now - lastNotified)) / 60000);
+      console.log(`[NEXUS Alert] Location ${locationId} cooldown active (${remainingMin}min remaining)`);
+      return { throttled: true, reason: 'location_cooldown', remainingMin };
+    }
+  }
+
+  return { throttled: false };
+}
+
+async function recordNotification(config, locationId) {
+  const stats = config.notificationStats || DEFAULT_CONFIG.notificationStats;
+  const now = Date.now();
+
+  // Increment daily counter
+  stats.dailyCount = (stats.dailyCount || 0) + 1;
+  stats.totalSent = (stats.totalSent || 0) + 1;
+
+  // Add to burst history
+  stats.burstHistory = stats.burstHistory || [];
+  stats.burstHistory.push(now);
+
+  // Update per-location timestamp
+  if (locationId) {
+    stats.locationLastNotified = stats.locationLastNotified || {};
+    stats.locationLastNotified[locationId] = now;
+  }
+
+  // Save updated stats
+  config.notificationStats = stats;
+  await chrome.storage.local.set({ config });
+}
+
 // ─── Notification Frequency Check ───────────────────────────────────
 
 function shouldReNotify(key, notified, config) {
@@ -315,18 +449,50 @@ function shouldReNotify(key, notified, config) {
 // ─── Notifications ─────────────────────────────────────────────────
 
 async function notifyNewSlots(results, config) {
-  // Skip notifications during quiet hours
+  // 1. Check if snoozed
+  if (isSnoozed(config)) {
+    const snoozeEnd = new Date(config.snoozeUntil);
+    const remainingMin = Math.ceil((snoozeEnd.getTime() - Date.now()) / 60000);
+    console.log(`[NEXUS Alert] Notifications snoozed for ${remainingMin} more minute(s)`);
+    return;
+  }
+
+  // Auto-clear expired snooze
+  if (config.snoozeUntil && Date.now() >= new Date(config.snoozeUntil).getTime()) {
+    config.snoozeUntil = null;
+    await chrome.storage.local.set({ config });
+  }
+
+  // 2. Check quiet hours
   if (isInQuietHours(config)) {
     console.log('[NEXUS Alert] Quiet hours active, skipping notifications');
     return;
   }
 
+  // 3. Check OS Do Not Disturb (if enabled)
+  if (config.respectOsQuietHours) {
+    const osQuiet = await isOsInQuietMode();
+    if (osQuiet) {
+      console.log('[NEXUS Alert] OS Do Not Disturb active, skipping notifications');
+      return;
+    }
+  }
+
   const { locations } = await chrome.storage.local.get('locations');
   const notified = config.notifiedSlots || {};
   let newCount = 0;
+  let throttledCount = 0;
 
   for (const { locationId, slots } of results) {
     const locName = locations?.[locationId]?.name || `Location ${locationId}`;
+
+    // 4. Check smart throttling for this location
+    const throttleCheck = await shouldThrottle(config, locationId);
+    if (throttleCheck.throttled) {
+      throttledCount++;
+      console.log(`[NEXUS Alert] Throttled notifications for ${locName}: ${throttleCheck.reason}`);
+      continue; // Skip this location
+    }
 
     for (const slot of slots) {
       const key = `${locationId}-${slot.startTimestamp}`;
@@ -353,9 +519,15 @@ async function notifyNewSlots(results, config) {
           message: `${locName} — ${dateStr} at ${timeStr}\nSlots fill fast — tap to book before it's gone!`,
           priority: 2,
           requireInteraction: true,
-          buttons: [{ title: 'Book This Slot →' }],
+          buttons: [
+            { title: 'Book This Slot →' },
+            { title: 'Snooze 1hr' }
+          ],
         });
       }
+
+      // Record this notification in stats
+      await recordNotification(config, locationId);
     }
   }
 
@@ -364,7 +536,8 @@ async function notifyNewSlots(results, config) {
     trackEvent('notification_sent', {
       count: newCount,
       tier: config.tier || 'free',
-      program: config.program || 'NEXUS'
+      program: config.program || 'NEXUS',
+      throttled: throttledCount,
     });
 
     // Play sound alert if enabled
@@ -380,10 +553,14 @@ async function notifyNewSlots(results, config) {
     // Clean old notified entries (older than 24 hours)
     config.notifiedSlots = pruneOldSlots(notified);
     await chrome.storage.local.set({ config });
-    console.log(`[NEXUS Alert] Sent ${newCount} new notification(s)`);
+    console.log(`[NEXUS Alert] Sent ${newCount} new notification(s)${throttledCount > 0 ? `, throttled ${throttledCount}` : ''}`);
 
     // Trigger referral prompt after first successful notification
     await checkAndPromptReferral();
+  }
+
+  if (throttledCount > 0 && newCount === 0) {
+    console.log(`[NEXUS Alert] All notifications throttled (${throttledCount} locations)`);
   }
 }
 
@@ -415,9 +592,22 @@ async function playAlertSound(soundType, volume) {
 }
 
 // Handle notification button clicks
-chrome.notifications.onButtonClicked.addListener((notifId, btnIndex) => {
-  if (notifId.startsWith('slot-') && btnIndex === 0) {
-    chrome.tabs.create({ url: 'https://ttp.cbp.dhs.gov/' });
+chrome.notifications.onButtonClicked.addListener(async (notifId, btnIndex) => {
+  if (notifId.startsWith('slot-')) {
+    if (btnIndex === 0) {
+      // Book This Slot button
+      chrome.tabs.create({ url: 'https://ttp.cbp.dhs.gov/' });
+    } else if (btnIndex === 1) {
+      // Snooze 1hr button
+      await snoozeNotifications(60);
+      chrome.notifications.create('snooze-confirmation', {
+        type: 'basic',
+        iconUrl: 'icons/icon128.png',
+        title: '⏸️ Notifications Snoozed',
+        message: 'You won\'t receive alerts for the next hour. We\'ll resume automatically.',
+        priority: 0,
+      });
+    }
   }
 });
 
@@ -444,6 +634,18 @@ async function updateBadge(count) {
 }
 
 // ─── Message Handling (from popup) ─────────────────────────────────
+
+// Snooze helper function
+async function snoozeNotifications(minutes) {
+  const { config } = await chrome.storage.local.get('config');
+  const snoozeUntil = new Date(Date.now() + minutes * 60 * 1000).toISOString();
+  config.snoozeUntil = snoozeUntil;
+  await chrome.storage.local.set({ config });
+  console.log(`[NEXUS Alert] Snoozed until ${snoozeUntil}`);
+
+  // Track snooze event
+  trackEvent('notification_snoozed', { duration_minutes: minutes, tier: config.tier || 'free' });
+}
 
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   if (msg.action === 'checkNow') {
@@ -505,6 +707,35 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   }
   if (msg.action === 'testSound') {
     playAlertSound(msg.soundType, msg.volume).then(() => sendResponse({ success: true }));
+    return true;
+  }
+  // ─── New: Snooze Controls ────────────────────────────────────────
+  if (msg.action === 'snooze') {
+    snoozeNotifications(msg.minutes).then(() => sendResponse({ success: true }));
+    return true;
+  }
+  if (msg.action === 'unsnooze') {
+    chrome.storage.local.get('config', async ({ config }) => {
+      config.snoozeUntil = null;
+      await chrome.storage.local.set({ config });
+      sendResponse({ success: true });
+    });
+    return true;
+  }
+  if (msg.action === 'getSnoozeStatus') {
+    chrome.storage.local.get('config', ({ config }) => {
+      const snoozed = isSnoozed(config);
+      const remaining = snoozed ? Math.ceil((new Date(config.snoozeUntil).getTime() - Date.now()) / 60000) : 0;
+      sendResponse({ snoozed, snoozeUntil: config.snoozeUntil, remainingMinutes: remaining });
+    });
+    return true;
+  }
+  if (msg.action === 'resetNotificationStats') {
+    chrome.storage.local.get('config', async ({ config }) => {
+      config.notificationStats = DEFAULT_CONFIG.notificationStats;
+      await chrome.storage.local.set({ config });
+      sendResponse({ success: true });
+    });
     return true;
   }
 });

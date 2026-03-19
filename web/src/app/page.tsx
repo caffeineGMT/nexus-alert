@@ -6,6 +6,7 @@ import { PageWrapper } from './page-wrapper';
 import dynamic from 'next/dynamic';
 import { ClientOnlyComponents } from './client-components';
 import LanguageSwitcher from './components/LanguageSwitcher';
+import { getChromeStoreUrl, getInstallButtonText, shouldOpenInNewTab } from '@/lib/chrome-store';
 
 // Dynamic imports for below-fold and interactive components — reduces initial JS bundle
 const ActivityFeed = dynamic(() => import('./components/ActivityFeed'), { ssr: true });
@@ -114,11 +115,10 @@ export default function Home() {
           <span className="text-base sm:text-lg font-bold tracking-tight">NEXUS Alert</span>
           <div className="flex items-center gap-2 sm:gap-3">
             <LanguageSwitcher />
-            {/* TODO: replace EXTENSION_ID after Chrome Web Store publishing */}
             <a
-              href="https://chrome.google.com/webstore/detail/nexus-alert/EXTENSION_ID"
-              target="_blank"
-              rel="noopener noreferrer"
+              href={getChromeStoreUrl({ source: 'homepage', medium: 'nav', campaign: 'install', content: 'nav_install' })}
+              target={shouldOpenInNewTab() ? "_blank" : undefined}
+              rel={shouldOpenInNewTab() ? "noopener noreferrer" : undefined}
               className="px-3 sm:px-4 py-2 rounded-lg bg-[#3b82f6] text-white text-xs sm:text-sm font-semibold hover:bg-[#2563eb] transition touch-manipulation"
             >
               Install Free
@@ -146,15 +146,14 @@ export default function Home() {
             The #1 NEXUS appointment tracker and Global Entry slot finder. Our Chrome extension monitors interview cancellations 24/7 and sends instant alerts when appointments open up at your preferred enrollment centers.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            {/* TODO: replace EXTENSION_ID after Chrome Web Store publishing */}
             <a
-              href="https://chrome.google.com/webstore/detail/nexus-alert/EXTENSION_ID"
-              target="_blank"
-              rel="noopener noreferrer"
+              href={getChromeStoreUrl({ source: 'homepage', medium: 'hero', campaign: 'install', content: 'hero_install' })}
+              target={shouldOpenInNewTab() ? "_blank" : undefined}
+              rel={shouldOpenInNewTab() ? "noopener noreferrer" : undefined}
               className="inline-flex items-center justify-center px-6 sm:px-8 py-3 sm:py-3.5 rounded-xl bg-[#3b82f6] text-white font-semibold text-sm sm:text-base hover:bg-[#2563eb] transition touch-manipulation"
             >
               <ChromeLogoSVG />
-              Add to Chrome — Free
+              {getInstallButtonText()}
             </a>
           </div>
           <p className="text-[#555] text-xs mt-2">Works on Chrome, Edge, and Brave</p>

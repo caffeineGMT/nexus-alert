@@ -1,0 +1,261 @@
+/**
+ * Cross-Browser CSS Compatibility Fixes
+ * Inject these styles into popup.html and onboarding.html to ensure consistent rendering
+ */
+
+/* ─── Browser-Specific Resets ──────────────────────────────── */
+
+/* Firefox-specific fixes */
+@-moz-document url-prefix() {
+  /* Firefox scrollbar styling */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) var(--bg-card);
+  }
+
+  /* Firefox button focus ring */
+  button::-moz-focus-inner {
+    border: 0;
+    padding: 0;
+  }
+
+  /* Firefox input number spinner */
+  input[type="number"] {
+    -moz-appearance: textfield;
+  }
+}
+
+/* Safari-specific fixes */
+@supports (-webkit-appearance: none) and (not (-moz-appearance: none)) {
+  /* Safari input styling */
+  input[type="text"],
+  input[type="email"],
+  input[type="number"],
+  select {
+    -webkit-appearance: none;
+    appearance: none;
+  }
+
+  /* Safari date input */
+  input[type="date"],
+  input[type="time"] {
+    -webkit-appearance: none;
+    min-height: 36px;
+  }
+
+  /* Safari checkbox/radio */
+  input[type="checkbox"],
+  input[type="radio"] {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 18px;
+    height: 18px;
+    border: 2px solid var(--border);
+    border-radius: 3px;
+    cursor: pointer;
+  }
+
+  input[type="checkbox"]:checked {
+    background: var(--accent);
+    border-color: var(--accent);
+  }
+
+  input[type="radio"] {
+    border-radius: 50%;
+  }
+
+  input[type="radio"]:checked {
+    border-color: var(--accent);
+    background: radial-gradient(circle, var(--accent) 40%, transparent 50%);
+  }
+}
+
+/* Edge-specific fixes */
+@supports (-ms-ime-align: auto) {
+  /* Edge scrollbar */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: var(--bg-card);
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: var(--border);
+    border-radius: 4px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--text-muted);
+  }
+}
+
+/* ─── Universal Scrollbar Styling ──────────────────────────── */
+
+/* Chrome, Safari, Edge, Opera */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-card);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
+}
+
+/* ─── Form Element Normalization ───────────────────────────── */
+
+/* Remove default focus outlines and add custom ones */
+*:focus {
+  outline: none;
+}
+
+*:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* Normalize button appearance */
+button {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  border: none;
+  background: none;
+  padding: 0;
+  margin: 0;
+  font: inherit;
+  cursor: pointer;
+}
+
+/* Normalize input appearance */
+input,
+select,
+textarea {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  font: inherit;
+  color: inherit;
+  border: none;
+  background: none;
+  padding: 0;
+  margin: 0;
+}
+
+/* ─── Font Rendering Consistency ───────────────────────────── */
+
+body {
+  /* Improve font rendering across browsers */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+/* ─── Flexbox Fixes for Older Safari ───────────────────────── */
+
+.flex-container {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+}
+
+.flex-1 {
+  -webkit-box-flex: 1;
+  -webkit-flex: 1;
+  -ms-flex: 1;
+  flex: 1;
+}
+
+/* ─── Grid Fixes for Older Browsers ────────────────────────── */
+
+.grid-container {
+  display: -ms-grid;
+  display: grid;
+}
+
+/* ─── Transform and Animation Fixes ────────────────────────── */
+
+.transform-gpu {
+  /* Enable GPU acceleration */
+  -webkit-transform: translateZ(0);
+  transform: translateZ(0);
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+}
+
+/* ─── User Select Normalization ────────────────────────────── */
+
+.no-select {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+/* ─── Touch Action for Mobile Support ──────────────────────── */
+
+button,
+a,
+.clickable {
+  -ms-touch-action: manipulation;
+  touch-action: manipulation;
+}
+
+/* ─── Print Styles ─────────────────────────────────────────── */
+
+@media print {
+  * {
+    background: white !important;
+    color: black !important;
+  }
+}
+
+/* ─── Reduce Motion Preference ─────────────────────────────── */
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ─── High Contrast Mode Support ───────────────────────────── */
+
+@media (prefers-contrast: high) {
+  :root {
+    --border: #ffffff;
+    --text: #ffffff;
+    --bg: #000000;
+  }
+}
+
+/* ─── Dark Mode Support ────────────────────────────────────── */
+
+@media (prefers-color-scheme: light) {
+  /* Optional: Add light mode overrides if needed */
+  /* Currently app is dark-only, but this allows future expansion */
+}
+
+/* ─── Safe Area Insets (for iOS Safari) ────────────────────── */
+
+@supports (padding: max(0px)) {
+  body {
+    padding-left: max(0px, env(safe-area-inset-left));
+    padding-right: max(0px, env(safe-area-inset-right));
+    padding-bottom: max(0px, env(safe-area-inset-bottom));
+  }
+}

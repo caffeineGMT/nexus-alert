@@ -5,9 +5,15 @@
   "scripts": {
     "build": "node scripts/build.js",
     "build:analyze": "node scripts/build.js --analyze",
-    "package": "node scripts/build.js && node scripts/package.js",
+    "build:all": "node scripts/build-cross-browser.js",
+    "build:chrome": "node scripts/build-cross-browser.js chrome",
+    "build:firefox": "node scripts/build-cross-browser.js firefox",
+    "build:edge": "node scripts/build-cross-browser.js edge",
+    "build:safari": "node scripts/build-cross-browser.js safari",
     "test": "vitest run",
     "test:watch": "vitest",
+    "test:browsers": "./scripts/test-cross-browser.sh",
+    "package": "node scripts/build.js && node scripts/package.js",
     "generate-images": "node scripts/generate-promotional-images.js",
     "open-image-generator": "open store-assets/GENERATE-IMAGES-SIMPLE.html",
     "monitor": "node scripts/monitoring-dashboard.js"

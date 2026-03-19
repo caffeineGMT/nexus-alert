@@ -22,6 +22,7 @@ import {
   handleWebinarRegistration,
   handlePartnerApplication,
 } from './handlers/b2b.js';
+import { rateLimit } from './middleware/rateLimit.js';
 
 const API_BASE = 'https://ttp.cbp.dhs.gov/schedulerapi';
 const SLOTS_URL = `${API_BASE}/slots`;
@@ -74,6 +75,15 @@ const AUTH_ROUTES = {
   'GET /api/pro/clients': (req, env, cors) => handleGetProClients(req, env, cors),
 };
 
+// ─── CORS Security Configuration ─────────────────────────────────────
+// Origin whitelist to prevent unauthorized cross-origin requests
+const ALLOWED_ORIGINS = [
+  'https://nexus-alert.com',
+  'https://www.nexus-alert.com',
+  // TODO: Add actual Chrome extension ID once published
+  // 'chrome-extension://YOUR_ACTUAL_EXTENSION_ID'
+];
+
 // Lazy Stripe initialization — only created when first needed per request
 function getStripe(env) {
   return new Stripe(env.STRIPE_SECRET_KEY, {
@@ -96,11 +106,17 @@ export default {
     }
     const url = new URL(request.url);
 
-    // CORS headers
+    // CORS headers with origin validation
+    const requestOrigin = request.headers.get('Origin');
+    const allowedOrigin = ALLOWED_ORIGINS.includes(requestOrigin)
+      ? requestOrigin
+      : ALLOWED_ORIGINS[0];
+
     const corsHeaders = {
-      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Origin': allowedOrigin,
       'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
       'Access-Control-Allow-Headers': 'Content-Type, Authorization, Stripe-Signature',
+      'Access-Control-Max-Age': '86400', // 24 hours cache for preflight
     };
 
     if (request.method === 'OPTIONS') {
