@@ -30,6 +30,58 @@ const SLOTS_URL = `${API_BASE}/slots`;
 let consecutiveApiFailures = 0;
 let lastApiFailureTime = null;
 
+// ─── Route Map: O(1) lookup instead of sequential if/else chain ──────────
+// Routes are keyed by "METHOD /path". Handlers receive (request, env, corsHeaders, sentry).
+// "public" routes skip auth; "auth" routes require Bearer token.
+
+const PUBLIC_ROUTES = {
+  'GET /api/unsubscribe': (req, env) => handleSignedUnsubscribe(req, env),
+  'POST /api/waitlist': (req, env, cors) => handleWaitlist(req, env, cors),
+  'POST /api/lead-magnet': (req, env, cors) => handleLeadMagnet(req, env, cors),
+  'POST /api/checkout': (req, env, cors) => handleCheckout(req, env, cors),
+  'POST /api/switch-to-annual': (req, env, cors) => handleSwitchToAnnual(req, env, cors),
+  'POST /api/webhook': (req, env, cors) => handleStripeWebhook(req, env, cors),
+  'GET /api/license': (req, env, cors) => handleGetLicense(req, env, cors),
+  'POST /api/referral/init': (req, env, cors) => handleInitReferral(req, env, cors),
+  'POST /api/referral/click': (req, env, cors) => handleReferralClick(req, env, cors),
+  'GET /api/referral/coefficient': (_req, env, cors) => handleViralCoefficient(env, cors),
+  'GET /api/activity': (req, env, cors) => handleGetActivity(req, env, cors),
+  'POST /api/activity': (req, env, cors) => handlePostActivity(req, env, cors),
+  'GET /api/stats': (req, env, cors) => handleGetStats(req, env, cors),
+  'GET /api/metrics': (req, env, cors) => handleGetMetrics(req, env, cors),
+  'GET /api/email-analytics': (req, env, cors) => handleEmailAnalytics(req, env, cors),
+  'POST /api/webhooks/resend': (req, env, cors) => handleResendWebhook(req, env, cors),
+  'POST /api/webhooks/convertkit': (req, env, cors) => handleConvertKitWebhookEndpoint(req, env, cors),
+  'POST /api/subscribe': (req, env, cors, sentry) => handlePublicSubscribe(req, env, cors, sentry),
+  'POST /api/webinar-registration': (req, env, cors) => handleWebinarRegistration(req, env, cors),
+  'POST /api/partner-application': (req, env, cors) => handlePartnerApplication(req, env, cors),
+  'POST /api/exit-survey': (req, env, cors) => handleExitSurvey(req, env, cors),
+  'POST /api/reactivate': (req, env, cors) => handleReactivate(req, env, cors),
+  'GET /health': (_req, env, cors) => handleHealthCheck(env, cors),
+};
+
+const AUTH_ROUTES = {
+  'POST /api/subscribe': (req, env, cors) => handleSubscribe(req, env, cors),
+  'POST /api/unsubscribe': (req, env, cors) => handleUnsubscribe(req, env, cors),
+  'PUT /api/subscriber': (req, env, cors) => handleUpdateSubscriber(req, env, cors),
+  'GET /api/subscribers': (_req, env, cors) => handleListSubscribers(env, cors),
+  'POST /api/check': async (_req, env, cors) => {
+    await checkAllSubscribers(env);
+    return json({ success: true, message: 'Check completed' }, 200, cors);
+  },
+  'GET /api/status': (_req, env, cors) => handleStatus(env, cors),
+  'POST /api/pro/clients': (req, env, cors) => handleAddProClient(req, env, cors),
+  'DELETE /api/pro/clients': (req, env, cors) => handleRemoveProClient(req, env, cors),
+  'GET /api/pro/clients': (req, env, cors) => handleGetProClients(req, env, cors),
+};
+
+// Lazy Stripe initialization — only created when first needed per request
+function getStripe(env) {
+  return new Stripe(env.STRIPE_SECRET_KEY, {
+    httpClient: Stripe.createFetchHttpClient(),
+  });
+}
+
 export default {
   // Handle HTTP requests (subscriber management API)
   async fetch(request, env, ctx) {
@@ -56,119 +108,33 @@ export default {
       return new Response(null, { headers: corsHeaders });
     }
 
-    // Public endpoints (no auth required)
-    if (url.pathname === '/api/unsubscribe' && request.method === 'GET') {
-      return await handleSignedUnsubscribe(request, env);
+    const routeKey = `${request.method} ${url.pathname}`;
+
+    // Check public routes first (O(1) lookup)
+    const publicHandler = PUBLIC_ROUTES[routeKey];
+    if (publicHandler) {
+      return await publicHandler(request, env, corsHeaders, sentry);
     }
-    if (url.pathname === '/api/waitlist' && request.method === 'POST') {
-      return await handleWaitlist(request, env, corsHeaders);
-    }
-    if (url.pathname === '/api/lead-magnet' && request.method === 'POST') {
-      return await handleLeadMagnet(request, env, corsHeaders);
-    }
-    if (url.pathname === '/api/checkout' && request.method === 'POST') {
-      return await handleCheckout(request, env, corsHeaders);
-    }
-    if (url.pathname === '/api/switch-to-annual' && request.method === 'POST') {
-      return await handleSwitchToAnnual(request, env, corsHeaders);
-    }
-    if (url.pathname === '/api/webhook' && request.method === 'POST') {
-      return await handleStripeWebhook(request, env, corsHeaders);
-    }
-    if (url.pathname === '/api/license' && request.method === 'GET') {
-      return await handleGetLicense(request, env, corsHeaders);
-    }
+
+    // Dynamic public routes (path params)
     if (url.pathname.startsWith('/api/referrals/') && request.method === 'GET') {
       return await handleGetReferralStats(request, env, corsHeaders);
     }
-    if (url.pathname === '/api/referral/init' && request.method === 'POST') {
-      return await handleInitReferral(request, env, corsHeaders);
-    }
-    if (url.pathname === '/api/referral/click' && request.method === 'POST') {
-      return await handleReferralClick(request, env, corsHeaders);
-    }
-    if (url.pathname === '/api/referral/coefficient' && request.method === 'GET') {
-      return await handleViralCoefficient(env, corsHeaders);
-    }
-    if (url.pathname === '/api/activity' && request.method === 'GET') {
-      return await handleGetActivity(request, env, corsHeaders);
-    }
-    if (url.pathname === '/api/activity' && request.method === 'POST') {
-      return await handlePostActivity(request, env, corsHeaders);
-    }
-    if (url.pathname === '/api/stats' && request.method === 'GET') {
-      return await handleGetStats(request, env, corsHeaders);
-    }
-    if (url.pathname === '/api/metrics' && request.method === 'GET') {
-      return await handleGetMetrics(request, env, corsHeaders);
-    }
-    if (url.pathname === '/api/email-analytics' && request.method === 'GET') {
-      return await handleEmailAnalytics(request, env, corsHeaders);
-    }
-    if (url.pathname === '/api/webhooks/resend' && request.method === 'POST') {
-      return await handleResendWebhook(request, env, corsHeaders);
-    }
-    if (url.pathname === '/api/webhooks/convertkit' && request.method === 'POST') {
-      return await handleConvertKitWebhookEndpoint(request, env, corsHeaders);
-    }
-    if (url.pathname === '/api/subscribe' && request.method === 'POST') {
-      return await handlePublicSubscribe(request, env, corsHeaders, sentry);
-    }
-    if (url.pathname === '/api/webinar-registration' && request.method === 'POST') {
-      return await handleWebinarRegistration(request, env, corsHeaders);
-    }
-    if (url.pathname === '/api/partner-application' && request.method === 'POST') {
-      return await handlePartnerApplication(request, env, corsHeaders);
-    }
-    if (url.pathname === '/api/exit-survey' && request.method === 'POST') {
-      return await handleExitSurvey(request, env, corsHeaders);
-    }
-    if (url.pathname === '/api/reactivate' && request.method === 'POST') {
-      return await handleReactivate(request, env, corsHeaders);
-    }
-    if (url.pathname === '/health' && request.method === 'GET') {
-      return await handleHealthCheck(env, corsHeaders);
-    }
 
-    // Auth check for all other endpoints
+    // Auth check for protected routes
     const authHeader = request.headers.get('Authorization');
     if (authHeader !== `Bearer ${env.WEBHOOK_SECRET}`) {
       return json({ error: 'Unauthorized' }, 401, corsHeaders);
     }
 
     try {
-      if (url.pathname === '/api/subscribe' && request.method === 'POST') {
-        return await handleSubscribe(request, env, corsHeaders);
-      }
-      if (url.pathname === '/api/unsubscribe' && request.method === 'POST') {
-        return await handleUnsubscribe(request, env, corsHeaders);
-      }
-      if (url.pathname === '/api/subscriber' && request.method === 'PUT') {
-        return await handleUpdateSubscriber(request, env, corsHeaders);
-      }
-      if (url.pathname === '/api/subscribers' && request.method === 'GET') {
-        return await handleListSubscribers(env, corsHeaders);
-      }
-      if (url.pathname === '/api/check' && request.method === 'POST') {
-        // Manual trigger
-        await checkAllSubscribers(env);
-        return json({ success: true, message: 'Check completed' }, 200, corsHeaders);
-      }
-      if (url.pathname === '/api/status' && request.method === 'GET') {
-        return await handleStatus(env, corsHeaders);
-      }
-      if (url.pathname === '/api/pro/clients' && request.method === 'POST') {
-        return await handleAddProClient(request, env, corsHeaders);
-      }
-      if (url.pathname === '/api/pro/clients' && request.method === 'DELETE') {
-        return await handleRemoveProClient(request, env, corsHeaders);
-      }
-      if (url.pathname === '/api/pro/clients' && request.method === 'GET') {
-        return await handleGetProClients(request, env, corsHeaders);
+      const authHandler = AUTH_ROUTES[routeKey];
+      if (authHandler) {
+        return await authHandler(request, env, corsHeaders);
       }
       return json({ error: 'Not found' }, 404, corsHeaders);
     } catch (err) {
-      sentry.captureException(err);
+      if (sentry) sentry.captureException(err);
       return json({ error: err.message }, 500, corsHeaders);
     }
   },
@@ -246,9 +212,7 @@ async function handleCheckout(request, env, corsHeaders) {
     }
 
     // Initialize Stripe with fetch-based HTTP client (required for Cloudflare Workers)
-    const stripe = new Stripe(env.STRIPE_SECRET_KEY, {
-      httpClient: Stripe.createFetchHttpClient(),
-    });
+    const stripe = getStripe(env);
 
     // Handle promo code validation for PRODUCTHUNT special offer
     let discountCoupon = null;
@@ -443,9 +407,7 @@ async function handleSwitchToAnnual(request, env, corsHeaders) {
     }
 
     // Initialize Stripe
-    const stripe = new Stripe(env.STRIPE_SECRET_KEY, {
-      httpClient: Stripe.createFetchHttpClient(),
-    });
+    const stripe = getStripe(env);
 
     // Verify user has an active monthly subscription
     const customers = await stripe.customers.list({ email, limit: 1 });
@@ -546,9 +508,7 @@ async function handleStripeWebhook(request, env, corsHeaders) {
     }
 
     // Initialize Stripe
-    const stripe = new Stripe(env.STRIPE_SECRET_KEY, {
-      httpClient: Stripe.createFetchHttpClient(),
-    });
+    const stripe = getStripe(env);
 
     // Verify webhook signature
     let event;
@@ -1770,9 +1730,7 @@ async function creditReferrerSubscription(referrerEmail, env) {
     }
 
     // Initialize Stripe
-    const stripe = new Stripe(env.STRIPE_SECRET_KEY, {
-      httpClient: Stripe.createFetchHttpClient(),
-    });
+    const stripe = getStripe(env);
 
     // Get current subscription
     const subscription = await stripe.subscriptions.retrieve(subscriptionId);
@@ -3059,9 +3017,7 @@ async function sendEmailSequences(env) {
         if (!license.stripeSubscriptionId) continue;
 
         // Check if subscription is monthly (not annual)
-        const stripe = new Stripe(env.STRIPE_SECRET_KEY, {
-          httpClient: Stripe.createFetchHttpClient(),
-        });
+        const stripe = getStripe(env);
 
         try {
           const subscription = await stripe.subscriptions.retrieve(license.stripeSubscriptionId);
@@ -3266,9 +3222,7 @@ async function handleReactivate(request, env, corsHeaders) {
     }
 
     // Initialize Stripe
-    const stripe = new Stripe(env.STRIPE_SECRET_KEY, {
-      httpClient: Stripe.createFetchHttpClient(),
-    });
+    const stripe = getStripe(env);
 
     // Get or create customer
     let customer;

@@ -258,6 +258,220 @@
       }
     }
 
+    /* ─── Preferences Panel ─────────────────────── */
+    .pref-group {
+      margin-bottom: 6px;
+    }
+    .pref-group-title {
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      color: var(--accent);
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .pref-group-title svg {
+      width: 14px;
+      height: 14px;
+      fill: var(--accent);
+    }
+
+    /* Volume slider */
+    .volume-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 0;
+    }
+    .volume-slider {
+      -webkit-appearance: none;
+      appearance: none;
+      flex: 1;
+      height: 4px;
+      border-radius: 2px;
+      background: var(--border);
+      outline: none;
+      cursor: pointer;
+    }
+    .volume-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: var(--accent);
+      cursor: pointer;
+      border: none;
+    }
+    .volume-slider::-moz-range-thumb {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: var(--accent);
+      cursor: pointer;
+      border: none;
+    }
+    .volume-label {
+      font-size: 11px;
+      color: var(--text-muted);
+      min-width: 28px;
+      text-align: right;
+    }
+
+    /* Sound type selector */
+    .sound-type-options {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+    .sound-type-btn {
+      padding: 6px 10px;
+      min-height: 32px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: transparent;
+      color: var(--text-muted);
+      font-size: 11px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: 0.15s;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .sound-type-btn:hover { border-color: var(--accent); color: var(--text); }
+    .sound-type-btn.active { background: var(--accent); border-color: var(--accent); color: white; }
+
+    .test-sound-btn {
+      padding: 5px 10px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: transparent;
+      color: var(--text-muted);
+      font-size: 10px;
+      cursor: pointer;
+      transition: 0.15s;
+      white-space: nowrap;
+    }
+    .test-sound-btn:hover { border-color: var(--accent); color: var(--text); }
+
+    /* Quiet hours */
+    .quiet-hours-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 4px 0;
+    }
+    .quiet-hours-row .filter-input {
+      width: 90px;
+      padding: 5px 6px;
+      font-size: 11px;
+    }
+    .quiet-hours-dash {
+      color: var(--text-muted);
+      font-size: 12px;
+    }
+
+    /* Favorite locations */
+    .fav-locations-list {
+      max-height: 120px;
+      overflow-y: auto;
+      scrollbar-width: thin;
+      scrollbar-color: #333 transparent;
+    }
+    .fav-location-item {
+      display: flex;
+      align-items: center;
+      padding: 6px 8px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      margin-bottom: 4px;
+      gap: 8px;
+      font-size: 11px;
+    }
+    .fav-location-item .fav-name {
+      flex: 1;
+      font-weight: 500;
+    }
+    .fav-location-item .fav-meta {
+      font-size: 10px;
+      color: var(--text-muted);
+    }
+    .fav-remove-btn {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      padding: 2px;
+      font-size: 14px;
+      line-height: 1;
+      transition: 0.15s;
+    }
+    .fav-remove-btn:hover { color: var(--red); }
+
+    .location-search-input {
+      width: 100%;
+      padding: 7px 10px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: var(--bg-input);
+      color: var(--text);
+      font-size: 11px;
+      margin-bottom: 6px;
+    }
+    .location-search-input:focus { outline: 2px solid var(--accent); outline-offset: -1px; border-color: var(--accent); }
+    .location-search-input::placeholder { color: #555; }
+
+    .region-chips {
+      display: flex;
+      gap: 4px;
+      flex-wrap: wrap;
+      margin-bottom: 8px;
+    }
+    .region-chip {
+      padding: 4px 8px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: transparent;
+      color: var(--text-muted);
+      font-size: 10px;
+      cursor: pointer;
+      transition: 0.15s;
+    }
+    .region-chip:hover { border-color: var(--accent); color: var(--text); }
+    .region-chip.active { background: var(--accent); border-color: var(--accent); color: white; }
+
+    .location-dropdown {
+      max-height: 140px;
+      overflow-y: auto;
+      scrollbar-width: thin;
+      scrollbar-color: #333 transparent;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      display: none;
+    }
+    .location-dropdown.visible { display: block; }
+    .location-dropdown-item {
+      display: flex;
+      align-items: center;
+      padding: 7px 10px;
+      cursor: pointer;
+      font-size: 11px;
+      transition: 0.1s;
+      gap: 6px;
+    }
+    .location-dropdown-item:hover { background: rgba(59,130,246,0.1); }
+    .location-dropdown-item .loc-name { flex: 1; }
+    .location-dropdown-item .loc-region { font-size: 10px; color: var(--text-muted); }
+    .location-dropdown-item .add-icon {
+      color: var(--accent);
+      font-weight: 700;
+      font-size: 14px;
+    }
+
     /* ─── Filters ─────────────────────────────── */
     .filter-row {
       display: flex;
@@ -1132,6 +1346,79 @@
     </div>
     <div class="section">
       <h2 class="section-title">Notifications</h2>
+
+      <!-- Desktop Notifications Toggle -->
+      <div class="toggle-row">
+        <div>
+          <div class="toggle-label" id="desktop-notif-label">Desktop Notifications</div>
+          <div class="toggle-description">Show Chrome notifications for new slots</div>
+        </div>
+        <label class="toggle-switch" aria-labelledby="desktop-notif-label">
+          <input type="checkbox" id="desktopNotifToggle" checked aria-label="Enable desktop notifications">
+          <span class="toggle-slider" role="presentation"></span>
+        </label>
+      </div>
+
+      <!-- Badge Count Toggle -->
+      <div class="toggle-row">
+        <div>
+          <div class="toggle-label" id="badge-label">Badge Count</div>
+          <div class="toggle-description">Show slot count on extension icon</div>
+        </div>
+        <label class="toggle-switch" aria-labelledby="badge-label">
+          <input type="checkbox" id="badgeToggle" checked aria-label="Enable badge count">
+          <span class="toggle-slider" role="presentation"></span>
+        </label>
+      </div>
+
+      <!-- Auto-open Booking -->
+      <div class="toggle-row">
+        <div>
+          <div class="toggle-label" id="autoopen-label">Auto-open Booking</div>
+          <div class="toggle-description">Open GOES website when slots found</div>
+        </div>
+        <label class="toggle-switch" aria-labelledby="autoopen-label">
+          <input type="checkbox" id="autoOpenToggle" aria-label="Enable auto-open booking page">
+          <span class="toggle-slider" role="presentation"></span>
+        </label>
+      </div>
+
+      <!-- Notification Frequency -->
+      <div style="margin-top: 10px">
+        <div class="toggle-label" id="notif-freq-label">Notification Frequency</div>
+        <div class="toggle-description" style="margin-bottom:6px">How often to re-notify about the same slot</div>
+        <div class="interval-options" role="radiogroup" aria-labelledby="notif-freq-label">
+          <button class="interval-btn notif-freq-btn" data-freq="once" role="radio" aria-checked="false" aria-label="Notify once per slot">Once</button>
+          <button class="interval-btn notif-freq-btn active" data-freq="30" role="radio" aria-checked="true" aria-label="Notify every 30 minutes">30 min</button>
+          <button class="interval-btn notif-freq-btn" data-freq="60" role="radio" aria-checked="false" aria-label="Notify every hour">1 hr</button>
+          <button class="interval-btn notif-freq-btn" data-freq="always" role="radio" aria-checked="false" aria-label="Notify every check">Always</button>
+        </div>
+      </div>
+
+      <!-- Quiet Hours -->
+      <div style="margin-top: 10px">
+        <div class="toggle-row" style="border:none;padding-bottom:4px">
+          <div>
+            <div class="toggle-label" id="quiet-hours-label">Quiet Hours</div>
+            <div class="toggle-description">Pause notifications during these hours</div>
+          </div>
+          <label class="toggle-switch" aria-labelledby="quiet-hours-label">
+            <input type="checkbox" id="quietHoursToggle" aria-label="Enable quiet hours">
+            <span class="toggle-slider" role="presentation"></span>
+          </label>
+        </div>
+        <div class="quiet-hours-row" id="quietHoursRange" style="display:none">
+          <input type="time" class="filter-input" id="quietFrom" value="22:00" aria-label="Quiet hours start time">
+          <span class="quiet-hours-dash">to</span>
+          <input type="time" class="filter-input" id="quietTo" value="07:00" aria-label="Quiet hours end time">
+        </div>
+      </div>
+    </div>
+
+    <!-- Sound Preferences Section -->
+    <div class="section">
+      <h2 class="section-title">Sound</h2>
+
       <div class="toggle-row">
         <div>
           <div class="toggle-label" id="sound-label">Sound Alert</div>
@@ -1142,15 +1429,55 @@
           <span class="toggle-slider" role="presentation"></span>
         </label>
       </div>
-      <div class="toggle-row">
-        <div>
-          <div class="toggle-label" id="autoopen-label">Auto-open Booking</div>
-          <div class="toggle-description">Open GOES website when slots found</div>
+
+      <div id="soundPrefsPanel">
+        <!-- Sound Type -->
+        <div style="margin-top:8px">
+          <div class="toggle-label">Alert Sound</div>
+          <div class="sound-type-options" role="radiogroup" aria-label="Select alert sound" style="margin-top:4px">
+            <button class="sound-type-btn active" data-sound="chime" role="radio" aria-checked="true">🔔 Chime</button>
+            <button class="sound-type-btn" data-sound="bell" role="radio" aria-checked="false">🛎️ Bell</button>
+            <button class="sound-type-btn" data-sound="urgent" role="radio" aria-checked="false">🚨 Urgent</button>
+            <button class="sound-type-btn" data-sound="subtle" role="radio" aria-checked="false">💤 Subtle</button>
+          </div>
         </div>
-        <label class="toggle-switch" aria-labelledby="autoopen-label">
-          <input type="checkbox" id="autoOpenToggle" aria-label="Enable auto-open booking page">
-          <span class="toggle-slider" role="presentation"></span>
-        </label>
+
+        <!-- Volume -->
+        <div style="margin-top:8px">
+          <div class="toggle-label">Volume</div>
+          <div class="volume-row">
+            <span style="font-size:12px;color:var(--text-muted)">🔈</span>
+            <input type="range" class="volume-slider" id="volumeSlider" min="0" max="100" value="70" aria-label="Alert volume">
+            <span class="volume-label" id="volumeLabel">70%</span>
+            <span style="font-size:12px;color:var(--text-muted)">🔊</span>
+          </div>
+        </div>
+
+        <!-- Test Sound Button -->
+        <button class="test-sound-btn" id="testSoundBtn" style="margin-top:6px;width:100%">▶ Test Sound</button>
+      </div>
+    </div>
+
+    <!-- Preferred Locations Section -->
+    <div class="section">
+      <h2 class="section-title">Preferred Locations</h2>
+      <div class="toggle-description" style="margin-bottom:8px">Pin your favorite locations for quick access. Pinned locations appear first in the main view.</div>
+
+      <!-- Region Quick-Select -->
+      <div class="region-chips" id="regionChips">
+        <button class="region-chip" data-region="US-West" aria-label="Select US West locations">US West</button>
+        <button class="region-chip" data-region="US-East" aria-label="Select US East locations">US East</button>
+        <button class="region-chip" data-region="US-South" aria-label="Select US South locations">US South</button>
+        <button class="region-chip" data-region="Canada" aria-label="Select Canada locations">Canada</button>
+      </div>
+
+      <!-- Location Search -->
+      <input type="text" class="location-search-input" id="favLocationSearch" placeholder="Search locations to pin..." aria-label="Search for locations to add as favorites">
+      <div class="location-dropdown" id="favLocationDropdown"></div>
+
+      <!-- Pinned Locations List -->
+      <div class="fav-locations-list" id="favLocationsList">
+        <div class="empty-state" style="font-size:11px;padding:10px">No pinned locations yet. Search above to add favorites.</div>
       </div>
     </div>
     <div class="section">

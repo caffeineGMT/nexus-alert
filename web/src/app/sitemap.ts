@@ -7,11 +7,18 @@ export default function sitemap(): MetadataRoute.Sitemap {
   const currentDate = new Date().toISOString();
 
   return [
+    // Core pages
     {
       url: baseUrl,
       lastModified: currentDate,
       changeFrequency: 'weekly',
       priority: 1.0,
+    },
+    {
+      url: `${baseUrl}/nexus`,
+      lastModified: currentDate,
+      changeFrequency: 'monthly',
+      priority: 0.9,
     },
     {
       url: `${baseUrl}/global-entry`,
@@ -31,6 +38,13 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: 'monthly',
       priority: 0.9,
     },
+    {
+      url: `${baseUrl}/pro`,
+      lastModified: currentDate,
+      changeFrequency: 'monthly',
+      priority: 0.8,
+    },
+    // Blog
     {
       url: `${baseUrl}/blog`,
       lastModified: currentDate,
@@ -69,7 +83,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     },
     {
       url: `${baseUrl}/blog/global-entry-appointment-tips`,
-      lastModified: currentDate,
+      lastModified: '2026-03-18',
       changeFrequency: 'monthly',
       priority: 0.8,
     },
@@ -81,15 +95,46 @@ export default function sitemap(): MetadataRoute.Sitemap {
     },
     {
       url: `${baseUrl}/blog/nexus-appointment-checklist`,
-      lastModified: currentDate,
+      lastModified: '2026-03-18',
       changeFrequency: 'monthly',
       priority: 0.7,
     },
     {
       url: `${baseUrl}/blog/is-global-entry-worth-it`,
-      lastModified: currentDate,
+      lastModified: '2026-03-18',
       changeFrequency: 'monthly',
       priority: 0.7,
+    },
+    {
+      url: `${baseUrl}/blog/success-story-family-global-entry`,
+      lastModified: '2026-03-18',
+      changeFrequency: 'monthly',
+      priority: 0.6,
+    },
+    {
+      url: `${baseUrl}/blog/success-story-sarah-nexus-3-days`,
+      lastModified: '2026-03-18',
+      changeFrequency: 'monthly',
+      priority: 0.6,
+    },
+    // Legal & support
+    {
+      url: `${baseUrl}/privacy`,
+      lastModified: '2026-03-18',
+      changeFrequency: 'yearly',
+      priority: 0.3,
+    },
+    {
+      url: `${baseUrl}/terms`,
+      lastModified: '2026-03-18',
+      changeFrequency: 'yearly',
+      priority: 0.3,
+    },
+    {
+      url: `${baseUrl}/help`,
+      lastModified: '2026-03-18',
+      changeFrequency: 'monthly',
+      priority: 0.5,
     },
   ];
 }

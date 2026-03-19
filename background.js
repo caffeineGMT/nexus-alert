@@ -1,20 +1,7 @@
 // NEXUS Alert — Background Service Worker
 // Polls CBP's public scheduler API for available appointment slots
 
-import * as Sentry from '@sentry/browser';
 import { isSlotInDateRange, isSlotInTimeRange, isDuplicate, pruneOldSlots } from './src/slotFilters.js';
-
-// Initialize Sentry for error tracking
-Sentry.init({
-  dsn: 'https://REPLACE_WITH_YOUR_SENTRY_DSN@sentry.io/PROJECT_ID',
-  environment: 'production',
-  tracesSampleRate: 0.1, // Sample 10% of transactions
-  beforeSend(event) {
-    // Don't send errors in development
-    if (event.environment === 'development') return null;
-    return event;
-  },
-});
 
 const API_BASE = 'https://ttp.cbp.dhs.gov/schedulerapi';
 const SLOTS_ENDPOINT = `${API_BASE}/slots`;
@@ -29,7 +16,16 @@ const DEFAULT_CONFIG = {
   dateRange: { start: null, end: null },
   timeRange: { start: null, end: null },
   soundEnabled: true,
+  soundType: 'chime',
+  soundVolume: 70,
   autoOpenBooking: false,
+  desktopNotificationsEnabled: true,
+  badgeEnabled: true,
+  notifFrequency: '30',
+  quietHoursEnabled: false,
+  quietHoursStart: '22:00',
+  quietHoursEnd: '07:00',
+  favoriteLocations: [],
   notifiedSlots: {},
   tier: 'free',
   email: '',
@@ -40,35 +36,20 @@ const DEFAULT_CONFIG = {
 
 // Helper function to track events via Plausible
 async function trackEvent(eventName, data = {}) {
-  try {
-    // Store event in activity feed for metrics
-    const activityId = `activity:${Date.now()}_${Math.random().toString(36).slice(2)}`;
-    await fetch('https://api.nexus-alert.com/api/activity', {
+  // Fire-and-forget: send both analytics requests in parallel, don't block caller
+  const requests = [
+    fetch('https://api.nexus-alert.com/api/activity', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        type: eventName,
-        timestamp: Date.now(),
-        metadata: data,
-      }),
-    }).catch(err => console.error('Failed to track event:', err));
-    
-    // Also send to Plausible for real-time analytics
-    if (typeof fetch !== 'undefined') {
-      await fetch('https://plausible.io/api/event', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          domain: 'nexus-alert.com',
-          name: eventName,
-          url: 'ext://nexus-alert',
-          props: data,
-        }),
-      }).catch(err => console.error('Plausible tracking failed:', err));
-    }
-  } catch (err) {
-    console.error('trackEvent error:', err);
-  }
+      body: JSON.stringify({ type: eventName, timestamp: Date.now(), metadata: data }),
+    }),
+    fetch('https://plausible.io/api/event', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ domain: 'nexus-alert.com', name: eventName, url: 'ext://nexus-alert', props: data }),
+    }),
+  ];
+  Promise.allSettled(requests).catch(() => {});
 }
 
 chrome.runtime.onInstalled.addListener(async (details) => {
@@ -144,12 +125,8 @@ async function fetchAndCacheLocations() {
     return allLocations;
   } catch (err) {
     console.error('[NEXUS Alert] Failed to fetch locations:', err);
-    Sentry.captureException(err, {
-      tags: { function: 'fetchAndCacheLocations' },
-      level: 'error',
-    });
     await chrome.storage.local.set({
-      lastError: 'Could not reach CBP API. Check your connection.',
+      lastError: 'Unable to connect to CBP servers. This is usually temporary — we\'ll retry automatically.',
       lastErrorTime: Date.now()
     });
     return {};
@@ -159,12 +136,12 @@ async function fetchAndCacheLocations() {
 // ─── Slot Checking ─────────────────────────────────────────────────
 
 async function checkAllLocations() {
-  const { config } = await chrome.storage.local.get('config');
+  // Single storage read instead of two separate reads
+  const { config, lastCheckedAt } = await chrome.storage.local.get(['config', 'lastCheckedAt']);
   if (!config?.enabled) return;
 
   // Free tier: enforce 30-min rate limit
   if (config.tier !== 'premium') {
-    const { lastCheckedAt } = await chrome.storage.local.get('lastCheckedAt');
     if (lastCheckedAt && Date.now() - lastCheckedAt < 30 * 60 * 1000) {
       console.log('[NEXUS Alert] Free tier: skipping check, < 30min since last');
       return;
@@ -188,7 +165,7 @@ async function checkAllLocations() {
       } catch (err) {
         console.error(`[NEXUS Alert] Error checking location ${locationId}:`, err);
         hasError = true;
-        errorMessage = err.message || 'Could not reach CBP API. Check your connection.';
+        errorMessage = err.message || 'Unable to connect to CBP servers. This is usually temporary — we\'ll retry automatically.';
         throw err; // Re-throw to trigger outer catch
       }
     }
@@ -238,11 +215,6 @@ async function checkAllLocations() {
       failureCount: newCount
     });
     console.error(`[NEXUS Alert] Check failed, failureCount now: ${newCount}`);
-    Sentry.captureException(err, {
-      tags: { function: 'checkAllLocations', failureCount: newCount },
-      level: 'error',
-      extra: { errorMessage, hasError },
-    });
   }
 }
 
@@ -256,7 +228,7 @@ async function checkLocation(locationId, config) {
 
   const resp = await fetch(`${SLOTS_ENDPOINT}?${params}`);
   if (!resp.ok) {
-    throw new Error(`HTTP ${resp.status} for location ${locationId}`);
+    throw new Error(`CBP returned error ${resp.status} for location ${locationId}. Retrying shortly.`);
   }
 
   let slots = await resp.json();
@@ -287,9 +259,48 @@ async function recordSlotHistory(slots) {
   await chrome.storage.local.set({ slotHistory: trimmed });
 }
 
+// ─── Quiet Hours Check ──────────────────────────────────────────────
+
+function isInQuietHours(config) {
+  if (!config.quietHoursEnabled) return false;
+  const now = new Date();
+  const currentMinutes = now.getHours() * 60 + now.getMinutes();
+
+  const [startH, startM] = (config.quietHoursStart || '22:00').split(':').map(Number);
+  const [endH, endM] = (config.quietHoursEnd || '07:00').split(':').map(Number);
+  const startMinutes = startH * 60 + startM;
+  const endMinutes = endH * 60 + endM;
+
+  if (startMinutes <= endMinutes) {
+    return currentMinutes >= startMinutes && currentMinutes < endMinutes;
+  }
+  // Wraps midnight (e.g., 22:00 - 07:00)
+  return currentMinutes >= startMinutes || currentMinutes < endMinutes;
+}
+
+// ─── Notification Frequency Check ───────────────────────────────────
+
+function shouldReNotify(key, notified, config) {
+  const freq = config.notifFrequency || '30';
+  const lastNotifiedAt = notified[key];
+  if (!lastNotifiedAt) return true; // Never notified
+
+  if (freq === 'once') return false;
+  if (freq === 'always') return true;
+
+  const minutesSince = (Date.now() - lastNotifiedAt) / 60000;
+  return minutesSince >= parseInt(freq);
+}
+
 // ─── Notifications ─────────────────────────────────────────────────
 
 async function notifyNewSlots(results, config) {
+  // Skip notifications during quiet hours
+  if (isInQuietHours(config)) {
+    console.log('[NEXUS Alert] Quiet hours active, skipping notifications');
+    return;
+  }
+
   const { locations } = await chrome.storage.local.get('locations');
   const notified = config.notifiedSlots || {};
   let newCount = 0;
@@ -298,29 +309,33 @@ async function notifyNewSlots(results, config) {
     const locName = locations?.[locationId]?.name || `Location ${locationId}`;
 
     for (const slot of slots) {
-      if (isDuplicate({ ...slot, locationId }, notified)) continue;
       const key = `${locationId}-${slot.startTimestamp}`;
+
+      if (!shouldReNotify(key, notified, config)) continue;
 
       newCount++;
       notified[key] = Date.now();
 
-      const date = new Date(slot.startTimestamp);
-      const dateStr = date.toLocaleDateString('en-US', {
-        weekday: 'short',
-        month: 'short',
-        day: 'numeric',
-      });
-      const timeStr = slot.startTimestamp.split('T')[1];
+      // Only create desktop notification if enabled
+      if (config.desktopNotificationsEnabled !== false) {
+        const date = new Date(slot.startTimestamp);
+        const dateStr = date.toLocaleDateString('en-US', {
+          weekday: 'short',
+          month: 'short',
+          day: 'numeric',
+        });
+        const timeStr = slot.startTimestamp.split('T')[1];
 
-      chrome.notifications.create(`slot-${key}`, {
-        type: 'basic',
-        iconUrl: 'icons/icon128.png',
-        title: 'NEXUS Slot Available!',
-        message: `${locName}\n${dateStr} at ${timeStr}`,
-        priority: 2,
-        requireInteraction: true,
-        buttons: [{ title: 'Book Now' }],
-      });
+        chrome.notifications.create(`slot-${key}`, {
+          type: 'basic',
+          iconUrl: 'icons/icon128.png',
+          title: `🎯 ${config.program || 'NEXUS'} Appointment Found!`,
+          message: `${locName} — ${dateStr} at ${timeStr}\nSlots fill fast — tap to book before it's gone!`,
+          priority: 2,
+          requireInteraction: true,
+          buttons: [{ title: 'Book This Slot →' }],
+        });
+      }
     }
   }
 
@@ -334,7 +349,7 @@ async function notifyNewSlots(results, config) {
 
     // Play sound alert if enabled
     if (config.soundEnabled) {
-      await playAlertSound();
+      await playAlertSound(config.soundType, config.soundVolume);
     }
 
     // Auto-open booking page if enabled
@@ -354,7 +369,7 @@ async function notifyNewSlots(results, config) {
 
 // ─── Sound Alert ───────────────────────────────────────────────────
 
-async function playAlertSound() {
+async function playAlertSound(soundType, volume) {
   try {
     // Use offscreen document to play audio (MV3 requirement)
     const existingContexts = await chrome.runtime.getContexts({
@@ -369,13 +384,13 @@ async function playAlertSound() {
       });
     }
 
-    chrome.runtime.sendMessage({ action: 'playSound' });
+    chrome.runtime.sendMessage({
+      action: 'playSound',
+      soundType: soundType || 'chime',
+      volume: volume ?? 70
+    });
   } catch (err) {
     console.error('[NEXUS Alert] Failed to play sound:', err);
-    Sentry.captureException(err, {
-      tags: { function: 'playAlertSound' },
-      level: 'warning',
-    });
   }
 }
 
@@ -395,6 +410,11 @@ chrome.notifications.onClicked.addListener((notifId) => {
 // ─── Badge ─────────────────────────────────────────────────────────
 
 async function updateBadge(count) {
+  const { config } = await chrome.storage.local.get('config');
+  if (config?.badgeEnabled === false) {
+    await chrome.action.setBadgeText({ text: '' });
+    return;
+  }
   if (count > 0) {
     await chrome.action.setBadgeText({ text: String(count) });
     await chrome.action.setBadgeBackgroundColor({ color: '#22c55e' });
@@ -457,6 +477,10 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     sendResponse({ success: true });
     return true;
   }
+  if (msg.action === 'testSound') {
+    playAlertSound(msg.soundType, msg.volume).then(() => sendResponse({ success: true }));
+    return true;
+  }
 });
 
 // ─── Helpers ───────────────────────────────────────────────────────
@@ -492,8 +516,8 @@ async function checkAndPromptReferral() {
       chrome.notifications.create('referral-prompt', {
         type: 'basic',
         iconUrl: 'icons/icon128.png',
-        title: '🎉 Want Free Premium?',
-        message: 'Refer a friend and get 1 month free! Click to get your link.',
+        title: '🎉 Loving NEXUS Alert? Share the love!',
+        message: 'Refer a friend and you both get 1 month of Premium free. Tap to grab your unique link.',
         priority: 1,
         requireInteraction: false,
       });

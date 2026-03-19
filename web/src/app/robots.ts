@@ -8,7 +8,7 @@ export default function robots(): MetadataRoute.Robots {
       {
         userAgent: '*',
         allow: '/',
-        disallow: ['/api/', '/admin/'],
+        disallow: ['/api/', '/admin/', '/exit-survey/', '/success/', '/submit-testimonial/', '/ph/'],
       },
     ],
     sitemap: 'https://nexus-alert.com/sitemap.xml',

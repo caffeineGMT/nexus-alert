@@ -431,13 +431,265 @@ document.addEventListener('DOMContentLoaded', async () => {
   soundToggle.checked = config.soundEnabled !== false;
   soundToggle.addEventListener('change', () => {
     updateConfig({ soundEnabled: soundToggle.checked });
+    toggleSoundPrefsPanel(soundToggle.checked);
   });
+
+  function toggleSoundPrefsPanel(enabled) {
+    const panel = document.getElementById('soundPrefsPanel');
+    if (panel) {
+      panel.style.opacity = enabled ? '1' : '0.4';
+      panel.style.pointerEvents = enabled ? 'auto' : 'none';
+    }
+  }
+  toggleSoundPrefsPanel(config.soundEnabled !== false);
 
   const autoOpenToggle = document.getElementById('autoOpenToggle');
   autoOpenToggle.checked = config.autoOpenBooking === true;
   autoOpenToggle.addEventListener('change', () => {
     updateConfig({ autoOpenBooking: autoOpenToggle.checked });
   });
+
+  // ─── Settings: Desktop Notifications ─────────────────────────────
+
+  const desktopNotifToggle = document.getElementById('desktopNotifToggle');
+  desktopNotifToggle.checked = config.desktopNotificationsEnabled !== false;
+  desktopNotifToggle.addEventListener('change', () => {
+    updateConfig({ desktopNotificationsEnabled: desktopNotifToggle.checked });
+  });
+
+  // ─── Settings: Badge Count ───────────────────────────────────────
+
+  const badgeToggle = document.getElementById('badgeToggle');
+  badgeToggle.checked = config.badgeEnabled !== false;
+  badgeToggle.addEventListener('change', () => {
+    updateConfig({ badgeEnabled: badgeToggle.checked });
+  });
+
+  // ─── Settings: Notification Frequency ────────────────────────────
+
+  const notifFreqBtns = document.querySelectorAll('.notif-freq-btn');
+  notifFreqBtns.forEach(btn => {
+    const isActive = btn.dataset.freq === (config.notifFrequency || '30');
+    if (isActive) {
+      btn.classList.add('active');
+      btn.setAttribute('aria-checked', 'true');
+      btn.setAttribute('tabindex', '0');
+    } else {
+      btn.classList.remove('active');
+      btn.setAttribute('aria-checked', 'false');
+      btn.setAttribute('tabindex', '-1');
+    }
+    btn.addEventListener('click', () => {
+      notifFreqBtns.forEach(b => {
+        b.classList.remove('active');
+        b.setAttribute('aria-checked', 'false');
+        b.setAttribute('tabindex', '-1');
+      });
+      btn.classList.add('active');
+      btn.setAttribute('aria-checked', 'true');
+      btn.setAttribute('tabindex', '0');
+      updateConfig({ notifFrequency: btn.dataset.freq });
+    });
+  });
+
+  // ─── Settings: Quiet Hours ───────────────────────────────────────
+
+  const quietHoursToggle = document.getElementById('quietHoursToggle');
+  const quietHoursRange = document.getElementById('quietHoursRange');
+  const quietFrom = document.getElementById('quietFrom');
+  const quietTo = document.getElementById('quietTo');
+
+  quietHoursToggle.checked = config.quietHoursEnabled === true;
+  quietHoursRange.style.display = config.quietHoursEnabled ? 'flex' : 'none';
+
+  if (config.quietHoursStart) quietFrom.value = config.quietHoursStart;
+  if (config.quietHoursEnd) quietTo.value = config.quietHoursEnd;
+
+  quietHoursToggle.addEventListener('change', () => {
+    const enabled = quietHoursToggle.checked;
+    quietHoursRange.style.display = enabled ? 'flex' : 'none';
+    updateConfig({ quietHoursEnabled: enabled });
+  });
+  quietFrom.addEventListener('change', () => {
+    updateConfig({ quietHoursStart: quietFrom.value });
+  });
+  quietTo.addEventListener('change', () => {
+    updateConfig({ quietHoursEnd: quietTo.value });
+  });
+
+  // ─── Settings: Sound Type ────────────────────────────────────────
+
+  const soundTypeBtns = document.querySelectorAll('.sound-type-btn');
+  soundTypeBtns.forEach(btn => {
+    const isActive = btn.dataset.sound === (config.soundType || 'chime');
+    if (isActive) {
+      btn.classList.add('active');
+      btn.setAttribute('aria-checked', 'true');
+    } else {
+      btn.classList.remove('active');
+      btn.setAttribute('aria-checked', 'false');
+    }
+    btn.addEventListener('click', () => {
+      soundTypeBtns.forEach(b => {
+        b.classList.remove('active');
+        b.setAttribute('aria-checked', 'false');
+      });
+      btn.classList.add('active');
+      btn.setAttribute('aria-checked', 'true');
+      updateConfig({ soundType: btn.dataset.sound });
+    });
+  });
+
+  // ─── Settings: Volume Slider ─────────────────────────────────────
+
+  const volumeSlider = document.getElementById('volumeSlider');
+  const volumeLabel = document.getElementById('volumeLabel');
+  volumeSlider.value = config.soundVolume ?? 70;
+  volumeLabel.textContent = `${volumeSlider.value}%`;
+
+  volumeSlider.addEventListener('input', () => {
+    volumeLabel.textContent = `${volumeSlider.value}%`;
+  });
+  volumeSlider.addEventListener('change', () => {
+    updateConfig({ soundVolume: parseInt(volumeSlider.value) });
+  });
+
+  // ─── Settings: Test Sound ────────────────────────────────────────
+
+  document.getElementById('testSoundBtn').addEventListener('click', async () => {
+    const btn = document.getElementById('testSoundBtn');
+    btn.textContent = '🔊 Playing...';
+    btn.disabled = true;
+    await sendMessage({
+      action: 'testSound',
+      soundType: config.soundType || 'chime',
+      volume: parseInt(volumeSlider.value)
+    });
+    setTimeout(() => {
+      btn.textContent = '▶ Test Sound';
+      btn.disabled = false;
+    }, 1500);
+  });
+
+  // ─── Settings: Preferred Locations ───────────────────────────────
+
+  const favLocations = config.favoriteLocations || [];
+  renderFavLocations(favLocations, locations);
+
+  // Event delegation for favorite location remove buttons
+  document.getElementById('favLocationsList').addEventListener('click', (e) => {
+    const removeBtn = e.target.closest('.fav-remove-btn');
+    if (removeBtn) {
+      e.stopPropagation();
+      const id = parseInt(removeBtn.dataset.id);
+      removeFavoriteLocation(id, locations);
+    }
+  });
+
+  // Location search
+  const favSearchInput = document.getElementById('favLocationSearch');
+  const favDropdown = document.getElementById('favLocationDropdown');
+
+  favSearchInput.addEventListener('input', () => {
+    const query = favSearchInput.value.toLowerCase().trim();
+    if (query.length < 2) {
+      favDropdown.classList.remove('visible');
+      return;
+    }
+    const currentFavs = config.favoriteLocations || [];
+    const matches = Object.values(locations)
+      .filter(loc =>
+        (loc.name || '').toLowerCase().includes(query) ||
+        (loc.city || '').toLowerCase().includes(query) ||
+        (loc.state || '').toLowerCase().includes(query)
+      )
+      .filter(loc => !currentFavs.includes(loc.id))
+      .slice(0, 8);
+
+    if (matches.length === 0) {
+      favDropdown.innerHTML = '<div style="padding:8px;font-size:11px;color:var(--text-muted)">No matching locations</div>';
+    } else {
+      favDropdown.innerHTML = matches.map(loc => `
+        <div class="location-dropdown-item" data-id="${loc.id}">
+          <span class="loc-name">${loc.name}</span>
+          <span class="loc-region">${loc.state || loc.country || ''}</span>
+          <span class="add-icon">+</span>
+        </div>
+      `).join('');
+    }
+    favDropdown.classList.add('visible');
+
+    favDropdown.querySelectorAll('.location-dropdown-item').forEach(item => {
+      item.addEventListener('click', () => {
+        const id = parseInt(item.dataset.id);
+        addFavoriteLocation(id, locations);
+        favSearchInput.value = '';
+        favDropdown.classList.remove('visible');
+      });
+    });
+  });
+
+  favSearchInput.addEventListener('blur', () => {
+    setTimeout(() => favDropdown.classList.remove('visible'), 200);
+  });
+
+  // Region quick-select chips
+  const REGION_MAP = {
+    'US-West': ['WA', 'OR', 'CA', 'NV', 'AZ', 'ID', 'MT', 'WY', 'CO', 'UT', 'NM', 'AK', 'HI'],
+    'US-East': ['ME', 'NH', 'VT', 'MA', 'RI', 'CT', 'NY', 'NJ', 'PA', 'DE', 'MD', 'VA', 'WV', 'NC', 'SC', 'GA', 'FL', 'DC'],
+    'US-South': ['TX', 'OK', 'AR', 'LA', 'MS', 'AL', 'TN', 'KY'],
+    'Canada': ['AB', 'BC', 'MB', 'NB', 'NL', 'NS', 'NT', 'NU', 'ON', 'PE', 'QC', 'SK', 'YT'],
+  };
+
+  document.querySelectorAll('.region-chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      const region = chip.dataset.region;
+      const states = REGION_MAP[region] || [];
+      chip.classList.toggle('active');
+
+      const regionLocs = Object.values(locations)
+        .filter(loc => states.includes(loc.state) || (region === 'Canada' && (loc.country === 'CA' || loc.country === 'Canada')))
+        .map(loc => loc.id);
+
+      const currentFavs = config.favoriteLocations || [];
+      const isActive = chip.classList.contains('active');
+
+      let newFavs;
+      if (isActive) {
+        const combined = new Set([...currentFavs, ...regionLocs]);
+        newFavs = Array.from(combined);
+      } else {
+        newFavs = currentFavs.filter(id => !regionLocs.includes(id));
+      }
+
+      config.favoriteLocations = newFavs;
+      updateConfig({ favoriteLocations: newFavs });
+      renderFavLocations(newFavs, locations);
+
+      sendMessage({
+        action: 'trackEvent',
+        event: 'region_quick_select',
+        data: { region, action: isActive ? 'add' : 'remove', count: regionLocs.length }
+      });
+    });
+  });
+
+  function addFavoriteLocation(locationId, allLocations) {
+    const currentFavs = config.favoriteLocations || [];
+    if (currentFavs.includes(locationId)) return;
+    const newFavs = [...currentFavs, locationId];
+    config.favoriteLocations = newFavs;
+    updateConfig({ favoriteLocations: newFavs });
+    renderFavLocations(newFavs, allLocations);
+  }
+
+  function removeFavoriteLocation(locationId, allLocations) {
+    const currentFavs = config.favoriteLocations || [];
+    const newFavs = currentFavs.filter(id => id !== locationId);
+    config.favoriteLocations = newFavs;
+    updateConfig({ favoriteLocations: newFavs });
+    renderFavLocations(newFavs, allLocations);
+  }
 
   // ─── Upgrade Banner Logic ──────────────────────────────────────
 
@@ -755,7 +1007,7 @@ function renderLiveSlots(slots, locations) {
 
 // ─── Render Locations ─────────────────────────────────────────────
 
-function renderLocations(allLocations, program, selectedIds) {
+function renderLocations(allLocations, program, selectedIds, favoriteIds) {
   const list = document.getElementById('locationList');
 
   // Check if allLocations is empty (no locations loaded yet)
@@ -790,6 +1042,11 @@ function renderLocations(allLocations, program, selectedIds) {
       );
     })
     .sort((a, b) => {
+      const favIds = favoriteIds || [];
+      const aFav = favIds.includes(a.id);
+      const bFav = favIds.includes(b.id);
+      if (aFav && !bFav) return -1;
+      if (!aFav && bFav) return 1;
       const aSelected = selectedIds.includes(a.id);
       const bSelected = selectedIds.includes(b.id);
       if (aSelected && !bSelected) return -1;
@@ -950,4 +1207,34 @@ function sendMessage(msg) {
 
 function updateConfig(partial) {
   sendMessage({ action: 'updateConfig', config: partial });
+}
+
+// ─── Render Favorite Locations ─────────────────────────────────────
+
+function renderFavLocations(favIds, allLocations) {
+  const container = document.getElementById('favLocationsList');
+
+  if (!favIds || favIds.length === 0) {
+    container.innerHTML = '<div class="empty-state" style="font-size:11px;padding:10px">No pinned locations yet. Search above to add favorites.</div>';
+    return;
+  }
+
+  container.innerHTML = favIds.map(id => {
+    const loc = allLocations?.[id];
+    if (!loc) return '';
+    return `
+      <div class="fav-location-item" data-id="${id}">
+        <span style="font-size:12px">📍</span>
+        <div style="flex:1;min-width:0">
+          <div class="fav-name">${loc.name}</div>
+          <div class="fav-meta">${loc.city || ''}, ${loc.state || ''}</div>
+        </div>
+        <button class="fav-remove-btn" data-id="${id}" aria-label="Remove ${loc.name} from favorites">&times;</button>
+      </div>
+    `;
+  }).filter(Boolean).join('');
+
+  if (container.innerHTML === '') {
+    container.innerHTML = '<div class="empty-state" style="font-size:11px;padding:10px">No pinned locations yet. Search above to add favorites.</div>';
+  }
 }

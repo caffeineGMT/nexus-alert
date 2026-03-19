@@ -17,10 +17,15 @@ export default function Home() {
     '@type': 'Organization',
     name: 'NEXUS Alert',
     url: 'https://nexus-alert.com',
-    logo: 'https://nexus-alert.com/logo.png',
+    logo: 'https://nexus-alert.com/og-image.png',
     description:
       'Automated NEXUS appointment tracker and Global Entry slot finder. Monitor interview cancellations 24/7 with instant alerts.',
     sameAs: ['https://github.com/caffeineGMT/nexus-alert'],
+    contactPoint: {
+      '@type': 'ContactPoint',
+      contactType: 'customer support',
+      url: 'https://nexus-alert.com/help',
+    },
   };
 
   const softwareSchema = {
@@ -29,19 +34,51 @@ export default function Home() {
     name: 'NEXUS Alert',
     applicationCategory: 'BrowserExtension',
     operatingSystem: 'Chrome',
-    offers: {
-      '@type': 'Offer',
-      price: '0',
-      priceCurrency: 'USD',
-      availability: 'https://schema.org/InStock',
-    },
+    offers: [
+      {
+        '@type': 'Offer',
+        price: '0',
+        priceCurrency: 'USD',
+        availability: 'https://schema.org/InStock',
+        name: 'Free',
+      },
+      {
+        '@type': 'Offer',
+        price: '4.99',
+        priceCurrency: 'USD',
+        availability: 'https://schema.org/InStock',
+        name: 'Premium',
+        priceSpecification: {
+          '@type': 'UnitPriceSpecification',
+          price: '4.99',
+          priceCurrency: 'USD',
+          billingDuration: 'P1M',
+        },
+      },
+    ],
     aggregateRating: {
       '@type': 'AggregateRating',
       ratingValue: '5.0',
       reviewCount: '5',
+      bestRating: '5',
+      worstRating: '1',
     },
     description:
       'Free Chrome extension that monitors NEXUS, Global Entry, and SENTRI appointment slots 24/7 and sends instant alerts when cancellations appear.',
+    screenshot: 'https://nexus-alert.com/og-image.png',
+  };
+
+  const breadcrumbSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      {
+        '@type': 'ListItem',
+        position: 1,
+        name: 'Home',
+        item: 'https://nexus-alert.com',
+      },
+    ],
   };
 
   return (
@@ -55,13 +92,25 @@ export default function Home() {
       type="application/ld+json"
       dangerouslySetInnerHTML={{ __html: JSON.stringify(softwareSchema) }}
     />
+    <script
+      type="application/ld+json"
+      dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
+    />
     <Suspense fallback={null}>
       <ReferralTracker />
     </Suspense>
     <ExitIntentPopup />
     <div className="min-h-screen bg-[#0a0a0a] text-[#ededed]">
+      {/* Skip Navigation */}
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:absolute focus:top-0 focus:left-0 focus:z-[9999] focus:bg-[#3b82f6] focus:text-white focus:px-4 focus:py-2 focus:text-sm focus:font-semibold"
+      >
+        Skip to main content
+      </a>
+
       {/* Nav */}
-      <nav className="fixed top-0 w-full z-50 border-b border-[#222] bg-[#0a0a0a]/80 backdrop-blur-md">
+      <nav className="fixed top-0 w-full z-50 border-b border-[#222] bg-[#0a0a0a]/80 backdrop-blur-md" aria-label="Main navigation">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
           <span className="text-base sm:text-lg font-bold tracking-tight">NEXUS Alert</span>
           {/* TODO: replace EXTENSION_ID after Chrome Web Store publishing */}
@@ -77,10 +126,11 @@ export default function Home() {
       </nav>
 
       {/* Hero */}
-      <section className="pt-24 sm:pt-32 pb-16 sm:pb-20 px-4 sm:px-6">
+      <main id="main-content">
+      <section className="pt-24 sm:pt-32 pb-16 sm:pb-20 px-4 sm:px-6" aria-label="Hero">
         <div className="max-w-3xl mx-auto text-center">
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-[#333] text-xs sm:text-sm text-[#888] mb-6 sm:mb-8">
-            <span className="w-2 h-2 rounded-full bg-[#22c55e] animate-pulse" />
+            <span className="w-2 h-2 rounded-full bg-[#22c55e] animate-pulse" aria-hidden="true" />
             Free Chrome Extension
           </div>
           <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold leading-tight tracking-tight mb-4 sm:mb-6">
@@ -237,14 +287,14 @@ export default function Home() {
           </p>
           <div className="overflow-x-auto -mx-4 sm:mx-0">
             <div className="inline-block min-w-full px-4 sm:px-0">
-            <table className="w-full border-collapse min-w-[640px]">
+            <table className="w-full border-collapse min-w-[640px]" aria-label="Feature comparison between NEXUS Alert and alternatives">
               <thead>
                 <tr className="border-b-2 border-[#3b82f6]">
-                  <th className="text-left py-3 sm:py-4 px-2 sm:px-4 font-semibold text-sm sm:text-base text-[#ededed]">Feature</th>
-                  <th className="text-center py-3 sm:py-4 px-2 sm:px-4 font-semibold text-xs sm:text-base text-[#3b82f6]">NEXUS Alert Free</th>
-                  <th className="text-center py-3 sm:py-4 px-2 sm:px-4 font-semibold text-xs sm:text-base text-[#22c55e]">NEXUS Alert Premium</th>
-                  <th className="text-center py-3 sm:py-4 px-2 sm:px-4 font-semibold text-xs sm:text-base text-[#888]">Manual Checking</th>
-                  <th className="text-center py-3 sm:py-4 px-2 sm:px-4 font-semibold text-xs sm:text-base text-[#888]">Other Tools</th>
+                  <th scope="col" className="text-left py-3 sm:py-4 px-2 sm:px-4 font-semibold text-sm sm:text-base text-[#ededed]">Feature</th>
+                  <th scope="col" className="text-center py-3 sm:py-4 px-2 sm:px-4 font-semibold text-xs sm:text-base text-[#3b82f6]">NEXUS Alert Free</th>
+                  <th scope="col" className="text-center py-3 sm:py-4 px-2 sm:px-4 font-semibold text-xs sm:text-base text-[#22c55e]">NEXUS Alert Premium</th>
+                  <th scope="col" className="text-center py-3 sm:py-4 px-2 sm:px-4 font-semibold text-xs sm:text-base text-[#888]">Manual Checking</th>
+                  <th scope="col" className="text-center py-3 sm:py-4 px-2 sm:px-4 font-semibold text-xs sm:text-base text-[#888]">Other Tools</th>
                 </tr>
               </thead>
               <tbody>
@@ -436,7 +486,7 @@ export default function Home() {
       </section>
 
       {/* CTA */}
-      <section className="py-24 px-6 border-t border-[#222]">
+      <section className="py-24 px-6 border-t border-[#222]" aria-label="Call to action">
         <div className="max-w-2xl mx-auto text-center">
           <h2 className="text-4xl font-bold mb-4">
             Stop refreshing. Start booking.
@@ -458,9 +508,10 @@ export default function Home() {
           <p className="text-[#555] text-xs mt-2">Works on Chrome, Edge, and Brave</p>
         </div>
       </section>
+      </main>
 
       {/* Footer */}
-      <footer className="py-8 px-6 border-t border-[#222] text-center text-sm text-[#555]">
+      <footer className="py-8 px-6 border-t border-[#222] text-center text-sm text-[#555]" role="contentinfo">
         <p>
           NEXUS Alert is free and open source. Not affiliated with CBP or DHS.
         </p>
@@ -633,6 +684,7 @@ function ProblemCard({
         stroke="currentColor"
         strokeWidth={1.5}
         viewBox="0 0 24 24"
+        aria-hidden="true"
       >
         <path strokeLinecap="round" strokeLinejoin="round" d={icons[icon]} />
       </svg>
@@ -725,16 +777,20 @@ function ComparisonRow({
   other: boolean | string;
   isLast?: boolean;
 }) {
-  const renderCell = (value: boolean | string) => {
+  const renderCell = (value: boolean | string, feature: string) => {
     if (typeof value === 'boolean') {
       return value ? (
-        <svg className="w-5 h-5 text-[#22c55e] mx-auto" fill="currentColor" viewBox="0 0 20 20">
-          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-        </svg>
+        <span role="img" aria-label={`${feature}: Yes`}>
+          <svg className="w-5 h-5 text-[#22c55e] mx-auto" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
+            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+          </svg>
+        </span>
       ) : (
-        <svg className="w-5 h-5 text-[#555] mx-auto" fill="currentColor" viewBox="0 0 20 20">
-          <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
-        </svg>
+        <span role="img" aria-label={`${feature}: No`}>
+          <svg className="w-5 h-5 text-[#555] mx-auto" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
+            <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+          </svg>
+        </span>
       );
     }
     return <span className="text-sm text-[#ccc]">{value}</span>;
@@ -742,11 +798,11 @@ function ComparisonRow({
 
   return (
     <tr className={`${!isLast ? 'border-b border-[#222]' : ''} hover:bg-[#111]/50 transition`}>
-      <td className="py-4 px-4 text-[#ededed] font-medium">{feature}</td>
-      <td className="py-4 px-4 text-center">{renderCell(nexusFree)}</td>
-      <td className="py-4 px-4 text-center">{renderCell(nexusPremium)}</td>
-      <td className="py-4 px-4 text-center">{renderCell(manual)}</td>
-      <td className="py-4 px-4 text-center">{renderCell(other)}</td>
+      <th scope="row" className="py-4 px-4 text-[#ededed] font-medium text-left">{feature}</th>
+      <td className="py-4 px-4 text-center">{renderCell(nexusFree, feature)}</td>
+      <td className="py-4 px-4 text-center">{renderCell(nexusPremium, feature)}</td>
+      <td className="py-4 px-4 text-center">{renderCell(manual, feature)}</td>
+      <td className="py-4 px-4 text-center">{renderCell(other, feature)}</td>
     </tr>
   );
 }

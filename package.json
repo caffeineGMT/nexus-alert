@@ -3,18 +3,18 @@
   "type": "module",
   "private": true,
   "scripts": {
+    "build": "node scripts/build.js",
+    "build:analyze": "node scripts/build.js --analyze",
+    "package": "node scripts/build.js && node scripts/package.js",
     "test": "vitest run",
     "test:watch": "vitest",
-    "package": "node scripts/package.js",
     "generate-images": "node scripts/generate-promotional-images.js",
     "open-image-generator": "open store-assets/GENERATE-IMAGES-SIMPLE.html"
   },
   "devDependencies": {
+    "esbuild": "^0.27.4",
     "puppeteer": "^24.39.1",
     "sharp": "^0.34.5",
     "vitest": "^1.6.0"
-  },
-  "dependencies": {
-    "@sentry/browser": "^10.44.0"
   }
 }

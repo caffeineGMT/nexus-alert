@@ -65,3 +65,9 @@ details[open] summary .faq-chevron {
 * {
   -webkit-overflow-scrolling: touch;
 }
+
+/* Prevent CLS from images loading without dimensions */
+img {
+  height: auto;
+  max-width: 100%;
+}
