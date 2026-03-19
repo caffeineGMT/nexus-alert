@@ -25,14 +25,9 @@ describe('Rate Limiting Middleware', () => {
     };
 
     // Mock request with CF-Connecting-IP header
-    mockRequest = {
-      headers: new Map([
-        ['CF-Connecting-IP', '192.168.1.100'],
-      ]),
-    };
-    mockRequest.headers.get = function(key) {
-      return this.get(key);
-    };
+    const headers = new Headers();
+    headers.set('CF-Connecting-IP', '192.168.1.100');
+    mockRequest = { headers };
   });
 
   describe('Critical Endpoint Rate Limiting', () => {
@@ -91,16 +86,14 @@ describe('Rate Limiting Middleware', () => {
       const endpoint = '/api/subscribe';
 
       // First IP
-      const request1 = {
-        headers: new Map([['CF-Connecting-IP', '192.168.1.100']]),
-      };
-      request1.headers.get = function(key) { return this.get(key); };
+      const headers1 = new Headers();
+      headers1.set('CF-Connecting-IP', '192.168.1.100');
+      const request1 = { headers: headers1 };
 
       // Second IP
-      const request2 = {
-        headers: new Map([['CF-Connecting-IP', '192.168.1.200']]),
-      };
-      request2.headers.get = function(key) { return this.get(key); };
+      const headers2 = new Headers();
+      headers2.set('CF-Connecting-IP', '192.168.1.200');
+      const request2 = { headers: headers2 };
 
       // Exhaust first IP's limit
       for (let i = 0; i < 10; i++) {
@@ -149,14 +142,11 @@ describe('Rate Limiting Middleware', () => {
 
   describe('IP Detection', () => {
     it('should prefer CF-Connecting-IP header', async () => {
-      const request = {
-        headers: new Map([
-          ['CF-Connecting-IP', '1.1.1.1'],
-          ['X-Real-IP', '2.2.2.2'],
-          ['X-Forwarded-For', '3.3.3.3, 4.4.4.4'],
-        ]),
-      };
-      request.headers.get = function(key) { return this.get(key); };
+      const headers = new Headers();
+      headers.set('CF-Connecting-IP', '1.1.1.1');
+      headers.set('X-Real-IP', '2.2.2.2');
+      headers.set('X-Forwarded-For', '3.3.3.3, 4.4.4.4');
+      const request = { headers };
 
       await rateLimit(request, mockEnv, '/api/subscribe');
 
@@ -166,13 +156,10 @@ describe('Rate Limiting Middleware', () => {
     });
 
     it('should fallback to X-Real-IP if CF-Connecting-IP missing', async () => {
-      const request = {
-        headers: new Map([
-          ['X-Real-IP', '2.2.2.2'],
-          ['X-Forwarded-For', '3.3.3.3, 4.4.4.4'],
-        ]),
-      };
-      request.headers.get = function(key) { return this.get(key); };
+      const headers = new Headers();
+      headers.set('X-Real-IP', '2.2.2.2');
+      headers.set('X-Forwarded-For', '3.3.3.3, 4.4.4.4');
+      const request = { headers };
 
       await rateLimit(request, mockEnv, '/api/subscribe');
 
@@ -181,12 +168,9 @@ describe('Rate Limiting Middleware', () => {
     });
 
     it('should fallback to X-Forwarded-For first IP if others missing', async () => {
-      const request = {
-        headers: new Map([
-          ['X-Forwarded-For', '3.3.3.3, 4.4.4.4'],
-        ]),
-      };
-      request.headers.get = function(key) { return this.get(key); };
+      const headers = new Headers();
+      headers.set('X-Forwarded-For', '3.3.3.3, 4.4.4.4');
+      const request = { headers };
 
       await rateLimit(request, mockEnv, '/api/subscribe');
 
@@ -195,10 +179,8 @@ describe('Rate Limiting Middleware', () => {
     });
 
     it('should use "unknown" if no IP headers present', async () => {
-      const request = {
-        headers: new Map(),
-      };
-      request.headers.get = function(key) { return this.get(key); };
+      const headers = new Headers();
+      const request = { headers };
 
       await rateLimit(request, mockEnv, '/api/subscribe');
 

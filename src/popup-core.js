@@ -33,6 +33,18 @@ function measurePerformance() {
     console.warn(`⚠️ Performance goal missed: ${metrics.total}ms (target: <500ms)`);
   }
 
+  // Send metrics to test page (if running in iframe)
+  if (window.parent !== window) {
+    try {
+      window.parent.postMessage({
+        type: 'POPUP_PERFORMANCE',
+        metrics: metrics
+      }, '*');
+    } catch (err) {
+      // Ignore postMessage errors
+    }
+  }
+
   // Send metrics to analytics (deferred)
   if (window.sendPerformanceMetrics) {
     window.sendPerformanceMetrics(metrics);
