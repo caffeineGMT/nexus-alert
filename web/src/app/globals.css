@@ -12,9 +12,24 @@
   --font-sans: var(--font-geist-sans);
 }
 
+* {
+  -webkit-tap-highlight-color: transparent; /* Remove tap highlight on mobile */
+}
+
 body {
   background: var(--color-background);
   color: var(--color-foreground);
+}
+
+/* Ensure proper text sizing on mobile */
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+/* Better touch targets for buttons and links */
+button, a, input, select, textarea {
+  touch-action: manipulation;
 }
 
 ::selection {
@@ -44,4 +59,9 @@ details[open] summary .faq-chevron {
 
 .animate-fade-in {
   animation: fade-in 0.3s ease forwards;
+}
+
+/* Smooth scrolling on iOS */
+* {
+  -webkit-overflow-scrolling: touch;
 }

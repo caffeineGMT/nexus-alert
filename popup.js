@@ -25,29 +25,79 @@ document.addEventListener('DOMContentLoaded', async () => {
   const tabItems = document.querySelectorAll('.tab-item');
   tabItems.forEach(tab => {
     tab.addEventListener('click', () => {
-      tabItems.forEach(t => t.classList.remove('active'));
-      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-      tab.classList.add('active');
-      document.getElementById(`tab-${tab.dataset.tab}`).classList.add('active');
+      switchTab(tab);
+    });
 
-      // Track settings tab open (Plausible)
-      if (tab.dataset.tab === 'settings') {
-        sendMessage({
-          action: 'trackEvent',
-          event: 'settings_opened',
-          data: { source: 'tab_click' }
-        });
+    // Keyboard navigation: Arrow keys between tabs
+    tab.addEventListener('keydown', (e) => {
+      const tabs = Array.from(tabItems);
+      const index = tabs.indexOf(tab);
+      let newIndex;
+
+      if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+        e.preventDefault();
+        newIndex = (index + 1) % tabs.length;
+      } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+        e.preventDefault();
+        newIndex = (index - 1 + tabs.length) % tabs.length;
+      } else if (e.key === 'Home') {
+        e.preventDefault();
+        newIndex = 0;
+      } else if (e.key === 'End') {
+        e.preventDefault();
+        newIndex = tabs.length - 1;
       }
 
-      // Track referral tab open
-      if (tab.dataset.tab === 'refer') {
-        sendMessage({
-          action: 'trackEvent',
-          event: 'referral_tab_opened',
-          data: { source: 'tab_click' }
-        });
+      if (newIndex !== undefined) {
+        tabs[newIndex].focus();
+        switchTab(tabs[newIndex]);
       }
     });
+  });
+
+  function switchTab(tab) {
+    tabItems.forEach(t => {
+      t.classList.remove('active');
+      t.setAttribute('aria-selected', 'false');
+      t.setAttribute('tabindex', '-1');
+    });
+    document.querySelectorAll('.tab-content').forEach(c => {
+      c.classList.remove('active');
+      c.setAttribute('hidden', '');
+    });
+    tab.classList.add('active');
+    tab.setAttribute('aria-selected', 'true');
+    tab.setAttribute('tabindex', '0');
+    const panel = document.getElementById(`tab-${tab.dataset.tab}`);
+    panel.classList.add('active');
+    panel.removeAttribute('hidden');
+
+    // Track settings tab open (Plausible)
+    if (tab.dataset.tab === 'settings') {
+      sendMessage({
+        action: 'trackEvent',
+        event: 'settings_opened',
+        data: { source: 'tab_click' }
+      });
+    }
+
+    // Track referral tab open
+    if (tab.dataset.tab === 'refer') {
+      sendMessage({
+        action: 'trackEvent',
+        event: 'referral_tab_opened',
+        data: { source: 'tab_click' }
+      });
+    }
+  }
+
+  // Set initial tabindex state
+  tabItems.forEach(tab => {
+    if (tab.classList.contains('active')) {
+      tab.setAttribute('tabindex', '0');
+    } else {
+      tab.setAttribute('tabindex', '-1');
+    }
   });
 
   // ─── Enable Toggle ──────────────────────────────────────────────
@@ -72,19 +122,56 @@ document.addEventListener('DOMContentLoaded', async () => {
   programTabs.forEach(tab => {
     if (tab.dataset.program === (config.program || 'NEXUS')) {
       tab.classList.add('active');
+      tab.setAttribute('aria-checked', 'true');
     } else {
       tab.classList.remove('active');
+      tab.setAttribute('aria-checked', 'false');
     }
     tab.addEventListener('click', () => {
-      programTabs.forEach(t => t.classList.remove('active'));
-      tab.classList.add('active');
-      updateConfig({ program: tab.dataset.program });
-      document.getElementById('locationSpinner').style.display = 'block';
-      setTimeout(() => {
-        renderLocations(locations, tab.dataset.program, config.locations || []);
-        document.getElementById('locationSpinner').style.display = 'none';
-      }, 100);
+      selectProgramTab(tab);
     });
+
+    // Keyboard navigation for program radio group
+    tab.addEventListener('keydown', (e) => {
+      const tabs = Array.from(programTabs);
+      const index = tabs.indexOf(tab);
+      let newIndex;
+
+      if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+        e.preventDefault();
+        newIndex = (index + 1) % tabs.length;
+      } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+        e.preventDefault();
+        newIndex = (index - 1 + tabs.length) % tabs.length;
+      }
+
+      if (newIndex !== undefined) {
+        tabs[newIndex].focus();
+        selectProgramTab(tabs[newIndex]);
+      }
+    });
+  });
+
+  function selectProgramTab(tab) {
+    programTabs.forEach(t => {
+      t.classList.remove('active');
+      t.setAttribute('aria-checked', 'false');
+      t.setAttribute('tabindex', '-1');
+    });
+    tab.classList.add('active');
+    tab.setAttribute('aria-checked', 'true');
+    tab.setAttribute('tabindex', '0');
+    updateConfig({ program: tab.dataset.program });
+    document.getElementById('locationSpinner').style.display = 'block';
+    setTimeout(() => {
+      renderLocations(locations, tab.dataset.program, config.locations || []);
+      document.getElementById('locationSpinner').style.display = 'none';
+    }, 100);
+  }
+
+  // Set initial tabindex for program tabs
+  programTabs.forEach(tab => {
+    tab.setAttribute('tabindex', tab.classList.contains('active') ? '0' : '-1');
   });
 
   document.getElementById('locationSpinner').style.display = 'block';
@@ -123,17 +210,52 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   const intervalBtns = document.querySelectorAll('.interval-btn');
   intervalBtns.forEach(btn => {
-    if (parseInt(btn.dataset.interval) === (config.pollIntervalMinutes || 3)) {
+    const isActive = parseInt(btn.dataset.interval) === (config.pollIntervalMinutes || 3);
+    if (isActive) {
       btn.classList.add('active');
+      btn.setAttribute('aria-checked', 'true');
+      btn.setAttribute('tabindex', '0');
     } else {
       btn.classList.remove('active');
+      btn.setAttribute('aria-checked', 'false');
+      btn.setAttribute('tabindex', '-1');
     }
     btn.addEventListener('click', () => {
-      intervalBtns.forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      updateConfig({ pollIntervalMinutes: parseInt(btn.dataset.interval) });
+      selectInterval(btn);
+    });
+
+    // Keyboard navigation for interval radio group
+    btn.addEventListener('keydown', (e) => {
+      const btns = Array.from(intervalBtns);
+      const index = btns.indexOf(btn);
+      let newIndex;
+
+      if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+        e.preventDefault();
+        newIndex = (index + 1) % btns.length;
+      } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+        e.preventDefault();
+        newIndex = (index - 1 + btns.length) % btns.length;
+      }
+
+      if (newIndex !== undefined) {
+        btns[newIndex].focus();
+        selectInterval(btns[newIndex]);
+      }
     });
   });
+
+  function selectInterval(btn) {
+    intervalBtns.forEach(b => {
+      b.classList.remove('active');
+      b.setAttribute('aria-checked', 'false');
+      b.setAttribute('tabindex', '-1');
+    });
+    btn.classList.add('active');
+    btn.setAttribute('aria-checked', 'true');
+    btn.setAttribute('tabindex', '0');
+    updateConfig({ pollIntervalMinutes: parseInt(btn.dataset.interval) });
+  }
 
   // ─── Settings: Premium Tier ─────────────────────────────────────
 
@@ -352,13 +474,29 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.getElementById('upgradeNowBtn').addEventListener('click', () => {
     sendMessage({ action: 'trackEvent', event: 'upgrade_modal_clicked', data: { source: 'manual_check' } });
     chrome.tabs.create({ url: 'https://nexusalert.app/pricing?utm_source=extension&utm_medium=modal&utm_campaign=manual_check' });
-    document.getElementById('upgradeModal').classList.add('hidden');
+    closeUpgradeModal();
   });
 
   // Modal dismiss button
   document.getElementById('dismissModalBtn').addEventListener('click', () => {
-    document.getElementById('upgradeModal').classList.add('hidden');
+    closeUpgradeModal();
   });
+
+  // Close modal on Escape key
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      const modal = document.getElementById('upgradeModal');
+      if (!modal.classList.contains('hidden')) {
+        closeUpgradeModal();
+      }
+    }
+  });
+
+  function closeUpgradeModal() {
+    document.getElementById('upgradeModal').classList.add('hidden');
+    // Return focus to the element that triggered the modal
+    document.getElementById('checkNowBtn').focus();
+  }
 
   // ─── Check Now Button ──────────────────────────────────────────
 
@@ -593,13 +731,13 @@ function renderLiveSlots(slots, locations) {
     });
 
     return `
-      <div class="slot-card">
+      <div class="slot-card" role="article" aria-label="Appointment slot: ${dateStr} at ${timeStr} at ${locName}">
         <div class="slot-info">
           <div class="slot-date">${dateStr}</div>
           <div class="slot-time">${timeStr}</div>
           <div class="slot-location">${locName}</div>
         </div>
-        <button class="book-btn" data-url="https://ttp.cbp.dhs.gov/">Book</button>
+        <button class="book-btn" data-url="https://ttp.cbp.dhs.gov/" aria-label="Book appointment for ${dateStr} at ${locName}">Book</button>
       </div>
     `;
   }).join('');
@@ -669,13 +807,13 @@ function renderLocations(allLocations, program, selectedIds) {
     const statusClass = loc.operational ? 'operational' : 'closed';
     const statusText = loc.operational ? 'Open' : 'Closed';
     return `
-      <div class="location-item ${selected ? 'selected' : ''}" data-id="${loc.id}">
-        <input type="checkbox" ${selected ? 'checked' : ''}>
+      <div class="location-item ${selected ? 'selected' : ''}" data-id="${loc.id}" role="option" aria-selected="${selected}">
+        <input type="checkbox" ${selected ? 'checked' : ''} aria-label="Monitor ${loc.name}">
         <div style="flex:1">
           <div class="location-name">${loc.name}</div>
           <div class="location-meta">${loc.city || ''}, ${loc.state || ''} ${loc.country || ''}</div>
         </div>
-        <span class="location-status ${statusClass}">${statusText}</span>
+        <span class="location-status ${statusClass}" aria-label="Status: ${statusText}">${statusText}</span>
       </div>
     `;
   }).join('');
