@@ -21,13 +21,22 @@
     }
 
     body {
-      width: 380px;
+      width: 100%;
+      max-width: 380px;
+      min-width: 320px;
       min-height: 500px;
       background: var(--bg);
       color: var(--text);
       font-family: -apple-system, 'Inter', 'Segoe UI', sans-serif;
       font-size: 13px;
       line-height: 1.5;
+    }
+
+    @media (max-width: 400px) {
+      body {
+        font-size: 12px;
+        min-height: 450px;
+      }
     }
 
     /* ─── Header ──────────────────────────────── */
@@ -46,6 +55,18 @@
       gap: 6px;
     }
     .header h1 span { font-size: 18px; }
+
+    @media (max-width: 400px) {
+      .header {
+        padding: 12px;
+      }
+      .header h1 {
+        font-size: 14px;
+      }
+      .header h1 span {
+        font-size: 16px;
+      }
+    }
 
     /* ─── Status Bar ──────────────────────────── */
     .status-bar {
@@ -74,6 +95,7 @@
       position: relative;
       width: 40px;
       height: 22px;
+      min-width: 40px; /* Prevent shrinking on mobile */
     }
     .toggle-switch input { opacity: 0; width: 0; height: 0; }
     .toggle-slider {
@@ -83,6 +105,7 @@
       border-radius: 22px;
       cursor: pointer;
       transition: 0.2s;
+      -webkit-tap-highlight-color: transparent; /* Remove tap highlight on mobile */
     }
     .toggle-slider:before {
       content: '';
@@ -131,11 +154,20 @@
       border-top: none;
       border-left: none;
       border-right: none;
+      min-height: 44px; /* Touch-friendly target */
+      -webkit-tap-highlight-color: transparent;
     }
     .tab-item:hover { color: var(--text); }
     .tab-item.active { color: var(--accent); border-bottom-color: var(--accent); }
     .tab-content { display: none; }
     .tab-content.active { display: block; }
+
+    @media (max-width: 400px) {
+      .tab-item {
+        font-size: 11px;
+        padding: 8px 4px;
+      }
+    }
 
     /* ─── Program Selector ────────────────────── */
     .program-tabs {
@@ -145,7 +177,8 @@
     }
     .program-tab {
       flex: 1;
-      padding: 6px 8px;
+      padding: 8px;
+      min-height: 44px; /* Touch-friendly */
       border: 1px solid var(--border);
       border-radius: 6px;
       background: transparent;
@@ -155,6 +188,10 @@
       cursor: pointer;
       text-align: center;
       transition: 0.15s;
+      -webkit-tap-highlight-color: transparent;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
     .program-tab:hover { border-color: var(--accent); color: var(--text); }
     .program-tab.active {
@@ -163,27 +200,44 @@
       color: white;
     }
 
+    @media (max-width: 400px) {
+      .program-tabs {
+        gap: 4px;
+      }
+      .program-tab {
+        font-size: 10px;
+        padding: 6px 4px;
+      }
+    }
+
     /* ─── Location List ───────────────────────── */
     .location-list {
       max-height: 180px;
       overflow-y: auto;
       scrollbar-width: thin;
       scrollbar-color: #333 transparent;
+      -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
     }
     .location-item {
       display: flex;
       align-items: center;
-      padding: 8px 10px;
+      padding: 10px;
+      min-height: 44px; /* Touch-friendly */
       border: 1px solid var(--border);
       border-radius: 6px;
       margin-bottom: 4px;
       cursor: pointer;
       transition: 0.15s;
       gap: 8px;
+      -webkit-tap-highlight-color: transparent;
     }
     .location-item:hover { border-color: var(--accent); background: rgba(59,130,246,0.05); }
     .location-item.selected { border-color: var(--accent); background: rgba(59,130,246,0.1); }
-    .location-item input[type="checkbox"] { accent-color: var(--accent); }
+    .location-item input[type="checkbox"] {
+      accent-color: var(--accent);
+      min-width: 16px;
+      min-height: 16px;
+    }
     .location-name { font-size: 12px; font-weight: 500; flex: 1; }
     .location-meta { font-size: 10px; color: var(--text-muted); }
     .location-status {
@@ -194,6 +248,15 @@
     }
     .location-status.operational { background: rgba(34,197,94,0.15); color: var(--green); }
     .location-status.closed { background: rgba(239,68,68,0.15); color: var(--red); }
+
+    @media (max-width: 400px) {
+      .location-item {
+        padding: 8px;
+      }
+      .location-name {
+        font-size: 11px;
+      }
+    }
 
     /* ─── Filters ─────────────────────────────── */
     .filter-row {
@@ -210,14 +273,28 @@
     }
     .filter-input {
       width: 100%;
-      padding: 6px 8px;
+      padding: 8px;
+      min-height: 40px; /* Better touch target for inputs */
       background: var(--bg-input);
       border: 1px solid var(--border);
       border-radius: 4px;
       color: var(--text);
       font-size: 12px;
+      -webkit-appearance: none; /* Remove iOS styling */
+      appearance: none;
     }
-    .filter-input:focus { outline: none; border-color: var(--accent); }
+    .filter-input:focus { outline: 2px solid var(--accent); outline-offset: -1px; border-color: var(--accent); }
+
+    @media (max-width: 400px) {
+      .filter-row {
+        gap: 6px;
+      }
+      .filter-input {
+        padding: 6px;
+        font-size: 11px;
+        min-height: 36px;
+      }
+    }
 
     /* ─── Interval Selector ───────────────────── */
     .interval-options {
@@ -226,7 +303,8 @@
     }
     .interval-btn {
       flex: 1;
-      padding: 5px;
+      padding: 8px 5px;
+      min-height: 44px; /* Touch-friendly */
       background: var(--bg-input);
       border: 1px solid var(--border);
       border-radius: 4px;
@@ -235,9 +313,20 @@
       cursor: pointer;
       text-align: center;
       transition: 0.15s;
+      -webkit-tap-highlight-color: transparent;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
     .interval-btn:hover { border-color: var(--accent); color: var(--text); }
     .interval-btn.active { background: var(--accent); border-color: var(--accent); color: white; }
+
+    @media (max-width: 400px) {
+      .interval-btn {
+        font-size: 10px;
+        padding: 6px 3px;
+      }
+    }
 
     /* ─── Results ──────────────────────────────── */
     .slot-card {
@@ -250,13 +339,15 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
+      gap: 8px;
     }
     .slot-info { flex: 1; }
     .slot-date { font-weight: 600; font-size: 13px; }
     .slot-time { color: var(--text-muted); font-size: 11px; }
     .slot-location { color: var(--text-muted); font-size: 10px; }
     .book-btn {
-      padding: 5px 12px;
+      padding: 8px 12px;
+      min-height: 44px; /* Touch-friendly */
       background: var(--green);
       border: none;
       border-radius: 4px;
@@ -266,8 +357,21 @@
       cursor: pointer;
       transition: 0.15s;
       white-space: nowrap;
+      -webkit-tap-highlight-color: transparent;
+      display: flex;
+      align-items: center;
     }
     .book-btn:hover { opacity: 0.85; }
+
+    @media (max-width: 400px) {
+      .slot-card {
+        padding: 8px 10px;
+      }
+      .book-btn {
+        padding: 6px 10px;
+        font-size: 10px;
+      }
+    }
 
     /* ─── Toggle Row ──────────────────────────── */
     .toggle-row {
@@ -293,9 +397,10 @@
       overflow-y: auto;
       scrollbar-width: thin;
       scrollbar-color: #333 transparent;
+      -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
     }
     .history-item {
-      padding: 6px 0;
+      padding: 8px 0;
       border-bottom: 1px solid var(--border);
       font-size: 11px;
     }
@@ -316,8 +421,18 @@
       background: none;
       border: none;
       cursor: pointer;
+      padding: 4px 8px;
+      min-height: 32px; /* Reasonable touch target */
+      -webkit-tap-highlight-color: transparent;
     }
     .clear-history-btn:hover { text-decoration: underline; }
+
+    @media (max-width: 400px) {
+      .history-item {
+        padding: 6px 0;
+        font-size: 10px;
+      }
+    }
 
     /* ─── Stats ────────────────────────────────── */
     .stats-row {
@@ -352,7 +467,8 @@
     }
     .btn {
       flex: 1;
-      padding: 8px;
+      padding: 10px 8px;
+      min-height: 44px; /* Touch-friendly */
       border-radius: 6px;
       font-size: 12px;
       font-weight: 600;
@@ -360,11 +476,26 @@
       text-align: center;
       transition: 0.15s;
       border: none;
+      -webkit-tap-highlight-color: transparent;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
     .btn-primary { background: var(--accent); color: white; }
     .btn-primary:hover { opacity: 0.85; }
     .btn-secondary { background: var(--bg-input); color: var(--text); border: 1px solid var(--border); }
     .btn-secondary:hover { border-color: var(--accent); }
+
+    @media (max-width: 400px) {
+      .actions {
+        padding: 10px 12px;
+        gap: 6px;
+      }
+      .btn {
+        font-size: 11px;
+        padding: 8px 6px;
+      }
+    }
 
     /* ─── Empty State ─────────────────────────── */
     .empty-state {
@@ -393,6 +524,50 @@
       display: flex;
       align-items: center;
       gap: 6px;
+    }
+
+    /* ─── Focus Styles ────────────────────────── */
+    :focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+    }
+    .toggle-slider:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+    }
+    .toggle-switch input:focus-visible + .toggle-slider {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+    }
+
+    /* ─── Skip Link ──────────────────────────── */
+    .skip-link {
+      position: absolute;
+      top: -100%;
+      left: 0;
+      background: var(--accent);
+      color: white;
+      padding: 8px 16px;
+      z-index: 9999;
+      font-size: 12px;
+      font-weight: 600;
+      text-decoration: none;
+    }
+    .skip-link:focus {
+      top: 0;
+    }
+
+    /* ─── Screen Reader Only ─────────────────── */
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
     }
 
     /* ─── Spinner ──────────────────────────────── */
@@ -454,6 +629,7 @@
       z-index: 1000;
       padding: 20px;
       backdrop-filter: blur(4px);
+      -webkit-overflow-scrolling: touch; /* Smooth scrolling */
     }
     .modal.hidden { display: none; }
     .modal-content {
@@ -463,6 +639,8 @@
       padding: 20px;
       max-width: 320px;
       width: 100%;
+      max-height: 90vh; /* Prevent overflow on small screens */
+      overflow-y: auto; /* Allow scrolling if content is too tall */
       box-shadow: 0 8px 32px rgba(0,0,0,0.5);
     }
     .modal-content h3 {
@@ -491,6 +669,22 @@
       gap: 8px;
     }
 
+    @media (max-width: 400px) {
+      .modal {
+        padding: 12px;
+      }
+      .modal-content {
+        padding: 16px;
+        max-width: 100%;
+      }
+      .modal-content h3 {
+        font-size: 14px;
+      }
+      .modal-content p {
+        font-size: 11px;
+      }
+    }
+
     /* ─── Upgrade Banner ──────────────────────── */
     .upgrade-banner {
       background: linear-gradient(135deg, rgba(59,130,246,0.15), rgba(34,197,94,0.15));
@@ -502,22 +696,26 @@
       align-items: center;
       justify-content: space-between;
       gap: 8px;
+      flex-wrap: wrap; /* Allow wrapping on very small screens */
     }
     .upgrade-banner.hidden { display: none; }
     .upgrade-banner-text {
       flex: 1;
       line-height: 1.4;
+      min-width: 200px;
     }
     .upgrade-banner-cta {
       background: var(--accent);
       color: white;
-      padding: 4px 10px;
+      padding: 6px 10px;
+      min-height: 36px; /* Reasonable touch target */
       border-radius: 4px;
       font-weight: 600;
       font-size: 10px;
       cursor: pointer;
       border: none;
       white-space: nowrap;
+      -webkit-tap-highlight-color: transparent;
     }
     .upgrade-banner-cta:hover { opacity: 0.85; }
     .upgrade-banner-dismiss {
@@ -526,10 +724,23 @@
       color: var(--text-muted);
       font-size: 14px;
       cursor: pointer;
-      padding: 0 4px;
+      padding: 4px 8px;
+      min-width: 32px;
+      min-height: 32px;
       line-height: 1;
+      -webkit-tap-highlight-color: transparent;
     }
     .upgrade-banner-dismiss:hover { color: var(--text); }
+
+    @media (max-width: 400px) {
+      .upgrade-banner {
+        padding: 8px 12px;
+        font-size: 10px;
+      }
+      .upgrade-banner-text {
+        min-width: 150px;
+      }
+    }
 
     /* ─── Premium Stats Card ──────────────────── */
     .premium-stats-card {
@@ -576,27 +787,29 @@
 </head>
 <body>
 
+  <a href="#tab-monitor" class="skip-link">Skip to main content</a>
+
   <!-- Header -->
-  <div class="header">
-    <h1>NEXUS Alert</h1>
-    <label class="toggle-switch">
-      <input type="checkbox" id="enableToggle" checked>
-      <span class="toggle-slider"></span>
+  <header class="header" role="banner">
+    <h1><span aria-hidden="true">🔔</span> NEXUS Alert</h1>
+    <label class="toggle-switch" aria-label="Enable monitoring">
+      <input type="checkbox" id="enableToggle" checked aria-label="Enable appointment monitoring">
+      <span class="toggle-slider" role="presentation"></span>
     </label>
-  </div>
+  </header>
 
   <!-- Status Bar -->
-  <div class="status-bar">
+  <div class="status-bar" role="status" aria-live="polite" aria-label="Monitoring status">
     <div class="status-left">
-      <span class="status-dot active" id="statusDot"></span>
+      <span class="status-dot active" id="statusDot" aria-hidden="true"></span>
       <span id="statusText">Monitoring</span>
     </div>
-    <span class="last-check" id="lastCheck">Checking...</span>
+    <span class="last-check" id="lastCheck" aria-label="Last check time">Checking...</span>
   </div>
 
   <!-- Error Banner -->
-  <div id="errorBanner" class="error-banner" style="display:none">
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+  <div id="errorBanner" class="error-banner" style="display:none" role="alert" aria-live="assertive">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
       <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
       <line x1="12" y1="9" x2="12" y2="13"/>
       <line x1="12" y1="17" x2="12.01" y2="17"/>
@@ -605,115 +818,117 @@
   </div>
 
   <!-- Upgrade Banner -->
-  <div id="upgradeBanner" class="upgrade-banner hidden">
+  <div id="upgradeBanner" class="upgrade-banner hidden" role="complementary" aria-label="Upgrade promotion">
     <div class="upgrade-banner-text">
       You've been monitoring for 3+ days. Upgrade to 2-min checks to find slots 87% faster.
     </div>
-    <button class="upgrade-banner-cta" id="bannerUpgradeBtn">Upgrade</button>
-    <button class="upgrade-banner-dismiss" id="bannerDismissBtn">×</button>
+    <button class="upgrade-banner-cta" id="bannerUpgradeBtn" aria-label="Upgrade to premium">Upgrade</button>
+    <button class="upgrade-banner-dismiss" id="bannerDismissBtn" aria-label="Dismiss upgrade banner">&times;</button>
   </div>
 
   <!-- Main Tabs -->
-  <div class="tab-bar">
-    <button class="tab-item active" data-tab="monitor">Monitor</button>
-    <button class="tab-item" data-tab="slots">Slots</button>
-    <button class="tab-item" data-tab="refer">Invite</button>
-    <button class="tab-item" data-tab="settings">Settings</button>
+  <div class="tab-bar" role="tablist" aria-label="Main navigation">
+    <button class="tab-item active" data-tab="monitor" role="tab" aria-selected="true" aria-controls="tab-monitor" id="tab-btn-monitor">Monitor</button>
+    <button class="tab-item" data-tab="slots" role="tab" aria-selected="false" aria-controls="tab-slots" id="tab-btn-slots">Slots</button>
+    <button class="tab-item" data-tab="refer" role="tab" aria-selected="false" aria-controls="tab-refer" id="tab-btn-refer">Invite</button>
+    <button class="tab-item" data-tab="settings" role="tab" aria-selected="false" aria-controls="tab-settings" id="tab-btn-settings">Settings</button>
   </div>
 
   <!-- ─── Monitor Tab ──────────────────────────── -->
-  <div class="tab-content active" id="tab-monitor">
+  <div class="tab-content active" id="tab-monitor" role="tabpanel" aria-labelledby="tab-btn-monitor">
 
     <!-- Available Slots (live) -->
     <div class="section" id="liveSlotsSection">
-      <div class="section-title">Live Available Slots</div>
-      <div id="liveSlotsList">
+      <h2 class="section-title" id="live-slots-heading">Live Available Slots</h2>
+      <div id="liveSlotsList" role="region" aria-labelledby="live-slots-heading" aria-live="polite">
         <div class="empty-state">No slots found yet. Click "Check Now" to scan.</div>
       </div>
     </div>
 
     <!-- Program Selection -->
     <div class="section">
-      <div class="section-title">Program</div>
-      <div class="program-tabs">
-        <button class="program-tab active" data-program="NEXUS">NEXUS</button>
-        <button class="program-tab" data-program="Global Entry">Global Entry</button>
-        <button class="program-tab" data-program="SENTRI">SENTRI</button>
+      <h2 class="section-title" id="program-heading">Program</h2>
+      <div class="program-tabs" role="radiogroup" aria-labelledby="program-heading">
+        <button class="program-tab active" data-program="NEXUS" role="radio" aria-checked="true">NEXUS</button>
+        <button class="program-tab" data-program="Global Entry" role="radio" aria-checked="false">Global Entry</button>
+        <button class="program-tab" data-program="SENTRI" role="radio" aria-checked="false">SENTRI</button>
       </div>
     </div>
 
     <!-- Locations -->
     <div class="section">
-      <div class="section-title">Enrollment Centers</div>
-      <div class="location-list" id="locationList">
-        <div class="spinner" id="locationSpinner"></div>
+      <h2 class="section-title" id="locations-heading">Enrollment Centers</h2>
+      <div class="location-list" id="locationList" role="group" aria-labelledby="locations-heading">
+        <div class="spinner" id="locationSpinner" role="status" aria-label="Loading locations"><span class="sr-only">Loading locations...</span></div>
         <div class="empty-state">Loading locations...</div>
       </div>
     </div>
 
     <!-- Filters -->
     <div class="section">
-      <div class="section-title">Filters</div>
-      <div class="filter-row">
-        <div class="filter-group">
-          <label class="filter-label">Date from</label>
-          <input type="date" class="filter-input" id="dateFrom">
+      <fieldset style="border:none;padding:0;margin:0">
+        <legend class="section-title">Filters</legend>
+        <div class="filter-row">
+          <div class="filter-group">
+            <label class="filter-label" for="dateFrom">Date from</label>
+            <input type="date" class="filter-input" id="dateFrom" aria-label="Filter start date">
+          </div>
+          <div class="filter-group">
+            <label class="filter-label" for="dateTo">Date to</label>
+            <input type="date" class="filter-input" id="dateTo" aria-label="Filter end date">
+          </div>
         </div>
-        <div class="filter-group">
-          <label class="filter-label">Date to</label>
-          <input type="date" class="filter-input" id="dateTo">
+        <div class="filter-row">
+          <div class="filter-group">
+            <label class="filter-label" for="timeFrom">Time from</label>
+            <input type="time" class="filter-input" id="timeFrom" aria-label="Filter start time">
+          </div>
+          <div class="filter-group">
+            <label class="filter-label" for="timeTo">Time to</label>
+            <input type="time" class="filter-input" id="timeTo" aria-label="Filter end time">
+          </div>
         </div>
-      </div>
-      <div class="filter-row">
-        <div class="filter-group">
-          <label class="filter-label">Time from</label>
-          <input type="time" class="filter-input" id="timeFrom">
-        </div>
-        <div class="filter-group">
-          <label class="filter-label">Time to</label>
-          <input type="time" class="filter-input" id="timeTo">
-        </div>
-      </div>
+      </fieldset>
     </div>
 
     <!-- Actions -->
-    <div class="actions">
+    <div class="actions" role="group" aria-label="Quick actions">
       <button class="btn btn-primary" id="checkNowBtn">Check Now</button>
       <button class="btn btn-secondary" id="openSiteBtn">Open GOES</button>
     </div>
   </div>
 
   <!-- ─── Slots Tab ────────────────────────────── -->
-  <div class="tab-content" id="tab-slots">
+  <div class="tab-content" id="tab-slots" role="tabpanel" aria-labelledby="tab-btn-slots" hidden>
     <div class="section">
-      <div class="stats-row">
-        <div class="stat-card">
-          <div class="stat-value" id="statTotal">0</div>
+      <div class="stats-row" role="group" aria-label="Slot statistics">
+        <div class="stat-card" role="figure" aria-label="Total slots seen">
+          <div class="stat-value" id="statTotal" aria-live="polite">0</div>
           <div class="stat-label">Slots Seen</div>
         </div>
-        <div class="stat-card">
-          <div class="stat-value" id="statToday">0</div>
+        <div class="stat-card" role="figure" aria-label="Slots found today">
+          <div class="stat-value" id="statToday" aria-live="polite">0</div>
           <div class="stat-label">Today</div>
         </div>
-        <div class="stat-card">
-          <div class="stat-value" id="statLocations">0</div>
+        <div class="stat-card" role="figure" aria-label="Locations monitored">
+          <div class="stat-value" id="statLocations" aria-live="polite">0</div>
           <div class="stat-label">Locations</div>
         </div>
       </div>
     </div>
     <div class="section">
       <div class="history-header">
-        <div class="section-title" style="margin-bottom:0">Slot History</div>
-        <button class="clear-history-btn" id="clearHistoryBtn">Clear</button>
+        <h2 class="section-title" style="margin-bottom:0" id="history-heading">Slot History</h2>
+        <button class="clear-history-btn" id="clearHistoryBtn" aria-label="Clear slot history">Clear</button>
       </div>
-      <div class="history-list" id="historyList">
+      <div class="history-list" id="historyList" role="log" aria-labelledby="history-heading" aria-live="polite">
         <div class="empty-state">No history yet</div>
       </div>
     </div>
   </div>
 
   <!-- ─── Refer Tab ───────────────────────────────── -->
-  <div class="tab-content" id="tab-refer">
+  <div class="tab-content" id="tab-refer" role="tabpanel" aria-labelledby="tab-btn-refer" hidden>
 
     <!-- Referral Hero -->
     <div class="section" style="background:linear-gradient(135deg,#1e3a8a 0%,#1e40af 100%);border-bottom:2px solid #3b82f6;padding:16px">
@@ -745,24 +960,24 @@
       <div style="background:rgba(0,0,0,0.25);border-radius:6px;padding:10px;margin-bottom:10px">
         <div style="font-size:9px;color:rgba(255,255,255,0.6);margin-bottom:4px;text-transform:uppercase;letter-spacing:0.5px">Your Referral Link</div>
         <div style="display:flex;gap:6px;align-items:center">
-          <input type="text" id="referralLink" readonly style="flex:1;background:rgba(0,0,0,0.3);border:1px solid rgba(255,255,255,0.2);color:white;padding:7px 8px;border-radius:4px;font-size:10px;font-family:monospace" value="Set email in Settings first">
-          <button class="btn btn-primary" id="copyReferralBtn" style="padding:7px 12px;white-space:nowrap;font-size:11px">Copy</button>
+          <input type="text" id="referralLink" readonly aria-label="Your referral link" style="flex:1;background:rgba(0,0,0,0.3);border:1px solid rgba(255,255,255,0.2);color:white;padding:7px 8px;border-radius:4px;font-size:10px;font-family:monospace" value="Set email in Settings first">
+          <button class="btn btn-primary" id="copyReferralBtn" aria-label="Copy referral link to clipboard" style="padding:7px 12px;white-space:nowrap;font-size:11px">Copy</button>
         </div>
         <div id="copyFeedback" style="display:none;margin-top:4px;font-size:10px;color:#22c55e">Copied to clipboard!</div>
       </div>
 
       <!-- Social Share Buttons -->
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:5px;margin-bottom:10px">
-        <button class="btn" id="shareTwitterBtn" style="background:#1da1f2;border:none;padding:7px 4px;font-size:10px;color:white">
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:5px;margin-bottom:10px" role="group" aria-label="Share on social media">
+        <button class="btn" id="shareTwitterBtn" aria-label="Share on Twitter" style="background:#1da1f2;border:none;padding:7px 4px;font-size:10px;color:white">
           Twitter
         </button>
-        <button class="btn" id="shareFacebookBtn" style="background:#1877f2;border:none;padding:7px 4px;font-size:10px;color:white">
+        <button class="btn" id="shareFacebookBtn" aria-label="Share on Facebook" style="background:#1877f2;border:none;padding:7px 4px;font-size:10px;color:white">
           Facebook
         </button>
-        <button class="btn" id="shareWhatsAppBtn" style="background:#25d366;border:none;padding:7px 4px;font-size:10px;color:white">
+        <button class="btn" id="shareWhatsAppBtn" aria-label="Share on WhatsApp" style="background:#25d366;border:none;padding:7px 4px;font-size:10px;color:white">
           WhatsApp
         </button>
-        <button class="btn" id="shareEmailBtn" style="background:#6366f1;border:none;padding:7px 4px;font-size:10px;color:white">
+        <button class="btn" id="shareEmailBtn" aria-label="Share via email" style="background:#6366f1;border:none;padding:7px 4px;font-size:10px;color:white">
           Email
         </button>
       </div>

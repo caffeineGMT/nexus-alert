@@ -62,14 +62,14 @@ export default function Home() {
     <div className="min-h-screen bg-[#0a0a0a] text-[#ededed]">
       {/* Nav */}
       <nav className="fixed top-0 w-full z-50 border-b border-[#222] bg-[#0a0a0a]/80 backdrop-blur-md">
-        <div className="max-w-5xl mx-auto px-6 h-14 flex items-center justify-between">
-          <span className="text-lg font-bold tracking-tight">NEXUS Alert</span>
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
+          <span className="text-base sm:text-lg font-bold tracking-tight">NEXUS Alert</span>
           {/* TODO: replace EXTENSION_ID after Chrome Web Store publishing */}
           <a
             href="https://chrome.google.com/webstore/detail/nexus-alert/EXTENSION_ID"
             target="_blank"
             rel="noopener noreferrer"
-            className="px-4 py-2 rounded-lg bg-[#3b82f6] text-white text-sm font-semibold hover:bg-[#2563eb] transition"
+            className="px-3 sm:px-4 py-2 rounded-lg bg-[#3b82f6] text-white text-xs sm:text-sm font-semibold hover:bg-[#2563eb] transition touch-manipulation"
           >
             Install Free
           </a>
@@ -77,20 +77,20 @@ export default function Home() {
       </nav>
 
       {/* Hero */}
-      <section className="pt-32 pb-20 px-6">
+      <section className="pt-24 sm:pt-32 pb-16 sm:pb-20 px-4 sm:px-6">
         <div className="max-w-3xl mx-auto text-center">
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-[#333] text-sm text-[#888] mb-8">
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-[#333] text-xs sm:text-sm text-[#888] mb-6 sm:mb-8">
             <span className="w-2 h-2 rounded-full bg-[#22c55e] animate-pulse" />
             Free Chrome Extension
           </div>
-          <h1 className="text-5xl md:text-6xl font-extrabold leading-tight tracking-tight mb-6">
+          <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold leading-tight tracking-tight mb-4 sm:mb-6">
             Automated{" "}
             <span className="bg-gradient-to-r from-[#3b82f6] to-[#22c55e] bg-clip-text text-transparent">
               NEXUS Appointment Tracker
             </span>{" "}
             — Find Slots in Days, Not Months
           </h1>
-          <p className="text-lg md:text-xl text-[#888] max-w-2xl mx-auto mb-10">
+          <p className="text-base sm:text-lg md:text-xl text-[#888] max-w-2xl mx-auto mb-8 sm:mb-10">
             The #1 NEXUS appointment tracker and Global Entry slot finder. Our Chrome extension monitors interview cancellations 24/7 and sends instant alerts when appointments open up at your preferred enrollment centers.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -99,7 +99,7 @@ export default function Home() {
               href="https://chrome.google.com/webstore/detail/nexus-alert/EXTENSION_ID"
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center justify-center px-8 py-3.5 rounded-xl bg-[#3b82f6] text-white font-semibold text-base hover:bg-[#2563eb] transition"
+              className="inline-flex items-center justify-center px-6 sm:px-8 py-3 sm:py-3.5 rounded-xl bg-[#3b82f6] text-white font-semibold text-sm sm:text-base hover:bg-[#2563eb] transition touch-manipulation"
             >
               <ChromeLogoSVG />
               Add to Chrome — Free
@@ -123,18 +123,18 @@ export default function Home() {
       </section>
 
       {/* Problem */}
-      <section className="py-20 px-6 border-t border-[#222]">
+      <section className="py-16 sm:py-20 px-4 sm:px-6 border-t border-[#222]">
         <div className="max-w-4xl mx-auto">
-          <h2 className="text-3xl font-bold text-center mb-4">
+          <h2 className="text-2xl sm:text-3xl font-bold text-center mb-4">
             Appointment slots disappear in minutes
           </h2>
-          <p className="text-[#888] text-center max-w-2xl mx-auto mb-14">
+          <p className="text-sm sm:text-base text-[#888] text-center max-w-2xl mx-auto mb-12 sm:mb-14">
             NEXUS and Global Entry slots are released when someone cancels.
             They show up randomly and get booked almost instantly. Refreshing
             the website over and over is exhausting — and you still miss most
             of them.
           </p>
-          <div className="grid md:grid-cols-3 gap-6">
+          <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-6">
             <ProblemCard
               icon="clock"
               title="Slots vanish fast"
@@ -155,12 +155,12 @@ export default function Home() {
       </section>
 
       {/* How it works */}
-      <section id="how-it-works" className="py-20 px-6 border-t border-[#222]">
+      <section id="how-it-works" className="py-16 sm:py-20 px-4 sm:px-6 border-t border-[#222]">
         <div className="max-w-4xl mx-auto">
-          <h2 className="text-3xl font-bold text-center mb-14">
+          <h2 className="text-2xl sm:text-3xl font-bold text-center mb-12 sm:mb-14">
             How NEXUS Alert works
           </h2>
-          <div className="grid md:grid-cols-3 gap-8">
+          <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-6 sm:gap-8">
             <StepCard
               step={1}
               title="Pick your locations"
@@ -181,15 +181,15 @@ export default function Home() {
       </section>
 
       {/* Features */}
-      <section className="py-20 px-6 border-t border-[#222]">
+      <section className="py-16 sm:py-20 px-4 sm:px-6 border-t border-[#222]">
         <div className="max-w-4xl mx-auto">
-          <h2 className="text-3xl font-bold text-center mb-4">
+          <h2 className="text-2xl sm:text-3xl font-bold text-center mb-4">
             Everything you need
           </h2>
-          <p className="text-[#888] text-center max-w-xl mx-auto mb-14">
+          <p className="text-sm sm:text-base text-[#888] text-center max-w-xl mx-auto mb-12 sm:mb-14">
             Built to make sure you never miss another opening.
           </p>
-          <div className="grid md:grid-cols-2 gap-5">
+          <div className="grid sm:grid-cols-2 gap-4 sm:gap-5">
             <FeatureCard
               title="Real-time monitoring"
               description="Checks for new slots as often as every minute, running silently in the background while you work."
@@ -227,23 +227,24 @@ export default function Home() {
       </section>
 
       {/* Comparison Table */}
-      <section className="py-20 px-6 border-t border-[#222] bg-gradient-to-b from-[#0a0a0a] to-[#111]">
+      <section className="py-16 sm:py-20 px-4 sm:px-6 border-t border-[#222] bg-gradient-to-b from-[#0a0a0a] to-[#111]">
         <div className="max-w-5xl mx-auto">
-          <h2 className="text-3xl font-bold text-center mb-4">
+          <h2 className="text-2xl sm:text-3xl font-bold text-center mb-4">
             Why NEXUS Alert beats manual checking
           </h2>
-          <p className="text-[#888] text-center max-w-2xl mx-auto mb-12">
+          <p className="text-sm sm:text-base text-[#888] text-center max-w-2xl mx-auto mb-10 sm:mb-12">
             See how our automated NEXUS appointment tracker compares to manual checking and other solutions
           </p>
-          <div className="overflow-x-auto">
-            <table className="w-full border-collapse">
+          <div className="overflow-x-auto -mx-4 sm:mx-0">
+            <div className="inline-block min-w-full px-4 sm:px-0">
+            <table className="w-full border-collapse min-w-[640px]">
               <thead>
                 <tr className="border-b-2 border-[#3b82f6]">
-                  <th className="text-left py-4 px-4 font-semibold text-[#ededed]">Feature</th>
-                  <th className="text-center py-4 px-4 font-semibold text-[#3b82f6]">NEXUS Alert Free</th>
-                  <th className="text-center py-4 px-4 font-semibold text-[#22c55e]">NEXUS Alert Premium</th>
-                  <th className="text-center py-4 px-4 font-semibold text-[#888]">Manual Checking</th>
-                  <th className="text-center py-4 px-4 font-semibold text-[#888]">Other Tools</th>
+                  <th className="text-left py-3 sm:py-4 px-2 sm:px-4 font-semibold text-sm sm:text-base text-[#ededed]">Feature</th>
+                  <th className="text-center py-3 sm:py-4 px-2 sm:px-4 font-semibold text-xs sm:text-base text-[#3b82f6]">NEXUS Alert Free</th>
+                  <th className="text-center py-3 sm:py-4 px-2 sm:px-4 font-semibold text-xs sm:text-base text-[#22c55e]">NEXUS Alert Premium</th>
+                  <th className="text-center py-3 sm:py-4 px-2 sm:px-4 font-semibold text-xs sm:text-base text-[#888]">Manual Checking</th>
+                  <th className="text-center py-3 sm:py-4 px-2 sm:px-4 font-semibold text-xs sm:text-base text-[#888]">Other Tools</th>
                 </tr>
               </thead>
               <tbody>
@@ -334,13 +335,14 @@ export default function Home() {
                 />
               </tbody>
             </table>
+            </div>
           </div>
-          <div className="mt-8 text-center">
+          <div className="mt-6 sm:mt-8 text-center">
             <a
               href="https://chrome.google.com/webstore/detail/nexus-alert/EXTENSION_ID"
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center justify-center px-8 py-3.5 rounded-xl bg-[#3b82f6] text-white font-semibold text-base hover:bg-[#2563eb] transition"
+              className="inline-flex items-center justify-center px-6 sm:px-8 py-3 sm:py-3.5 rounded-xl bg-[#3b82f6] text-white font-semibold text-sm sm:text-base hover:bg-[#2563eb] transition touch-manipulation"
             >
               Try NEXUS Alert Free
             </a>
