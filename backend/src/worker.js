@@ -12,6 +12,7 @@ import {
   getReferralStats,
   calculateViralCoefficient,
 } from './referrals.js';
+import { createResilientClient } from './utils/resilient-api.js';
 import {
   addSubscriber as addToConvertKit,
   tagSubscriber,
@@ -1030,6 +1031,40 @@ async function handleHealthCheck(env, corsHeaders) {
       });
     }
 
+    // Check 6: Resilience components (Circuit Breaker, Rate Limiter)
+    try {
+      const client = createResilientClient(env);
+      const resilienceHealth = await client.getHealthStatus();
+
+      checks.checks.resilience = {
+        status: resilienceHealth.overall.healthy ? 'pass' : resilienceHealth.overall.status === 'degraded' ? 'warn' : 'fail',
+        circuit_breaker: {
+          state: resilienceHealth.circuitBreaker.state,
+          failures: resilienceHealth.circuitBreaker.failures,
+          threshold: resilienceHealth.circuitBreaker.failureThreshold
+        },
+        rate_limiter: {
+          available_tokens: resilienceHealth.rateLimiter.availableTokens,
+          max_tokens: resilienceHealth.rateLimiter.maxTokens,
+          refill_rate: resilienceHealth.rateLimiter.refillRate
+        },
+        message: `Circuit breaker: ${resilienceHealth.circuitBreaker.state}, Rate limit: ${resilienceHealth.rateLimiter.availableTokens}/${resilienceHealth.rateLimiter.maxTokens} tokens`
+      };
+
+      if (!resilienceHealth.overall.healthy) {
+        checks.status = resilienceHealth.overall.status === 'degraded' ? 'degraded' : 'unhealthy';
+        checks.alerts.push({
+          severity: resilienceHealth.overall.status === 'degraded' ? 'warning' : 'critical',
+          message: `API resilience ${resilienceHealth.overall.status}: Circuit breaker is ${resilienceHealth.circuitBreaker.state}`
+        });
+      }
+    } catch (resilienceErr) {
+      checks.checks.resilience = {
+        status: 'warn',
+        message: `Could not check resilience status: ${resilienceErr.message}`
+      };
+    }
+
     // Metrics
     const totalChecks = parseInt(await env.NEXUS_ALERTS_KV.get('total_checks') || '0');
     const totalNotifications = parseInt(await env.NEXUS_ALERTS_KV.get('total_notifications') || '0');
@@ -1390,57 +1425,53 @@ async function checkSubscriberBatch(emailList, env, sentry) {
   console.log(`[NEXUS Alert BATCH] Checked ${subscribersChecked}/${emailList.length} subscribers, ${locationSet.size} locations, sent ${totalNotifs} notification(s)`);
 }
 
+/**
+ * Fetch appointment slots with production-grade resilience
+ *
+ * Features:
+ * - Exponential backoff retry (3 attempts)
+ * - Circuit breaker pattern (opens after 5 failures, recovers after 1 min)
+ * - Adaptive rate limiting (10-20 req/sec with backoff)
+ * - Graceful degradation (fallback to cached data)
+ * - User-friendly error messages
+ * - Comprehensive monitoring and alerting
+ */
 async function fetchSlots(locationId, env) {
-  const startTime = Date.now();
+  const client = createResilientClient(env);
 
-  const params = new URLSearchParams({
-    orderBy: 'soonest',
-    limit: '500',
-    locationId: String(locationId),
-    minimum: '1',
-  });
+  try {
+    // Primary: Resilient API call with retry + circuit breaker + rate limiting
+    const slots = await client.fetchSlots(locationId);
 
-  const resp = await fetch(`${SLOTS_URL}?${params}`);
+    // Cache successful results for fallback
+    await client.updateCache(locationId, slots);
 
-  // Log CBP API latency metric
-  const duration = Date.now() - startTime;
-  console.log(JSON.stringify({ metric: 'cbp_api_latency_ms', value: duration, locationId }));
+    return slots;
 
-  if (!resp.ok) {
-    // Track 5xx errors for Slack alerts (using KV for cross-isolate reliability)
-    if (resp.status >= 500) {
-      const now = Date.now();
-      const lastFailureTime = parseInt(await env.NEXUS_ALERTS_KV.get('cbp_api:last_failure_time') || '0');
-      let failures = parseInt(await env.NEXUS_ALERTS_KV.get('cbp_api:consecutive_failures') || '0');
+  } catch (error) {
+    // Graceful degradation: Try cached data if available
+    if (error.name === 'CircuitBreakerOpenError' || error.statusCode >= 500) {
+      try {
+        console.warn(JSON.stringify({
+          event: 'attempting_fallback',
+          locationId,
+          error: error.name
+        }));
 
-      // Reset if gap > 5 minutes between failures
-      if (!lastFailureTime || (now - lastFailureTime) > 5 * 60 * 1000) {
-        failures = 1;
-      } else {
-        failures++;
+        return await client.fetchSlotsWithFallback(locationId);
+      } catch (fallbackError) {
+        // No cache available - throw original error
+        console.error(JSON.stringify({
+          event: 'fallback_failed',
+          locationId,
+          fallbackError: fallbackError.message
+        }));
       }
-      await env.NEXUS_ALERTS_KV.put('cbp_api:consecutive_failures', String(failures));
-      await env.NEXUS_ALERTS_KV.put('cbp_api:last_failure_time', String(now));
-
-      // Alert if failures persist (3+ consecutive at ~2min intervals)
-      if (failures >= 3 && env) {
-        const durationMin = Math.round((now - lastFailureTime + (failures - 1) * 120000) / 60000);
-        await sendSlackAlert(`CBP API returning ${resp.status} errors for ~${durationMin} minutes (${failures} consecutive failures)`, env);
-      }
-    } else {
-      // Reset on non-5xx errors
-      await env.NEXUS_ALERTS_KV.put('cbp_api:consecutive_failures', '0');
-      await env.NEXUS_ALERTS_KV.put('cbp_api:last_failure_time', '0');
     }
 
-    throw new Error(`HTTP ${resp.status}`);
+    // Re-throw with enhanced error context
+    throw error;
   }
-
-  // Success - reset failure tracking in KV
-  await env.NEXUS_ALERTS_KV.put('cbp_api:consecutive_failures', '0');
-  await env.NEXUS_ALERTS_KV.put('cbp_api:last_failure_time', '0');
-
-  return resp.json();
 }
 
 function filterSlots(slots, sub) {

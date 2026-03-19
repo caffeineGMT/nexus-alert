@@ -88,6 +88,6 @@ export default function CookieConsentBanner() {
         </a>
         .
       </span>
-    </CookieConsentBanner>
+    </CookieConsent>
   );
 }

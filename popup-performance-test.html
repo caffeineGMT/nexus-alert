@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NEXUS Alert Popup Performance Test</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      max-width: 800px;
+      margin: 40px auto;
+      padding: 20px;
+      background: #0a0a0a;
+      color: #e8e8e8;
+    }
+
+    h1 {
+      color: #3b82f6;
+      margin-bottom: 10px;
+    }
+
+    .status {
+      background: #141414;
+      border: 1px solid #2a2a2a;
+      border-radius: 8px;
+      padding: 20px;
+      margin: 20px 0;
+    }
+
+    .metric {
+      display: flex;
+      justify-content: space-between;
+      padding: 10px 0;
+      border-bottom: 1px solid #2a2a2a;
+    }
+
+    .metric:last-child {
+      border-bottom: none;
+    }
+
+    .metric-label {
+      font-weight: 600;
+      color: #888;
+    }
+
+    .metric-value {
+      font-weight: 700;
+      font-size: 18px;
+    }
+
+    .metric-value.good {
+      color: #22c55e;
+    }
+
+    .metric-value.warning {
+      color: #eab308;
+    }
+
+    .metric-value.bad {
+      color: #ef4444;
+    }
+
+    .iframe-container {
+      margin: 20px 0;
+      border: 2px solid #2a2a2a;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    iframe {
+      width: 100%;
+      height: 600px;
+      border: none;
+    }
+
+    button {
+      background: #3b82f6;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-right: 10px;
+    }
+
+    button:hover {
+      background: #2563eb;
+    }
+
+    .log {
+      background: #0a0a0a;
+      border: 1px solid #2a2a2a;
+      border-radius: 6px;
+      padding: 15px;
+      margin-top: 20px;
+      font-family: 'Courier New', monospace;
+      font-size: 12px;
+      max-height: 300px;
+      overflow-y: auto;
+    }
+
+    .log-entry {
+      margin: 4px 0;
+      padding: 4px 8px;
+      border-radius: 4px;
+    }
+
+    .log-entry.info {
+      background: rgba(59, 130, 246, 0.1);
+      color: #60a5fa;
+    }
+
+    .log-entry.success {
+      background: rgba(34, 197, 94, 0.1);
+      color: #22c55e;
+    }
+
+    .log-entry.error {
+      background: rgba(239, 68, 68, 0.1);
+      color: #ef4444;
+    }
+  </style>
+</head>
+<body>
+  <h1>🔔 NEXUS Alert Popup Performance Test</h1>
+  <p>Target: Initial load < 500ms</p>
+
+  <div>
+    <button id="runTest">Run Performance Test</button>
+    <button id="clearMetrics">Clear Metrics</button>
+  </div>
+
+  <div class="status">
+    <div class="metric">
+      <span class="metric-label">Total Load Time</span>
+      <span class="metric-value" id="totalTime">-</span>
+    </div>
+    <div class="metric">
+      <span class="metric-label">Storage Init</span>
+      <span class="metric-value" id="storageTime">-</span>
+    </div>
+    <div class="metric">
+      <span class="metric-label">UI Init</span>
+      <span class="metric-value" id="uiTime">-</span>
+    </div>
+    <div class="metric">
+      <span class="metric-label">Status</span>
+      <span class="metric-value" id="status">Ready</span>
+    </div>
+  </div>
+
+  <div class="iframe-container">
+    <iframe id="popupFrame" src="about:blank"></iframe>
+  </div>
+
+  <div class="log" id="log"></div>
+
+  <script>
+    const TARGET_MS = 500;
+    let testRunning = false;
+
+    function log(message, type = 'info') {
+      const logEl = document.getElementById('log');
+      const entry = document.createElement('div');
+      entry.className = `log-entry ${type}`;
+      entry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+      logEl.appendChild(entry);
+      logEl.scrollTop = logEl.scrollHeight;
+    }
+
+    function updateMetric(id, value, unit = 'ms') {
+      const el = document.getElementById(id);
+      el.textContent = value !== null ? `${value}${unit}` : '-';
+
+      if (id === 'totalTime' && typeof value === 'number') {
+        el.className = 'metric-value';
+        if (value < TARGET_MS) {
+          el.classList.add('good');
+        } else if (value < TARGET_MS * 1.5) {
+          el.classList.add('warning');
+        } else {
+          el.classList.add('bad');
+        }
+      }
+    }
+
+    function runTest() {
+      if (testRunning) return;
+      testRunning = true;
+
+      log('Starting performance test...', 'info');
+      updateMetric('totalTime', null);
+      updateMetric('storageTime', null);
+      updateMetric('uiTime', null);
+      updateMetric('status', 'Running', '');
+
+      const iframe = document.getElementById('popupFrame');
+      const startTime = performance.now();
+
+      // Listen for messages from popup
+      window.addEventListener('message', function handler(event) {
+        if (event.data.type === 'POPUP_PERFORMANCE') {
+          const metrics = event.data.metrics;
+          const totalTime = Math.round(performance.now() - startTime);
+
+          log(`Total load time: ${totalTime}ms`, totalTime < TARGET_MS ? 'success' : 'error');
+          log(`Storage init: ${metrics.storage || 0}ms`, 'info');
+          log(`UI init: ${metrics.ui || 0}ms`, 'info');
+
+          updateMetric('totalTime', totalTime);
+          updateMetric('storageTime', metrics.storage || 0);
+          updateMetric('uiTime', metrics.ui || 0);
+
+          if (totalTime < TARGET_MS) {
+            updateMetric('status', '✅ PASS', '');
+            log(`✅ PASS: Load time under ${TARGET_MS}ms`, 'success');
+          } else {
+            updateMetric('status', '❌ FAIL', '');
+            log(`❌ FAIL: Load time exceeds ${TARGET_MS}ms target`, 'error');
+          }
+
+          testRunning = false;
+          window.removeEventListener('message', handler);
+        }
+      });
+
+      // Load popup
+      iframe.src = 'popup.html?' + Date.now();
+
+      // Timeout after 5s
+      setTimeout(() => {
+        if (testRunning) {
+          log('❌ Test timed out after 5s', 'error');
+          updateMetric('status', 'Timeout', '');
+          testRunning = false;
+        }
+      }, 5000);
+    }
+
+    document.getElementById('runTest').addEventListener('click', runTest);
+
+    document.getElementById('clearMetrics').addEventListener('click', () => {
+      document.getElementById('log').innerHTML = '';
+      updateMetric('totalTime', null);
+      updateMetric('storageTime', null);
+      updateMetric('uiTime', null);
+      updateMetric('status', 'Ready', '');
+      log('Metrics cleared', 'info');
+    });
+
+    // Auto-run test on load
+    setTimeout(() => {
+      log('Auto-running initial test...', 'info');
+      runTest();
+    }, 500);
+  </script>
+</body>
+</html>

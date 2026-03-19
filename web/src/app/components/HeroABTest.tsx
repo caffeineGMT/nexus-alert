@@ -2,6 +2,7 @@
 
 import { useABTest } from './ABTestProvider';
 import { useEffect } from 'react';
+import { getChromeStoreUrl, shouldOpenInNewTab } from '@/lib/chrome-store';
 
 const HEADLINE_VARIANTS = {
   control: {
@@ -111,9 +112,9 @@ export default function HeroABTest() {
         {/* CTA Buttons */}
         <div className="flex flex-col sm:flex-row gap-4 justify-center mb-6">
           <a
-            href="https://chrome.google.com/webstore/detail/nexus-alert/EXTENSION_ID"
-            target="_blank"
-            rel="noopener noreferrer"
+            href={getChromeStoreUrl({ source: 'abtest', medium: 'hero', campaign: 'install', content: variant })}
+            target={shouldOpenInNewTab() ? "_blank" : undefined}
+            rel={shouldOpenInNewTab() ? "noopener noreferrer" : undefined}
             onClick={handleCTAClick}
             className="inline-flex items-center justify-center px-6 sm:px-8 py-3 sm:py-3.5 rounded-xl bg-[#3b82f6] text-white font-semibold text-sm sm:text-base hover:bg-[#2563eb] transition touch-manipulation shadow-lg hover:shadow-xl"
           >

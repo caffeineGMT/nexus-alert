@@ -9,7 +9,8 @@
     "notifications",
     "storage",
     "offscreen",
-    "tabs"
+    "tabs",
+    "idle"
   ],
   "host_permissions": [
     "https://ttp.cbp.dhs.gov/*",

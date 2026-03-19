@@ -1,6 +1,7 @@
 'use client';
 
 import { useABTest } from './ABTestProvider';
+import { getChromeStoreUrl, shouldOpenInNewTab } from '@/lib/chrome-store';
 
 interface CTAProps {
   variant?: 'primary' | 'secondary' | 'urgency' | 'social';
@@ -74,14 +75,14 @@ export default function ImprovedCTA({
   };
 
   const config = configs[variant];
-  const href = config.href || 'https://chrome.google.com/webstore/detail/nexus-alert/EXTENSION_ID';
+  const href = config.href || getChromeStoreUrl({ source: 'cta', medium: location, campaign: 'install', content: variant });
   const isExternal = !config.href;
 
   return (
     <a
       href={href}
-      target={isExternal ? "_blank" : undefined}
-      rel={isExternal ? "noopener noreferrer" : undefined}
+      target={isExternal && shouldOpenInNewTab() ? "_blank" : undefined}
+      rel={isExternal && shouldOpenInNewTab() ? "noopener noreferrer" : undefined}
       onClick={handleClick}
       className={`${config.className} ${sizeClasses[size]}`}
     >
@@ -102,9 +103,9 @@ export function FloatingCTA() {
   return (
     <div className="fixed bottom-6 right-6 z-40 hidden lg:block">
       <a
-        href="https://chrome.google.com/webstore/detail/nexus-alert/EXTENSION_ID"
-        target="_blank"
-        rel="noopener noreferrer"
+        href={getChromeStoreUrl({ source: 'floating', medium: 'cta', campaign: 'install', content: 'floating_button' })}
+        target={shouldOpenInNewTab() ? "_blank" : undefined}
+        rel={shouldOpenInNewTab() ? "noopener noreferrer" : undefined}
         onClick={handleClick}
         className="flex items-center gap-3 px-5 py-3 rounded-full bg-[#3b82f6] text-white font-semibold text-sm hover:bg-[#2563eb] transition shadow-2xl hover:shadow-3xl transform hover:scale-105 animate-bounce-slow"
       >

@@ -46,7 +46,8 @@ const lazyModules = {
   analytics: null,
   settings: null,
   referral: null,
-  i18n: null
+  i18n: null,
+  onboarding: null
 };
 
 async function loadModule(name, scriptPath) {
@@ -98,6 +99,45 @@ function deferI18n() {
         }
       });
     }, 200);
+  }
+}
+
+// Load onboarding system after initial render
+function deferOnboarding() {
+  if ('requestIdleCallback' in window) {
+    requestIdleCallback(() => {
+      loadModule('onboarding', '../popup-onboarding.js').then(mod => {
+        if (mod && mod.default) {
+          const onboarding = new mod.default();
+          onboarding.init();
+
+          if (mod.FeatureTooltips) {
+            const tooltips = new mod.FeatureTooltips();
+            tooltips.init();
+          }
+
+          // Make globally available for settings reset
+          window.onboardingManager = onboarding;
+        }
+      });
+    }, { timeout: 800 });
+  } else {
+    setTimeout(() => {
+      loadModule('onboarding', '../popup-onboarding.js').then(mod => {
+        if (mod && mod.default) {
+          const onboarding = new mod.default();
+          onboarding.init();
+
+          if (mod.FeatureTooltips) {
+            const tooltips = new mod.FeatureTooltips();
+            tooltips.init();
+          }
+
+          // Make globally available for settings reset
+          window.onboardingManager = onboarding;
+        }
+      });
+    }, 400);
   }
 }
 
@@ -304,6 +344,7 @@ async function init() {
     // Defer non-critical modules
     deferI18n();
     deferAnalytics();
+    deferOnboarding();
 
     // Measure performance
     measurePerformance();

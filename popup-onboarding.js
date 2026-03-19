@@ -572,4 +572,4 @@ export class FeatureTooltips {
 
 // ─── Export ─────────────────────────────────────────────────────────────
 
-export { OnboardingManager as default, FeatureTooltips };
+export { OnboardingManager as default };

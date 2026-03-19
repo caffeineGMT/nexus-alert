@@ -138,6 +138,20 @@
       <button class="btn btn-primary" id="checkNowBtn">Check Now</button>
       <button class="btn btn-secondary" id="openSiteBtn">Open GOES</button>
     </div>
+
+    <!-- Snooze Quick Actions -->
+    <div class="section" style="padding:12px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+        <div class="toggle-label" style="font-size:12px">⏸️ Quick Snooze</div>
+        <button id="snoozeSettingsBtn" style="background:none;border:none;color:var(--accent);font-size:11px;cursor:pointer;padding:2px 6px">Settings</button>
+      </div>
+      <div class="snooze-quick-actions" role="group" aria-label="Quick snooze options" style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px">
+        <button class="snooze-btn" data-minutes="15" aria-label="Snooze for 15 minutes">15m</button>
+        <button class="snooze-btn" data-minutes="60" aria-label="Snooze for 1 hour">1hr</button>
+        <button class="snooze-btn" data-minutes="240" aria-label="Snooze for 4 hours">4hr</button>
+        <button class="snooze-btn" data-minutes="480" aria-label="Snooze for 8 hours">8hr</button>
+      </div>
+    </div>
   </div>
 
   <!-- ─── Slots Tab ────────────────────────────── -->
@@ -445,6 +459,78 @@
           <input type="time" class="filter-input" id="quietTo" value="07:00" aria-label="Quiet hours end time">
         </div>
       </div>
+
+      <!-- OS Do Not Disturb -->
+      <div style="margin-top: 10px">
+        <div class="toggle-row">
+          <div>
+            <div class="toggle-label" id="os-quiet-label">Respect OS Do Not Disturb</div>
+            <div class="toggle-description">Auto-pause when your system is in DND mode (macOS/Windows)</div>
+          </div>
+          <label class="toggle-switch" aria-labelledby="os-quiet-label">
+            <input type="checkbox" id="osQuietToggle" checked aria-label="Enable OS quiet hours detection">
+            <span class="toggle-slider" role="presentation"></span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Advanced Throttling Settings -->
+      <div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--border)">
+        <div class="toggle-label" style="margin-bottom:4px">Smart Throttling</div>
+        <div class="toggle-description" style="margin-bottom:10px">Prevent notification spam with intelligent rate limiting</div>
+
+        <!-- Daily Notification Cap -->
+        <div style="margin-top:8px">
+          <div class="toggle-label" style="font-size:11px;color:var(--text-muted)">Daily Notification Cap</div>
+          <div class="toggle-description" style="font-size:10px;margin-bottom:6px">Max notifications per day (Premium: unlimited)</div>
+          <div style="display:flex;align-items:center;gap:8px">
+            <input type="number" class="filter-input" id="dailyCapInput" value="50" min="10" max="200" step="10" aria-label="Daily notification cap" style="flex:1">
+            <span style="font-size:11px;color:var(--text-muted)" id="dailyCapLabel">/ day</span>
+          </div>
+        </div>
+
+        <!-- Burst Protection -->
+        <div style="margin-top:8px">
+          <div class="toggle-row" style="border:none;padding:0">
+            <div>
+              <div class="toggle-label" style="font-size:11px;color:var(--text-muted)">Burst Protection</div>
+              <div class="toggle-description" style="font-size:10px">Limit rapid-fire notifications</div>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" id="burstProtectionToggle" checked aria-label="Enable burst protection">
+              <span class="toggle-slider" role="presentation"></span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Per-Location Cooldown -->
+        <div style="margin-top:8px">
+          <div class="toggle-label" style="font-size:11px;color:var(--text-muted)">Per-Location Cooldown</div>
+          <div class="toggle-description" style="font-size:10px;margin-bottom:6px">Minutes between notifications for same location</div>
+          <div style="display:flex;align-items:center;gap:8px">
+            <input type="number" class="filter-input" id="locationCooldownInput" value="5" min="0" max="60" step="5" aria-label="Location cooldown minutes" style="flex:1">
+            <span style="font-size:11px;color:var(--text-muted)">min</span>
+          </div>
+        </div>
+
+        <!-- Notification Stats -->
+        <div style="margin-top:12px;padding:10px;background:var(--bg-input);border-radius:6px">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+            <div class="toggle-label" style="font-size:11px">Today's Stats</div>
+            <button id="resetStatsBtn" style="background:none;border:none;color:var(--accent);font-size:10px;cursor:pointer;padding:2px 6px">Reset</button>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;font-size:10px">
+            <div>
+              <div style="color:var(--text-muted);margin-bottom:2px">Sent Today</div>
+              <div style="font-weight:600;font-size:16px" id="statNotifToday">0</div>
+            </div>
+            <div>
+              <div style="color:var(--text-muted);margin-bottom:2px">Total Sent</div>
+              <div style="font-weight:600;font-size:16px" id="statNotifTotal">0</div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- Sound Preferences Section -->
@@ -466,11 +552,17 @@
         <!-- Sound Type -->
         <div style="margin-top:8px">
           <div class="toggle-label">Alert Sound</div>
-          <div class="sound-type-options" role="radiogroup" aria-label="Select alert sound" style="margin-top:4px">
+          <div class="sound-type-options" role="radiogroup" aria-label="Select alert sound" style="margin-top:4px;display:grid;grid-template-columns:repeat(2,1fr);gap:4px">
             <button class="sound-type-btn active" data-sound="chime" role="radio" aria-checked="true">🔔 Chime</button>
             <button class="sound-type-btn" data-sound="bell" role="radio" aria-checked="false">🛎️ Bell</button>
             <button class="sound-type-btn" data-sound="urgent" role="radio" aria-checked="false">🚨 Urgent</button>
             <button class="sound-type-btn" data-sound="subtle" role="radio" aria-checked="false">💤 Subtle</button>
+            <button class="sound-type-btn" data-sound="alert" role="radio" aria-checked="false">⚠️ Alert</button>
+            <button class="sound-type-btn" data-sound="success" role="radio" aria-checked="false">✅ Success</button>
+            <button class="sound-type-btn" data-sound="notification" role="radio" aria-checked="false">📬 Notif</button>
+            <button class="sound-type-btn" data-sound="marimba" role="radio" aria-checked="false">🎵 Marimba</button>
+            <button class="sound-type-btn" data-sound="cosmic" role="radio" aria-checked="false">🌌 Cosmic</button>
+            <button class="sound-type-btn" data-sound="sonar" role="radio" aria-checked="false">📡 Sonar</button>
           </div>
         </div>
 
@@ -520,6 +612,17 @@
       </div>
     </div>
 
+    <!-- Help & Tutorial Section -->
+    <div class="section">
+      <div class="section-title">Help & Tutorial</div>
+      <p style="font-size:11px;color:var(--text-muted);margin-bottom:10px;line-height:1.5">
+        New to NEXUS Alert or need a refresher? Restart the interactive tutorial to learn about all features.
+      </p>
+      <button class="btn btn-secondary" id="restartTutorialBtn" style="width:100%">
+        Restart Tutorial
+      </button>
+    </div>
+
   </div>
 
   <!-- Footer -->
@@ -546,6 +649,6 @@
     </div>
   </div>
 
-  <script src="popup.js"></script>
+  <script type="module" src="popup.js"></script>
 </body>
 </html>

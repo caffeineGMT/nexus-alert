@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { getChromeStoreUrl, shouldOpenInNewTab } from '@/lib/chrome-store';
 
 /**
  * A/B Test: Hero Headline Variants
@@ -172,9 +173,9 @@ export default function HeroSection({ variant: propVariant, onCtaClick }: HeroSe
         </p>
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
           <a
-            href="https://chrome.google.com/webstore/detail/nexus-alert/EXTENSION_ID"
-            target="_blank"
-            rel="noopener noreferrer"
+            href={getChromeStoreUrl({ source: 'hero_variant', medium: 'hero', campaign: 'install', content: variant })}
+            target={shouldOpenInNewTab() ? "_blank" : undefined}
+            rel={shouldOpenInNewTab() ? "noopener noreferrer" : undefined}
             onClick={handleCtaClick}
             className="inline-flex items-center justify-center px-8 py-3.5 rounded-xl bg-[#3b82f6] text-white font-semibold text-base hover:bg-[#2563eb] transition"
           >
