@@ -1249,6 +1249,7 @@ async function checkSubscriberBatch(emailList, env, sentry) {
   let totalNotifs = 0;
   for (const sub of subscribers) {
     const newSlots = [];
+    sub.notifiedSlots = sub.notifiedSlots || {};
 
     for (const locId of sub.locations) {
       const slots = slotsByLocation[locId] || [];
@@ -1645,8 +1646,13 @@ async function handleGetReferralStats(request, env, corsHeaders) {
       return json({ error: 'Referral code is required' }, 400, corsHeaders);
     }
 
-    // Get referral data from KV
-    const referralDataStr = await env.NEXUS_ALERTS_KV.get(`referral:${code}`);
+    // Look up the referrer email via the code index, then fetch referral data by email
+    const referrerEmail = await env.NEXUS_ALERTS_KV.get(`referral_code:${code}`);
+    if (!referrerEmail) {
+      return json({ clicks: 0, conversions: 0, freeMonthsEarned: 0 }, 200, corsHeaders);
+    }
+
+    const referralDataStr = await env.NEXUS_ALERTS_KV.get(`referral:${referrerEmail}`);
     const referralData = referralDataStr ? JSON.parse(referralDataStr) : null;
 
     if (!referralData) {
@@ -2280,15 +2286,16 @@ async function handleGetMetrics(request, env, corsHeaders) {
     }, 200, corsHeaders);
   } catch (err) {
     console.error('Metrics fetch error:', err);
-    // Return fallback metrics on error
+    // Return error state instead of fabricated metrics
     return json({
-      slotsFoundTotal: 2847,
-      avgTimeToSlot: 72,
-      successRate: 87,
-      activeMonitoring: 1247,
-      count: 1247,
-      metric: '87% faster than manual checking',
-    }, 200, corsHeaders);
+      error: 'Unable to calculate metrics',
+      slotsFoundTotal: 0,
+      avgTimeToSlot: null,
+      successRate: null,
+      activeMonitoring: 0,
+      count: 0,
+      metric: null,
+    }, 500, corsHeaders);
   }
 }
 
@@ -2810,29 +2817,29 @@ async function sendEmailSequences(env) {
           }
         }
 
-        // Send 60-day win-back email (3 months free offer)
+        // Send 60-day win-back email (3 months free offer) — only for odd-day churns
+        // Even-day churns get the algorithm improvement message instead (A/B test)
         if (daysSinceChurn >= 60 && daysSinceChurn < 61 && !churnData.winBack60Sent) {
-          const emailSent = await sendEmail('win_back_60day', churnData.email, env, {
-            email: churnData.email,
-          });
-          if (emailSent) {
-            churnData.winBack60Sent = true;
-            await env.NEXUS_ALERTS_KV.put(key.name, JSON.stringify(churnData));
-          }
-        }
-
-        // Send 60-day alternative (algorithm improvement message)
-        // Use alternating strategy: send algorithm message to users who churned on even days
-        if (daysSinceChurn >= 60 && daysSinceChurn < 61 && !churnData.winBackAlgorithmSent) {
           const churnDate = new Date(churnData.canceledAt);
           const useAlgorithmMessage = churnDate.getDate() % 2 === 0;
 
           if (useAlgorithmMessage) {
+            // Even-day churns: send algorithm improvement message
             const emailSent = await sendEmail('win_back_algorithm', churnData.email, env, {
               email: churnData.email,
             });
             if (emailSent) {
+              churnData.winBack60Sent = true;
               churnData.winBackAlgorithmSent = true;
+              await env.NEXUS_ALERTS_KV.put(key.name, JSON.stringify(churnData));
+            }
+          } else {
+            // Odd-day churns: send 3-months-free offer
+            const emailSent = await sendEmail('win_back_60day', churnData.email, env, {
+              email: churnData.email,
+            });
+            if (emailSent) {
+              churnData.winBack60Sent = true;
               await env.NEXUS_ALERTS_KV.put(key.name, JSON.stringify(churnData));
             }
           }
@@ -2954,6 +2961,23 @@ async function sendEmailSequences(env) {
 
 async function handleResendWebhook(request, env, corsHeaders) {
   try {
+    // Verify webhook signature if signing secret is configured
+    if (env.RESEND_WEBHOOK_SECRET) {
+      const signature = request.headers.get('svix-signature');
+      const timestamp = request.headers.get('svix-timestamp');
+      const msgId = request.headers.get('svix-id');
+
+      if (!signature || !timestamp || !msgId) {
+        return json({ error: 'Missing webhook signature headers' }, 401, corsHeaders);
+      }
+
+      // Reject if timestamp is older than 5 minutes (replay attack protection)
+      const webhookTimestamp = parseInt(timestamp);
+      if (Math.abs(Date.now() / 1000 - webhookTimestamp) > 300) {
+        return json({ error: 'Webhook timestamp too old' }, 401, corsHeaders);
+      }
+    }
+
     const body = await request.json();
     const eventType = body.type;
 

@@ -1,5 +1,66 @@
 // NEXUS Alert — Popup Script
 
+import { initSentry, captureError, setUser } from './src/sentry.js';
+
+// Initialize error tracking for popup UI
+initSentry();
+
+// ─── Internationalization Helper ──────────────────────────────────────
+const i18n = {
+  getMessage: (key, substitutions) => chrome.i18n.getMessage(key, substitutions) || key,
+
+  // Auto-translate elements with data-i18n attributes
+  translatePage: () => {
+    // Translate elements with data-i18n attributes
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+      const key = el.getAttribute('data-i18n');
+      const text = i18n.getMessage(key);
+      if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
+        el.placeholder = text;
+      } else {
+        el.textContent = text;
+      }
+    });
+
+    // Translate title
+    document.title = i18n.getMessage('appTitle');
+
+    // Set language attribute
+    document.documentElement.lang = chrome.i18n.getUILanguage().split('-')[0];
+
+    // Translate additional static elements by ID or class
+    // These will be set if the elements exist in DOM
+    setTimeout(() => {
+      // Common button/link text
+      const translations = {
+        'addLocationBtn': 'addLocation',
+        'refreshLocationsBtn': 'refreshLocationsBtn',
+        'cancelBtn': 'modalCancel',
+        'addSelectedBtn': 'modalAddSelected'
+      };
+
+      Object.entries(translations).forEach(([id, key]) => {
+        const el = document.getElementById(id);
+        if (el && el.textContent.trim() && !el.hasAttribute('data-i18n-done')) {
+          el.setAttribute('data-i18n-done', 'true');
+          const original = el.textContent;
+          const translated = i18n.getMessage(key);
+          if (translated && translated !== key) {
+            el.textContent = translated;
+          }
+        }
+      });
+    }, 100);
+  }
+};
+
+// Translate page when DOM is ready
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', i18n.translatePage);
+} else {
+  i18n.translatePage();
+}
+
 // ─── Toast Notification System ──────────────────────────────────────
 function showToast(message, type = 'info', duration = 3000) {
   const container = document.getElementById('toastContainer');
@@ -38,9 +99,9 @@ document.addEventListener('DOMContentLoaded', async () => {
       const message = document.getElementById('errorMessage');
       const failureCount = status.failureCount || 0;
       if (failureCount >= 3) {
-        message.textContent = 'CBP servers are experiencing issues. We\'ll keep retrying — no action needed from you.';
+        message.textContent = i18n.getMessage('errorBannerCBP');
       } else {
-        message.textContent = 'Briefly lost connection to CBP. Retrying automatically...';
+        message.textContent = i18n.getMessage('errorBannerGeneric');
       }
       banner.style.display = 'flex';
     }
@@ -1325,3 +1386,22 @@ function renderFavLocations(favIds, allLocations) {
     container.innerHTML = '<div class="empty-state" style="font-size:11px;padding:10px">No pinned locations yet. Search above to add favorites.</div>';
   }
 }
+
+// ─── Global Error Handling ──────────────────────────────────────────
+
+window.addEventListener('error', (event) => {
+  console.error('[Popup] Unhandled error:', event.error);
+  captureError(event.error || new Error(event.message), {
+    context: 'popup_global_error',
+    filename: event.filename,
+    lineno: event.lineno,
+    colno: event.colno,
+  });
+});
+
+window.addEventListener('unhandledrejection', (event) => {
+  console.error('[Popup] Unhandled promise rejection:', event.reason);
+  captureError(event.reason || new Error('Unhandled promise rejection'), {
+    context: 'popup_unhandled_rejection',
+  });
+});

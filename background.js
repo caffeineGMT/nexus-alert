@@ -145,6 +145,11 @@ async function checkAllLocations() {
   const { config, lastCheckedAt } = await chrome.storage.local.get(['config', 'lastCheckedAt']);
   if (!config?.enabled) return;
 
+  // Set user context for error tracking
+  if (config.email) {
+    setUser({ email: config.email, tier: config.tier || 'free' });
+  }
+
   // Free tier: enforce 30-min rate limit
   if (config.tier !== 'premium') {
     if (lastCheckedAt && Date.now() - lastCheckedAt < 30 * 60 * 1000) {
@@ -442,7 +447,13 @@ async function updateBadge(count) {
 
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   if (msg.action === 'checkNow') {
-    checkAllLocations().then(() => sendResponse({ success: true }));
+    checkAllLocations().then((result) => {
+      if (result && result.skipped) {
+        sendResponse({ success: false, skipped: true, reason: result.reason, nextCheckIn: result.nextCheckIn });
+      } else {
+        sendResponse({ success: true });
+      }
+    });
     return true;
   }
   if (msg.action === 'updateConfig') {

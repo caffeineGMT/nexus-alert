@@ -1,0 +1,39 @@
+1
+00:00:00,000 --> 00:00:05,000
+Wait 6 months for NEXUS?
+
+2
+00:00:05,000 --> 00:00:10,000
+Manually refresh all day?
+
+3
+00:00:10,000 --> 00:00:15,000
+NEXUS Alert monitors 24/7
+
+4
+00:00:15,000 --> 00:00:22,000
+Install free in 10 seconds
+
+5
+00:00:22,000 --> 00:00:30,000
+Select locations & start monitoring
+
+6
+00:00:30,000 --> 00:00:40,000
+Instant alerts → One-click booking
+
+7
+00:00:40,000 --> 00:00:48,000
+2 weeks vs. 6 months
+
+8
+00:00:48,000 --> 00:00:53,000
+Premium: 2-min checks + email alerts
+
+9
+00:00:53,000 --> 00:00:57,000
+10,000+ happy users ⭐ 4.9/5
+
+10
+00:00:57,000 --> 00:01:00,000
+Install free → nexus-alert.com

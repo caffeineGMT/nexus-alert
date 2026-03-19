@@ -1,0 +1,248 @@
+{
+  "extName": {
+    "message": "NEXUS Alert - Recherche de Rendez-vous pour NEXUS, Global Entry et SENTRI"
+  },
+  "extDescription": {
+    "message": "Recherche de rendez-vous NEXUS et alertes Global Entry. Recevez des notifications instantanées lorsque des plages horaires NEXUS, Global Entry et SENTRI s'ouvrent."
+  },
+  "appTitle": {
+    "message": "NEXUS Alert"
+  },
+  "upgradeToPro": {
+    "message": "Passer à Pro"
+  },
+  "statusActive": {
+    "message": "Statut : Actif"
+  },
+  "statusPaused": {
+    "message": "Statut : Suspendu"
+  },
+  "statusChecking": {
+    "message": "Vérification..."
+  },
+  "nextCheckIn": {
+    "message": "Prochaine vérification dans"
+  },
+  "minutes": {
+    "message": "minutes"
+  },
+  "minute": {
+    "message": "minute"
+  },
+  "pauseMonitoring": {
+    "message": "Suspendre la Surveillance"
+  },
+  "resumeMonitoring": {
+    "message": "Reprendre la Surveillance"
+  },
+  "errorBannerCBP": {
+    "message": "Les serveurs CBP rencontrent des problèmes. Nous continuerons à réessayer — aucune action requise de votre part."
+  },
+  "errorBannerGeneric": {
+    "message": "Problème de connexion détecté. Nouvelle tentative automatique..."
+  },
+  "dismissError": {
+    "message": "Ignorer"
+  },
+  "locationsTitle": {
+    "message": "Emplacements"
+  },
+  "addLocation": {
+    "message": "+ Ajouter un Emplacement"
+  },
+  "noLocationsAdded": {
+    "message": "Aucun emplacement ajouté pour le moment"
+  },
+  "clickToAddFirst": {
+    "message": "Cliquez sur \"+ Ajouter un Emplacement\" pour commencer la surveillance"
+  },
+  "enableLocation": {
+    "message": "Activer l'emplacement"
+  },
+  "disableLocation": {
+    "message": "Désactiver l'emplacement"
+  },
+  "removeLocation": {
+    "message": "Supprimer l'emplacement"
+  },
+  "configurationTitle": {
+    "message": "Configuration"
+  },
+  "checkFrequency": {
+    "message": "Fréquence de Vérification"
+  },
+  "every5Minutes": {
+    "message": "Toutes les 5 minutes"
+  },
+  "every10Minutes": {
+    "message": "Toutes les 10 minutes"
+  },
+  "every15Minutes": {
+    "message": "Toutes les 15 minutes"
+  },
+  "every30Minutes": {
+    "message": "Toutes les 30 minutes"
+  },
+  "every1Hour": {
+    "message": "Toutes les heures"
+  },
+  "soundAlerts": {
+    "message": "Alertes Sonores"
+  },
+  "on": {
+    "message": "Activé"
+  },
+  "off": {
+    "message": "Désactivé"
+  },
+  "preferredProgram": {
+    "message": "Programme Préféré"
+  },
+  "allPrograms": {
+    "message": "Tous les Programmes"
+  },
+  "nexusOnly": {
+    "message": "NEXUS Uniquement"
+  },
+  "globalEntryOnly": {
+    "message": "Global Entry Uniquement"
+  },
+  "sentriOnly": {
+    "message": "SENTRI Uniquement"
+  },
+  "dateRange": {
+    "message": "Plage de Dates"
+  },
+  "anyDate": {
+    "message": "N'importe quelle date"
+  },
+  "next30Days": {
+    "message": "30 prochains jours"
+  },
+  "next60Days": {
+    "message": "60 prochains jours"
+  },
+  "next90Days": {
+    "message": "90 prochains jours"
+  },
+  "customDateRange": {
+    "message": "Plage personnalisée"
+  },
+  "startDate": {
+    "message": "Date de Début"
+  },
+  "endDate": {
+    "message": "Date de Fin"
+  },
+  "timeOfDay": {
+    "message": "Moment de la Journée"
+  },
+  "anyTime": {
+    "message": "N'importe quand"
+  },
+  "morningOnly": {
+    "message": "Matin uniquement (6h-12h)"
+  },
+  "afternoonOnly": {
+    "message": "Après-midi uniquement (12h-18h)"
+  },
+  "eveningOnly": {
+    "message": "Soirée uniquement (18h-22h)"
+  },
+  "recentSlotsFound": {
+    "message": "Créneaux Récemment Trouvés"
+  },
+  "noSlotsYet": {
+    "message": "Aucun créneau trouvé pour le moment"
+  },
+  "keepMonitoring": {
+    "message": "Continuez la surveillance — nous vous avertirons lorsque des rendez-vous s'ouvriront !"
+  },
+  "slotAvailableAt": {
+    "message": "Créneau disponible à"
+  },
+  "bookNow": {
+    "message": "Réserver Maintenant"
+  },
+  "justNow": {
+    "message": "à l'instant"
+  },
+  "minutesAgo": {
+    "message": "min passées"
+  },
+  "hoursAgo": {
+    "message": "h passées"
+  },
+  "daysAgo": {
+    "message": "j passés"
+  },
+  "footerNeedHelp": {
+    "message": "Besoin d'aide ?"
+  },
+  "visitHelpCenter": {
+    "message": "Visiter le Centre d'Aide"
+  },
+  "modalAddLocationTitle": {
+    "message": "Ajouter un Emplacement"
+  },
+  "modalSearchPlaceholder": {
+    "message": "Rechercher des emplacements..."
+  },
+  "modalNoResults": {
+    "message": "Aucun emplacement correspondant"
+  },
+  "modalCancel": {
+    "message": "Annuler"
+  },
+  "modalAddSelected": {
+    "message": "Ajouter la Sélection"
+  },
+  "toastLocationAdded": {
+    "message": "Emplacement ajouté avec succès"
+  },
+  "toastLocationRemoved": {
+    "message": "Emplacement supprimé"
+  },
+  "toastLocationEnabled": {
+    "message": "Emplacement activé"
+  },
+  "toastLocationDisabled": {
+    "message": "Emplacement désactivé"
+  },
+  "toastMonitoringPaused": {
+    "message": "Surveillance suspendue"
+  },
+  "toastMonitoringResumed": {
+    "message": "Surveillance reprise"
+  },
+  "toastConfigSaved": {
+    "message": "Paramètres enregistrés"
+  },
+  "toastErrorSaving": {
+    "message": "Erreur lors de l'enregistrement des paramètres"
+  },
+  "toastPleaseSelectLocation": {
+    "message": "Veuillez sélectionner au moins un emplacement"
+  },
+  "errorInvalidDateRange": {
+    "message": "La date de fin doit être postérieure à la date de début"
+  },
+  "proFeatureLabel": {
+    "message": "PRO"
+  },
+  "proFeatureTooltip": {
+    "message": "Passez à Pro pour cette fonctionnalité"
+  },
+  "statsChecksPerformed": {
+    "message": "vérifications effectuées"
+  },
+  "statsSlotsFound": {
+    "message": "créneaux trouvés"
+  },
+  "statsLastCheck": {
+    "message": "Dernière vérification"
+  },
+  "statsNever": {
+    "message": "Jamais"
+  }
+}

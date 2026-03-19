@@ -1,10 +1,14 @@
 import type { NextConfig } from "next";
+import { withSentryConfig } from "@sentry/nextjs";
 
 const nextConfig: NextConfig = {
   output: "export",
   images: { unoptimized: true },
   // Use basePath only for GitHub Pages preview (not for Vercel production)
   basePath: process.env.NEXT_PUBLIC_BASE_PATH || '',
+  experimental: {
+    instrumentationHook: true,
+  },
   headers: async () => [
     {
       source: '/(.*)',
@@ -25,4 +29,22 @@ const nextConfig: NextConfig = {
   ],
 };
 
-export default nextConfig;
+export default withSentryConfig(nextConfig, {
+  // Sentry webpack plugin options
+  silent: true,
+  org: "nexus-alert",
+  project: "web",
+
+  // Upload source maps during build
+  widenClientFileUpload: true,
+
+  // Automatically tree-shake Sentry logger statements to reduce bundle size
+  disableLogger: true,
+
+  // Hide source maps from generated client bundles
+  hideSourceMaps: true,
+
+  // Automatically instrument Next.js data fetching functions for performance monitoring
+  automaticVercelMonitors: true,
+});
+
